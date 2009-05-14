@@ -1,0 +1,8 @@
+LIBRARY      "JTSPUI"
+EXPORTS
+	TUISPI_providerConfig
+	TUISPI_providerInstall
+	TUISPI_providerRemove
+	TUISPI_lineConfigDialog
+	TUISPI_phoneConfigDialog
+	

@@ -1,0 +1,27 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DSSP", ".\TSP\DSSP.vcproj", "{9F79D3AE-C1C3-4BF3-A275-5A3764A4D16D}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Debug Unicode = Debug Unicode
+		Release = Release
+		Release Unicode = Release Unicode
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{9F79D3AE-C1C3-4BF3-A275-5A3764A4D16D}.Debug.ActiveCfg = Debug|Win32
+		{9F79D3AE-C1C3-4BF3-A275-5A3764A4D16D}.Debug.Build.0 = Debug|Win32
+		{9F79D3AE-C1C3-4BF3-A275-5A3764A4D16D}.Debug Unicode.ActiveCfg = Debug Unicode|Win32
+		{9F79D3AE-C1C3-4BF3-A275-5A3764A4D16D}.Debug Unicode.Build.0 = Debug Unicode|Win32
+		{9F79D3AE-C1C3-4BF3-A275-5A3764A4D16D}.Release.ActiveCfg = Release|Win32
+		{9F79D3AE-C1C3-4BF3-A275-5A3764A4D16D}.Release.Build.0 = Release|Win32
+		{9F79D3AE-C1C3-4BF3-A275-5A3764A4D16D}.Release Unicode.ActiveCfg = Release Unicode|Win32
+		{9F79D3AE-C1C3-4BF3-A275-5A3764A4D16D}.Release Unicode.Build.0 = Release Unicode|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

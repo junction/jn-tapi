@@ -1,0 +1,20 @@
+
+usual installation
+------------------
+
+./configure
+make
+make install
+
+
+relevant configure options
+--------------------------
+
+By default, GnuTLS will be used for stream encryption if it is found. If not,
+the system will be checked for OpenSSL. If you don't want to use GnuTLS even
+though you have it installed, use the
+
+--without-gnutls
+
+switch to configure.
+

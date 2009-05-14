@@ -1,0 +1,405 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 3,0,5,0
+ PRODUCTVERSION 3,0,5,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "JulMar Technology, Inc."
+            VALUE "FileDescription", "JTSP User Interface Module"
+            VALUE "FileVersion", "3, 0, 5, 0"
+            VALUE "InternalName", "JTspUI"
+            VALUE "LegalCopyright", "Copyright © 2002 JulMar Technology, Inc."
+            VALUE "OriginalFilename", "JTspUI.dll"
+            VALUE "ProductName", "JulMar Technology, Inc. JTspUI"
+            VALUE "ProductVersion", "3, 0, 5, 0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_GENERAL_PAGE DIALOGEX 0, 0, 213, 178
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "General"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "PBX Simulator Information",IDC_STATIC,7,7,199,53
+    LTEXT           "Server Location:",IDC_STATIC,10,19,56,9
+    CONTROL         "IPAddress1",IDC_SERVERIPADDRESS,"SysIPAddress32",
+                    WS_TABSTOP,69,18,131,12
+    LTEXT           "Port:",IDC_STATIC,10,39,26,9
+    EDITTEXT        IDC_PORT,69,37,34,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_WRAP | 
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS | UDS_NOTHOUSANDS,102,36,10,14
+    LTEXT           "If you have stored all the switch configuration in a text file (using the File/Export command), you can configure the TSP directly from that information.",
+                    IDC_STATIC,15,66,185,46
+    PUSHBUTTON      "&Auto Configure",IDC_AUTOCONFIG,138,90,55,16
+    CTEXT           "Copyright © 2002 JulMar Technology, Inc.",IDC_STATIC,7,
+                    159,199,10,SS_CENTERIMAGE | WS_DISABLED
+END
+
+IDD_LINE_PAGE DIALOGEX 0, 0, 213, 178
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Lines"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "Line Devices Configured on this system",IDC_STATIC,7,7,
+                    199,99
+    CONTROL         "List1",IDC_LINES,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,13,18,186,82
+    PUSHBUTTON      "&Add",IDC_ADD,35,113,44,15
+    PUSHBUTTON      "&Remove",IDC_REMOVE,85,113,44,15,WS_DISABLED
+    PUSHBUTTON      "Pro&perties",IDC_PROPERTIES,134,113,44,15,WS_DISABLED
+    CTEXT           "Copyright © 2002 JulMar Technology, Inc.",IDC_STATIC,7,
+                    159,199,10,SS_CENTERIMAGE | WS_DISABLED
+END
+
+IDD_GROUP_PAGE DIALOGEX 0, 0, 214, 178
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Groups"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "Agent Groups defined on this system",IDC_STATIC,7,7,199,
+                    99
+    CONTROL         "List1",IDC_GROUPS,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,13,18,186,82
+    PUSHBUTTON      "&Add",IDC_ADD,35,113,44,15
+    PUSHBUTTON      "&Remove",IDC_REMOVE,85,113,44,15,WS_DISABLED
+    PUSHBUTTON      "Pro&perties",IDC_PROPERTIES,134,113,44,15,WS_DISABLED
+    CTEXT           "Copyright © 2002 JulMar Technology, Inc.",IDC_STATIC,7,
+                    159,199,10,SS_CENTERIMAGE | WS_DISABLED
+END
+
+IDD_ACTIVITY_PAGE DIALOGEX 0, 0, 214, 178
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Activities"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "Agent Activities defined on this system",IDC_STATIC,7,7,
+                    199,99
+    CONTROL         "List1",IDC_ACTIVITY,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,13,18,186,82
+    PUSHBUTTON      "&Add",IDC_ADD,35,113,44,15
+    PUSHBUTTON      "&Remove",IDC_REMOVE,85,113,44,15,WS_DISABLED
+    PUSHBUTTON      "Pro&perties",IDC_PROPERTIES,134,113,44,15,WS_DISABLED
+    CTEXT           "Copyright © 2002 JulMar Technology, Inc.",IDC_STATIC,7,
+                    159,199,10,SS_CENTERIMAGE | WS_DISABLED
+END
+
+IDD_ACTIVITY_PROP DIALOG  0, 0, 198, 188
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Agent Activity"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDI_ACTIVITY,IDC_STATIC,7,7,20,20
+    LTEXT           "The Agent Activity item is used to associate different activities with an agents time.",
+                    IDC_STATIC,33,16,153,20,SS_NOPREFIX
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,43,184,1
+    LTEXT           "Activity ID:",IDC_STATIC,14,58,40,9
+    EDITTEXT        IDC_ACTIVITYID,60,56,34,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    WS_DISABLED
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_WRAP | 
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS | UDS_NOTHOUSANDS | WS_DISABLED,93,55,10,
+                    14
+    LTEXT           "(Assigned by PBX)",IDC_STATIC,107,58,79,8
+    LTEXT           "Activity Name:",IDC_STATIC,14,80,53,8
+    EDITTEXT        IDC_ACTIVITY_NAME,71,78,112,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,110,183,1
+END
+
+IDD_LINE_PROP DIALOG  0, 0, 198, 188
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Line Properties"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDI_LINE,IDC_STATIC,7,7,20,20
+    LTEXT           "The line device is a physical connector for end-points in the PBX system.",
+                    IDC_STATIC,37,16,144,20,SS_NOPREFIX
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,43,184,1
+    LTEXT           "Extension:",IDC_STATIC,14,58,40,9
+    EDITTEXT        IDC_EXTENSION,60,56,34,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    WS_DISABLED
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_WRAP | 
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS | UDS_NOTHOUSANDS | WS_DISABLED,93,55,10,
+                    14
+    LTEXT           "Line Name:",IDC_STATIC,14,80,53,8
+    EDITTEXT        IDC_LINE_NAME,71,78,112,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,106,183,1
+    CONTROL         "Station",IDC_STATION,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,18,115,64,8
+    CONTROL         "Queue",IDC_QUEUE,"Button",BS_AUTORADIOBUTTON,108,115,64,
+                    8
+    CONTROL         "Route Point",IDC_ROUTEPOINT,"Button",BS_AUTORADIOBUTTON,
+                    18,130,64,8
+    CONTROL         "Predictive Dialer",IDC_PDIALER,"Button",
+                    BS_AUTORADIOBUTTON,108,130,66,8
+    CONTROL         "VRU",IDC_VRU,"Button",BS_AUTORADIOBUTTON,18,145,64,8
+    CONTROL         "Trunk",IDC_TRUNK,"Button",BS_AUTORADIOBUTTON,108,145,64,
+                    8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ | WS_GROUP,7,163,
+                    182,1
+    LTEXT           "(Assigned by PBX)",IDC_STATIC,109,58,70,9
+END
+
+IDD_GROUP_PROP DIALOG  0, 0, 198, 188
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Agent Group"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDI_GROUP,IDC_STATIC,7,7,20,20
+    LTEXT           "The Agent Group item allows for the organization of agents within a collective body.",
+                    IDC_STATIC,33,16,153,20,SS_NOPREFIX
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,43,184,1
+    LTEXT           "Group ID:",IDC_STATIC,14,58,40,9
+    EDITTEXT        IDC_GROUPID,53,56,65,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    WS_DISABLED
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_WRAP | 
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS | UDS_NOTHOUSANDS | WS_DISABLED,109,55,10,
+                    14
+    LTEXT           "Group Name:",IDC_STATIC,14,80,53,8
+    EDITTEXT        IDC_GROUP_NAME,71,78,112,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,110,183,1
+    LTEXT           "(Assigned by PBX)",IDC_STATIC,125,58,61,8
+END
+
+IDD_PHONE_PROP DIALOG  0, 0, 198, 188
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Phone Properties"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDI_PHONE,IDC_STATIC,7,7,20,20
+    LTEXT           "A phone device is associated with each station defined in the configuration.",
+                    IDC_STATIC,37,16,144,20,SS_NOPREFIX
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,43,184,1
+    LTEXT           "Extension:",IDC_STATIC,14,58,40,9
+    LTEXT           "Name:",IDC_STATIC,14,80,31,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,106,183,1
+    LTEXT           "Static",IDC_EXTENSION,66,58,95,9
+    LTEXT           "Static",IDC_NAME,66,80,95,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_GENERAL_PAGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 206
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 171
+    END
+
+    IDD_LINE_PAGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 206
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 171
+    END
+
+    IDD_GROUP_PAGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 207
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 171
+    END
+
+    IDD_ACTIVITY_PAGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 207
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 171
+    END
+
+    IDD_ACTIVITY_PROP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 191
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 181
+    END
+
+    IDD_LINE_PROP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 191
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 181
+    END
+
+    IDD_GROUP_PROP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 191
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 181
+    END
+
+    IDD_PHONE_PROP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 191
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 181
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ACTIVITY            ICON                    "res\\activity.ico"
+IDI_LINE                ICON                    "res\\line.ico"
+IDI_GROUP               ICON                    "res\\group.ico"
+IDI_PHONE               ICON                    "res\\phone.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_CAPTION             "JPBX TAPI Provider Properties"
+    IDS_LINEID              "Line ID"
+    IDS_NAME                "Name"
+    IDS_TYPE                "Line Type"
+    IDS_REMOVELINE          "If you remove this line from the configuration it may cause problems with event flow if the line still exists in the PBX configuration.\n\nAre you sure you want to remove this line?"
+    IDS_REMOVEALL           "You have existing configuration data which will be replaced if you continue this operation.\n\nAre you sure you want to replace (delete) your existing configuration data?"
+    IDS_GROUPID             "Group ID"
+    IDS_REMOVEGROUP         "If you remove this group from the configuration it may cause problems with agent logons and station usage if the group is still in the PBX configuration.\n\nAre you sure you want to remove this group?"
+    IDS_ACTID               "Activity"
+    IDS_REMOVEACTIVITY      "Are you sure you want to remove this agent activity?"
+    IDS_PROPCAPTION         "Properties"
+    IDS_BADACTIVITYID       "The activity identifier you have entered is illegal.  The number must be between 1 and 9999."
+    IDS_BADACTIVITYNAME     "You must enter an activity name."
+    IDS_ACTIVITYEXISTS      "The activity id you have entered already exists in the service provider database.  Please use a unique number or edit the existing entry."
+    IDS_BADTRUNKDIALER      "You have entered an invalid extension for the type of device you have requested.  The valid range is from 1 to 999."
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDP_PARSE_INT_RANGE "Please enter an integer between %1 and %2."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_BADQUEUE            "You have entered an invalid extension for the type of device you have requested.  The valid range is from 9000 to 9999"
+    IDS_BADSTATION          "You have entered an invalid extension for the type of device you have requested.  The valid range is from 1000 to 8999."
+    IDS_LINEEXISTS          "The extension you have entered is already assigned to an existing line device.  Please use a unique number or edit the existing line device."
+    IDS_BADLINENAME         "You must enter a line name."
+    IDS_GROUPEXISTS         "The group you have entered already exists in the service provider database.  Please use a unique number or edit the existing group."
+    IDS_BADGROUPNAME        "You must enter a group name"
+    IDS_BADGROUPID          "You have entered an invalid group id.  The valid range is from 1 to 9999999."
+    IDS_COUNT               "Successfully loaded %d lines, %d phones and %d Agent Groups."
+    IDS_AUTOLOADERR         "Error loading the PBX configuration file."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

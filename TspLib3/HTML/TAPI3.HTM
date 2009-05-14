@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<title>TSP++ SDK Contents</title>
+<base target="_self">
+</head>
+
+<body bgcolor="#FFFFFF" alink=#23238E vlink=#000000 link=#23238E>
+
+<TABLE cellspacing=3 cellpadding=3>
+<TR valign=top>
+<TD colspan=2>
+
+
+<p><font size="4" face="Verdana, Arial, Helvetica"><strong>Adding TSP++ </strong><a name="intro"><strong>Support
+for TAPI 3.0 and 3.1</strong></a></font></p>
+
+<p>This version of TSP++ includes support for TAPI 3.0 for Windows
+2000 or Windows XP.</p>
+
+<p>In order to use the TAPI 3 support, you will need the latest version of <strong>TAPI.H</strong>
+and<strong> TSPI.H</strong>.&nbsp; Both of these may be obtained from the Windows 2000
+Platform SDK.&nbsp; If the following definitions are not in <strong>TSPI.H</strong>
+then you need a newer version of the headers:</p>
+
+<p><strong><u>TSPI_lineGetCallIDs<br>
+TSPI_lineMSPIdentify<br>
+TSPI_lineCreateMSPInstance<br>
+TSPI_lineCloseMSPInstance</u></strong></p>
+
+<p>By default, the TAPI 3 support is <b><u>not</u></b> compiled when you build
+the TSP++ library.
+This is to allow the library to be used with older versions of TSPI.H which don't have the
+newer definitions. To enable TAPI 3 support, you will need to recompile the source code
+into new libraries with the <b>TSPBuild </b>batch file using the command-line
+option &quot;tapi3&quot;.&nbsp; For example:</p>
+
+<p style="border-style: double"><a href="file:///C:/TSPLIB3">C:\TSPLIB3</a>&gt; <b>TSPBuild
+tapi3<br>
+</b>Building TAPI 3.x compatible libraries<br>
+Microsoft (R) Program Maintenance Utility   Version 6.00.8168.0<br>
+Copyright (C) Microsoft Corp 1988-1998. All rights reserved.<br>
+....</p>
+
+<p>The derived TSP project must then correctly set the <strong>TAPI_CURRENT_VERSION</strong> flag
+to 3.0 or better to add the proper TAPI support into your project. <u><b>This is
+critical to ensure that the TAPI structures and functions match up with your
+compiled version of TSP++</b></u>.&nbsp; If you selected TAPI 3.x as your target
+in the TSPWizard, this step is done for you.&nbsp; To verify this look in the <b>stdafx.h</b>
+file for the following line:</p>
+
+<p><b>#define TAPI_CURRENT_VERSION 0x00030000</b></p>
+
+
+<p>This line must be present <i>before</i> tapi.h or tspi.h are included in the
+project.</p>
+
+
+</td>
+</tr>
+</table>
+
+<hr>
+
+
+
+<BR>
+<BR>
+<center>
+<font size=1>Copyright © 2004 JulMar Technology, Inc.</font>
+<BR>
+<BR>
+</center>
+</body></HTML>
+
+

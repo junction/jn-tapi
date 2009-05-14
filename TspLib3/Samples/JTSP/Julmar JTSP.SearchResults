@@ -1,0 +1,395 @@
+---- MakeCall Matches (0 in 0 files) ----
+---- CConnection Matches (13 in 3 files) ----
+Interface.cpp (tsp):CConnection::CConnection() : m_hSocket(INVALID_SOCKET)
+Interface.cpp (tsp):CConnection::~CConnection()
+Interface.cpp (tsp):void CConnection::Close()
+Interface.cpp (tsp):bool CConnection::Connect(LPCTSTR pszHostAddress, int nPort)
+Interface.cpp (tsp):bool CConnection::Send(LPCSTR pszBuff, int nBufSize)
+Interface.cpp (tsp):int CConnection::Receive(LPSTR pszBuff, int nBufSize)
+Interface.cpp (tsp):bool CConnection::HasData()
+Interface.cpp (tsp):bool CConnection::WaitForData(TString& strData)
+Interface.cpp (tsp):bool _cdecl CConnection::SendEvent(LPCTSTR pszEvent, ...)
+Interface.h (tsp):class CConnection
+Interface.h (tsp):inline bool CConnection::IsValid() const
+Jtsp.h (tsp):	CConnection m_connPBX;								// Connection to PBX (WinSock)
+Jtsp.h (tsp):	inline CConnection* GetPBX() { return &m_connPBX; }
+---- m_connPBX Matches (8 in 2 files) ----
+Device.cpp (tsp):	m_connPBX.Close();
+Device.cpp (tsp):			if (!m_connPBX.Connect(m_strIPAddress.c_str(), m_nPort))
+Device.cpp (tsp):				m_connPBX.SendEvent(PBXCMD_LOGON, 0);
+Device.cpp (tsp):			if (!m_connPBX.WaitForData(strData))
+Device.cpp (tsp):					m_connPBX.SendEvent(PBXCMD_VERSION);
+Device.cpp (tsp):					m_connPBX.SendEvent(PBXCMD_QAS);
+Jtsp.h (tsp):	CConnection m_connPBX;								// Connection to PBX (WinSock)
+Jtsp.h (tsp):	inline CConnection* GetPBX() { return &m_connPBX; }
+---- CJTDevice Matches (31 in 3 files) ----
+Device.cpp (tsp):	reinterpret_cast<CJTDevice*>(pParam)->InputThread();
+Device.cpp (tsp):	reinterpret_cast<CJTDevice*>(pParam)->ConnectionThread();
+Device.cpp (tsp):CJTDevice::CJTDevice()
+Device.cpp (tsp):CJTDevice::~CJTDevice()
+Device.cpp (tsp):TStream& CJTDevice::read(TStream& istm)
+Device.cpp (tsp):bool CJTDevice::Init(DWORD dwProviderId, DWORD dwBaseLine, DWORD dwBasePhone, 
+Device.cpp (tsp):unsigned CJTDevice::ConnectionThread()
+Device.cpp (tsp):unsigned CJTDevice::InputThread()
+Device.cpp (tsp):void CJTDevice::QueuePacket(CEventBlock* pBlock)
+Jtsp.cpp (tsp):		"CJTDevice",		// Device override 
+Jtsp.h (tsp):class CJTDevice;
+Jtsp.h (tsp):class CJTDevice : public CTSPIDevice
+Jtsp.h (tsp):	inline CJTDevice* GetDeviceInfo() { return dynamic_cast<CJTDevice*>(CTSPILineConnection::GetDeviceInfo()); }
+Jtsp.h (tsp):	inline CJTDevice* GetDeviceInfo() { return reinterpret_cast<CJTDevice*>(CTSPIPhoneConnection::GetDeviceInfo()); }
+Jtsp.h (tsp):inline void CJTDevice::OnConnect(bool fConnect)
+Jtsp.h (tsp):inline void CJTDevice::DRV_Answer(const CJTLine* pLine, CTSPICallAppearance* pCall)
+Jtsp.h (tsp):inline void CJTDevice::DRV_DropCall(const CJTLine* pLine, CTSPICallAppearance* pCall)
+Jtsp.h (tsp):inline void CJTDevice::DRV_GenerateDigit(const CJTLine* pLine, CTSPICallAppearance* pCall, TCHAR chChar)
+Jtsp.h (tsp):inline void CJTDevice::DRV_MakeCall(const CJTLine* pLine, const TString& strNumber, DWORD /*dwCountryCode*/)
+Jtsp.h (tsp):inline void CJTDevice::DRV_HoldCall(const CJTLine* pLine, CTSPICallAppearance* pCall)
+Jtsp.h (tsp):inline void CJTDevice::DRV_RetrieveCall(const CJTLine* pLine, CTSPICallAppearance* pCall)
+Jtsp.h (tsp):inline void CJTDevice::DRV_MakePredictiveCall(const CJTLine* pLine, const TString& strNumber, DWORD /*dwCountryCode*/,
+Jtsp.h (tsp):inline void CJTDevice::DRV_BlindTransfer(const CJTLine* pLine, CTSPICallAppearance* pCall, const TString& strAddress)
+Jtsp.h (tsp):inline void CJTDevice::DRV_Transfer(const CJTLine* pLine, CTSPICallAppearance* pCall, CTSPICallAppearance* pConsult)
+Jtsp.h (tsp):inline void CJTDevice::DRV_SetAgentState(const CJTLine* pLine, const TString& strAgent, TCHAR chState)
+Jtsp.h (tsp):inline void CJTDevice::DRV_Logon(const CJTLine* pLine, const TString& strAgent, const TString& strPassword, DWORD dwGroup1, DWORD dwGroup2)
+Jtsp.h (tsp):inline void CJTDevice::DRV_SetGain(const CJTPhone* pPhone, int iGain)
+Jtsp.h (tsp):inline void CJTDevice::DRV_SetHookswitch(const CJTPhone* pPhone, int iHS)
+Jtsp.h (tsp):inline void CJTDevice::DRV_SetVolume(const CJTPhone* pPhone, int iVolume)
+---- InputThread Matches (2 in 2 files) ----
+Device.cpp (tsp):unsigned CJTDevice::InputThread()
+Jtsp.h (tsp):	unsigned InputThread();
+---- CJTDevice::InputThread Matches (2 in 2 files) ----
+Device.cpp (tsp):unsigned CJTDevice::InputThread()
+Jtsp.h (tsp):	unsigned InputThread();
+---- m_hInputThread Matches (5 in 2 files) ----
+Device.cpp (tsp):	HANDLE arrThreads[] = { m_hInputThread, m_hConnThread };
+Device.cpp (tsp):	CloseHandle(m_hInputThread);
+Device.cpp (tsp):		m_hInputThread = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, MainInputThread, static_cast<void*>(this), 0, &uiThread));
+Device.cpp (tsp):		if (m_hConnThread == NULL || m_hInputThread == NULL)
+Jtsp.h (tsp):	HANDLE m_hInputThread;								// Thread processing input
+---- CEventFactory Matches (26 in 3 files) ----
+EventTypes.cpp (tsp):CEventFactory::CEventFactory() : m_pHead(0)
+EventTypes.cpp (tsp):CEventFactory::~CEventFactory()
+EventTypes.cpp (tsp):CEventBlock* CEventFactory::Create(TString& strData)
+EventTypes.h (tsp):class CEventFactory
+EventTypes.h (tsp):	CEventFactory( const CEventFactory& );
+EventTypes.h (tsp):	CEventFactory& operator=( const CEventFactory& );
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+EventTypes.h (tsp):	friend class CEventFactory;
+Jtsp.h (tsp):	CEventFactory m_facEvents;							// Event factory for parsing events
+---- m_mgrThreads Matches (5 in 2 files) ----
+Device.cpp (tsp):			fDispatched = m_mgrThreads.Add(pConn, pConn->GetPermanentDeviceID(), pBlock);
+Device.cpp (tsp):							fDispatched = m_mgrThreads.Add(pCall->GetLineOwner(),
+Device.cpp (tsp):								fDispatched = m_mgrThreads.Add(pCall->GetLineOwner(),
+Device.cpp (tsp):							fDispatched = m_mgrThreads.Add(pCall->GetLineOwner(),
+Jtsp.h (tsp):	CThreadPoolMgr<DWORD, CEventBlock*> m_mgrThreads;	// Thread pool manager class
+---- AddToHub Matches (0 in 0 files) ----
+---- ReceiveData Matches (2 in 2 files) ----
+Line.cpp (tsp):	ReceiveData();
+Phone.cpp (tsp):	ReceiveData();
+---- OnReceiveData Matches (0 in 0 files) ----
+---- AddRef Matches (3 in 2 files) ----
+Device.cpp (tsp):						pBlock->AddRef();
+Device.cpp (tsp):							if (i > 0) pBlock->AddRef();
+EventTypes.h (tsp):	void AddRef() { 
+---- Decrement Matches (3 in 3 files) ----
+Device.cpp (tsp):						pBlock->Decrement();
+EventTypes.h (tsp):	void Decrement() { 
+Jtsp.h (tsp):	pBlock->Decrement();
+---- TPM_DelEvent Matches (2 in 2 files) ----
+Device.cpp (tsp):		TPM_DelEvent(pBlock);
+Jtsp.h (tsp):inline void TPM_DelEvent(CEventBlock* pBlock)
+---- BEGIN_TSPI_REQUEST Matches (2 in 2 files) ----
+Line.cpp (tsp):BEGIN_TSPI_REQUEST(CJTLine)
+Phone.cpp (tsp):BEGIN_TSPI_REQUEST(CJTPhone)
+---- CTSPIRequest Matches (6 in 4 files) ----
+Jtsp.h (tsp):	bool OnRedirectOrBlindTransfer(CTSPIRequest* pReq, LPCVOID lpBuff);
+Jtsp.h (tsp):	void TranslateErrorCode(CTSPIRequest* pRequest, DWORD dwError);
+Jtsp.h (tsp):	void TranslateErrorCode(CTSPIRequest* pRequest, DWORD dwError);
+Line.cpp (tsp):void CJTLine::TranslateErrorCode(CTSPIRequest* pRequest, DWORD dwError)
+Phone.cpp (tsp):void CJTPhone::TranslateErrorCode(CTSPIRequest* pRequest, DWORD dwError)
+Route.cpp (tsp):bool CJTLine::OnRedirectOrBlindTransfer(CTSPIRequest* pReq, LPCVOID lpBuff)
+---- Complete Matches (0 in 0 files) ----
+---- AddAsyncRequest Matches (0 in 0 files) ----
+---- AddAsynchRequest Matches (0 in 0 files) ----
+---- DispatchRequest Matches (0 in 0 files) ----
+---- ProcessData Matches (0 in 0 files) ----
+---- CallDetected Matches (5 in 3 files) ----
+EventTypes.cpp (tsp):	{ _T("CD"),  CEventBlock::CallDetected    },
+EventTypes.h (tsp):		CallDetected,			// CD
+EventTypes.h (tsp):			case CallDetected:		stream << _T("Call Detected"); break;
+Unsolicited.cpp (tsp):				(pBlock->GetEventType() != CEventBlock::CallDetected &&
+Unsolicited.cpp (tsp):		case CEventBlock::CallDetected:
+---- CJTLine::UnsolicitedEvent Matches (2 in 2 files) ----
+Jtsp.h (tsp):	virtual bool UnsolicitedEvent(LPCVOID lpBuff);
+Unsolicited.cpp (tsp):bool CJTLine::UnsolicitedEvent(LPCVOID lpBuff)
+---- OnNewCallDetected Matches (3 in 3 files) ----
+Jtsp.h (tsp):	CTSPICallAppearance* OnNewCallDetected(bool fPlaced, CTSPICallAppearance* pCall, DWORD dwCallID, const CPECallInfo* peCaller, const CPECallInfo* peCalled);
+MakeCall.cpp (tsp):CTSPICallAppearance* CJTLine::OnNewCallDetected(bool fPlaced,
+Unsolicited.cpp (tsp):			pCall = OnNewCallDetected((pBlock->GetEventType() == CEventBlock::CallPlaced),
+---- GetAddress.->CreateCallAppearance Matches (0 in 0 files) ----
+---- GetAddress.->CreateCallAppearance Matches (0 in 0 files) ----
+---- CreateCallAppearance Matches (1 in 1 files) ----
+MakeCall.cpp (tsp):		pCall = GetAddress(0)->CreateCallAppearance();
+---- OnNewCallDetected Matches (3 in 3 files) ----
+Jtsp.h (tsp):	CTSPICallAppearance* OnNewCallDetected(bool fPlaced, CTSPICallAppearance* pCall, DWORD dwCallID, const CPECallInfo* peCaller, const CPECallInfo* peCalled);
+MakeCall.cpp (tsp):CTSPICallAppearance* CJTLine::OnNewCallDetected(bool fPlaced,
+Unsolicited.cpp (tsp):			pCall = OnNewCallDetected((pBlock->GetEventType() == CEventBlock::CallPlaced),
+---- Decrement Matches (3 in 3 files) ----
+Device.cpp (tsp):						pBlock->Decrement();
+EventTypes.h (tsp):	void Decrement() { 
+Jtsp.h (tsp):	pBlock->Decrement();
+---- CPEExtension Matches (24 in 3 files) ----
+Device.cpp (tsp):	const CPEExtension* pExtension = dynamic_cast<const CPEExtension*>
+EventTypes.h (tsp):class CPEExtension : public CPBXElement
+EventTypes.h (tsp):	CPEExtension(TString& strData) {
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::TargetExtension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Queue, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+EventTypes.h (tsp):		AddElement(CPBXElement::Extension, new CPEExtension(strData));
+Unsolicited.cpp (tsp):			const CPEExtension* pTarget = dynamic_cast<const CPEExtension*>(pBlock->GetElement(CPBXElement::Queue));
+Unsolicited.cpp (tsp):			const CPEExtension* pTarget = dynamic_cast<const CPEExtension*>(pBlock->GetElement(CPBXElement::TargetExtension));
+---- CEBCallDetected Matches (8 in 2 files) ----
+EventTypes.cpp (tsp):	new CEBCallDetected(&m_pHead);
+EventTypes.h (tsp):class CEBCallDetected : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBCallDetected(strData); }
+EventTypes.h (tsp):	CEBCallDetected(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):	CEBCallDetected(TString& strData) {
+EventTypes.h (tsp):	CEBCallDetected(const CEBCallDetected&);
+EventTypes.h (tsp):	void operator=(const CEBCallDetected&);
+---- DRV_SetVolume Matches (3 in 2 files) ----
+Jtsp.h (tsp):	void DRV_SetVolume(const CJTPhone* pPhone, int iGain);
+Jtsp.h (tsp):inline void CJTDevice::DRV_SetVolume(const CJTPhone* pPhone, int iVolume)
+Phone.cpp (tsp):		GetDeviceInfo()->DRV_SetVolume(this, pRequest->GetVolume());
+---- OnSetVolume Matches (3 in 2 files) ----
+Jtsp.h (tsp):	bool OnSetVolume(RTSetVolume* pReq, LPCVOID lpBuff);
+Phone.cpp (tsp):	ON_TSPI_REQUEST_SETHOOKSWITCHVOL(OnSetVolume)
+Phone.cpp (tsp):bool CJTPhone::OnSetVolume(RTSetVolume* pRequest, LPCVOID lpBuff)
+---- CommandResponse Matches (26 in 12 files) ----
+Agent.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Agent.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Answer.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Conference.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Conference.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Conference.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Conference.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Device.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse)
+DropCall.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+EventTypes.cpp (tsp):	{ _T("ACK"), CEventBlock::CommandResponse },
+EventTypes.cpp (tsp):	{ _T("NAK"), CEventBlock::CommandResponse },
+EventTypes.h (tsp):		CommandResponse,		// ACK/NAK
+EventTypes.h (tsp):			case CommandResponse:	stream << _T("ACK/NAK"); break;
+EventTypes.h (tsp):	virtual PBXEvent GetEventType() const { return PBXEvent::CommandResponse; }
+Hold.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Hold.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Hold.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse && pidError != NULL &&
+MakeCall.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse)
+MakeCall.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+MakeCall.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Phone.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Phone.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Phone.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Route.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Transfer.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Transfer.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+---- CEventBlock Matches (213 in 14 files) ----
+Agent.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Agent.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Agent.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Agent.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Answer.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Answer.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Conference.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Conference.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Conference.cpp (tsp):		else if (pBlock->GetEventType() == CEventBlock::CallStateChange)
+Conference.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Conference.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Conference.cpp (tsp):		else if (pBlock->GetEventType() == CEventBlock::CallStateChange)
+Conference.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Conference.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Conference.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Conference.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Device.cpp (tsp):void CJTDevice::QueuePacket(CEventBlock* pBlock)
+Device.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse)
+Device.cpp (tsp):		else if (pBlock->GetEventType() >= CEventBlock::DisplayChanged)
+Device.cpp (tsp):					if (pBlock->GetEventType() == CEventBlock::DigitDetected)
+DropCall.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+DropCall.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+EventTypes.cpp (tsp):	enum CEventBlock::PBXEvent evtType;
+EventTypes.cpp (tsp):	{ _T("ACK"), CEventBlock::CommandResponse },
+EventTypes.cpp (tsp):	{ _T("NAK"), CEventBlock::CommandResponse },
+EventTypes.cpp (tsp):	{ _T("CD"),  CEventBlock::CallDetected    },
+EventTypes.cpp (tsp):	{ _T("CP"),  CEventBlock::CallPlaced      },
+EventTypes.cpp (tsp):	{ _T("CS"),  CEventBlock::CallStateChange },
+EventTypes.cpp (tsp):	{ _T("CR"),  CEventBlock::CallReleased    },
+EventTypes.cpp (tsp):	{ _T("CC"),  CEventBlock::CallConference  },
+EventTypes.cpp (tsp):	{ _T("CT"),  CEventBlock::CallTransfer    },
+EventTypes.cpp (tsp):	{ _T("CQ"),  CEventBlock::CallQueued      },
+EventTypes.cpp (tsp):	{ _T("DD"),  CEventBlock::DigitDetected   },
+EventTypes.cpp (tsp):	{ _T("CMD"), CEventBlock::CallMediaDetected },
+EventTypes.cpp (tsp):	{ _T("PDC"), CEventBlock::DisplayChanged  },
+EventTypes.cpp (tsp):	{ _T("PVC"), CEventBlock::VolumeChanged   },
+EventTypes.cpp (tsp):	{ _T("PGC"), CEventBlock::GainChanged     },
+EventTypes.cpp (tsp):	{ _T("PHC"), CEventBlock::HookswitchChanged },
+EventTypes.cpp (tsp):	{ _T("PLC"), CEventBlock::LampChanged     },
+EventTypes.cpp (tsp):	{ _T("ASC"), CEventBlock::AgentStateChanged },
+EventTypes.cpp (tsp):	{ _T("AGC"), CEventBlock::AgentGroupChanged },
+EventTypes.cpp (tsp):	{ NULL,		 CEventBlock::Unknown }
+EventTypes.cpp (tsp):	CEventBlock* pBlock = m_pHead;
+EventTypes.cpp (tsp):		CEventBlock* pNext = pBlock->m_pNext;
+EventTypes.cpp (tsp):CEventBlock* CEventFactory::Create(TString& strData)
+EventTypes.cpp (tsp):	enum CEventBlock::PBXEvent evtType = CEventBlock::Unknown;
+EventTypes.cpp (tsp):	_TSP_ASSERT (evtType != CEventBlock::Unknown);
+EventTypes.h (tsp):class CEventBlock;
+EventTypes.h (tsp):	CEventBlock* m_pHead;		// First element in the linked-list
+EventTypes.h (tsp):	CEventBlock* Create(TString& strCommand);
+EventTypes.h (tsp):class CEventBlock
+EventTypes.h (tsp):	CEventBlock* m_pNext;		// Next block in the list (normally NULL)
+EventTypes.h (tsp):	virtual ~CEventBlock() {
+EventTypes.h (tsp):	CEventBlock* Create(PBXEvent evtType, TString& strData) {
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) = 0;
+EventTypes.h (tsp):	CEventBlock() : m_pNext(0), m_lRefCount(1) {
+EventTypes.h (tsp):	CEventBlock(CEventBlock** ppBlock) : m_lRefCount(0) {
+EventTypes.h (tsp):	CEventBlock& operator=(const CEventBlock& eb);
+EventTypes.h (tsp):	CEventBlock(const CEventBlock& eb);
+EventTypes.h (tsp):class CEBResponse : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBResponse(strData); }
+EventTypes.h (tsp):	CEBResponse(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBCallDetected : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBCallDetected(strData); }
+EventTypes.h (tsp):	CEBCallDetected(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBCallPlaced : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBCallPlaced(strData); }
+EventTypes.h (tsp):	CEBCallPlaced(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBCallStateChange : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBCallStateChange(strData); }
+EventTypes.h (tsp):	CEBCallStateChange(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBCallReleased : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBCallReleased(strData); }
+EventTypes.h (tsp):	CEBCallReleased(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBCallConference : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBCallConference(strData); }
+EventTypes.h (tsp):	CEBCallConference(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBCallTransfer : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBCallTransfer(strData); }
+EventTypes.h (tsp):	CEBCallTransfer(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBCallQueued : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBCallQueued(strData); }
+EventTypes.h (tsp):	CEBCallQueued(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBDigitDetected : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBDigitDetected(strData); }
+EventTypes.h (tsp):	CEBDigitDetected(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBCallMediaDetected : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBCallMediaDetected(strData); }
+EventTypes.h (tsp):	CEBCallMediaDetected(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBDisplayChanged : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBDisplayChanged(strData); }
+EventTypes.h (tsp):	CEBDisplayChanged(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBVolumeChanged : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBVolumeChanged(strData); }
+EventTypes.h (tsp):	CEBVolumeChanged(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBGainChanged : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBGainChanged(strData); }
+EventTypes.h (tsp):	CEBGainChanged(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBHookswitchChanged : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBHookswitchChanged(strData); }
+EventTypes.h (tsp):	CEBHookswitchChanged(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBLampChanged : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBLampChanged(strData); }
+EventTypes.h (tsp):	CEBLampChanged(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBAgentStateChanged : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBAgentStateChanged(strData); }
+EventTypes.h (tsp):	CEBAgentStateChanged(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+EventTypes.h (tsp):class CEBAgentGroupChanged : public CEventBlock
+EventTypes.h (tsp):	virtual CEventBlock* Create(TString& strData) { return new CEBAgentGroupChanged(strData); }
+EventTypes.h (tsp):	CEBAgentGroupChanged(CEventBlock** pBlock) : CEventBlock(pBlock) {}
+Hold.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Hold.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Hold.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Hold.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Hold.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Hold.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse && pidError != NULL &&
+Jtsp.h (tsp):inline void TPM_DelEvent(CEventBlock* pBlock)
+Jtsp.h (tsp):inline bool TPM_CanRunEvent(CEventBlock* pBlock, DWORD /*dwKey*/, bool fIsLocked)
+Jtsp.h (tsp):	   (iEventType == CEventBlock::AgentStateChanged ||
+Jtsp.h (tsp):		iEventType == CEventBlock::AgentGroupChanged ||
+Jtsp.h (tsp):		iEventType == CEventBlock::DisplayChanged ||
+Jtsp.h (tsp):		iEventType == CEventBlock::VolumeChanged ||
+Jtsp.h (tsp):		iEventType == CEventBlock::GainChanged ||
+Jtsp.h (tsp):		iEventType == CEventBlock::HookswitchChanged ||
+Jtsp.h (tsp):		iEventType == CEventBlock::LampChanged))
+Jtsp.h (tsp):	CThreadPoolMgr<DWORD, CEventBlock*> m_mgrThreads;	// Thread pool manager class
+Jtsp.h (tsp):	void QueuePacket(CEventBlock* pBlock);
+MakeCall.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+MakeCall.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse)
+MakeCall.cpp (tsp):		else if (pBlock->GetEventType() == CEventBlock::CallPlaced)
+MakeCall.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+MakeCall.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+MakeCall.cpp (tsp):		else if (pBlock->GetEventType() == CEventBlock::CallPlaced)
+MakeCall.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+MakeCall.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+MakeCall.cpp (tsp):		else if (pBlock->GetEventType() == CEventBlock::CallPlaced)
+Phone.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Phone.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Phone.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Phone.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Phone.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Phone.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Route.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Route.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Transfer.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Transfer.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Transfer.cpp (tsp):		else if (pBlock->GetEventType() == CEventBlock::CallStateChange)
+Transfer.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Transfer.cpp (tsp):		if (pBlock->GetEventType() == CEventBlock::CommandResponse &&
+Unsolicited.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Unsolicited.cpp (tsp):				(pBlock->GetEventType() != CEventBlock::CallDetected &&
+Unsolicited.cpp (tsp):				 pBlock->GetEventType() != CEventBlock::CallPlaced))
+Unsolicited.cpp (tsp):		case CEventBlock::AgentStateChanged:
+Unsolicited.cpp (tsp):		case CEventBlock::AgentGroupChanged:
+Unsolicited.cpp (tsp):		case CEventBlock::CallDetected:
+Unsolicited.cpp (tsp):		case CEventBlock::CallPlaced:
+Unsolicited.cpp (tsp):			pCall = OnNewCallDetected((pBlock->GetEventType() == CEventBlock::CallPlaced),
+Unsolicited.cpp (tsp):		case CEventBlock::CallReleased:
+Unsolicited.cpp (tsp):		case CEventBlock::CallStateChange:
+Unsolicited.cpp (tsp):		case CEventBlock::DigitDetected:
+Unsolicited.cpp (tsp):		case CEventBlock::CallQueued:
+Unsolicited.cpp (tsp):		case CEventBlock::CallMediaDetected:
+Unsolicited.cpp (tsp):		case CEventBlock::CallConference:
+Unsolicited.cpp (tsp):		case CEventBlock::CallTransfer:
+Unsolicited.cpp (tsp):	const CEventBlock* pBlock = static_cast<const CEventBlock*>(lpBuff);
+Unsolicited.cpp (tsp):		case CEventBlock::DisplayChanged:
+Unsolicited.cpp (tsp):		case CEventBlock::VolumeChanged:
+Unsolicited.cpp (tsp):		case CEventBlock::GainChanged:
+Unsolicited.cpp (tsp):		case CEventBlock::HookswitchChanged:
+Unsolicited.cpp (tsp):		case CEventBlock::LampChanged:
+---- UnsolicitedEvent Matches (4 in 2 files) ----
+Jtsp.h (tsp):	virtual bool UnsolicitedEvent(LPCVOID lpBuff);
+Jtsp.h (tsp):	virtual bool UnsolicitedEvent(LPCVOID lpBuff);
+Unsolicited.cpp (tsp):bool CJTLine::UnsolicitedEvent(LPCVOID lpBuff)
+Unsolicited.cpp (tsp):bool CJTPhone::UnsolicitedEvent(LPCVOID lpBuff)

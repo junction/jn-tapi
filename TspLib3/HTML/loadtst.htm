@@ -1,0 +1,43 @@
+<html>
+	<head>
+		<title>Load Testing and Miscellaneous Notes</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+		<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+		<meta name="ProgId" content="FrontPage.Editor.Document">
+		<base target="_self">
+	</head>
+	<body bgcolor="#ffffff">
+		<p><font size="4" face="Verdana, Arial, Helvetica"><a name="load testing"><strong>Load Testing</strong></a><strong>
+					and Miscellaneous Notes</strong></font></p>
+		<p><font face="Arial" size="2">JulMar has tested TSP++ extensively on an 
+				multi-processor server (<b>SMP</b>) running at an average load of 20-30 calls 
+				per second. The calls are averaged across outgoing external, incoming external 
+				(routed), and station to station calls. We focus specifically on a small group 
+				of lines in order to test object locking and contention. </font>
+		</p>
+		<p><font face="Arial" size="2"> As part of that testing, we have uncovered problems 
+				with the underlying libraries that are used inside TSP++ when compiling with 
+				Visual C++ 6.0.&nbsp; If you intend to use Visual Studio 6.0,&nbsp;we recommend 
+				that you update the Visual C++ <b>STL</b> header files with fixes from <a href="http://www.dinkumware.com">
+					<font color="#000000">Dinkumware</font></a>. (<STRONG>Note that this 
+					configuration is not supported</STRONG>) Make sure to especially update the <b>xtree</b>
+				header which is used as the basis for the <b><u>map/multimap/set/multiset</u></b>
+				templates. The shipped version with Microsoft Visual C++ 6.0 (including SP5) 
+				has several thread safety problems and causes deadlocks under stress conditions 
+				within the C-runtime library. The patches can be obtained for free at </font>
+			<a href="http://www.dinkumware.com/vc_fixes.html"><font face="Arial" size="2">http://www.dinkumware.com/vc_fixes.html</font></a><font face="Arial" size="2">.&nbsp; 
+				Visual Studio .NET 2002/2003&nbsp;(VC7) does not suffer from these issues and 
+				includes most of the patches already.</font></p>
+		<p><font face="Arial" size="2">We have tried to find and correct all instances of 
+				deadlocks within the library code, but since deadlocks are extremely sensitive 
+				to API ordering and event handling, different provider implementations can 
+				expose problems that we don't see or have in our test cases. If you have a 
+				deadlock or multi-threading issue, please send us an e-mail with the system 
+				configuration, log (if available), stack snapshots (from Visual Studio or Dr. 
+				Watson), a .MAP file from your tested build that exhibits the problem, and the 
+				basic test case (i.e. what was happening) which caused the problem. We will try 
+				to fix any reported problem within a few days. Please send the reports to </font>
+			<a href="mailto:support@julmar.com"><font face="Arial" size="2">support@julmar.com</font></a><font face="Arial" size="2">.</font></p>
+		<p align="right"><font face="Arial">JulMar Technology, Inc.</font></p>
+	</body>
+</html>
