@@ -150,6 +150,15 @@ bool OnSipTapi::GetCallEvents( std::list<OnSipTapiCall>& lstEvents)
 	return true;
 }
 
+// Clear all Init and Call Events that were collected during the Poll
+void OnSipTapi::ClearEvents()
+{
+	Logger::log_debug(_T("OnSipTapi::ClearEvents") );
+	_checkThread.CheckSameThread();
+	m_lstCallEvents.clear();
+	m_lstInitEvents.clear();
+}
+
 bool OnSipTapi::Connect(LoginInfo& loginInfo)
 {
 	Logger::log_debug(_T("OnSipTapi::Connect enter"));

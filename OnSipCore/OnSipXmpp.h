@@ -60,6 +60,9 @@ public:
 	// providing OnSip specific XMPP communication
 	void Authorize(int contextId);
 	string EnableCallEvents();
+	// Ping to server to keep it alive
+	void Ping()
+	{	OnSipXmppBase::Ping();	}
 
 	// Authorize with OnSip PBX
 	// Pass unique contextId to be associated with this request,

@@ -170,12 +170,11 @@ private:
 	const COnSipDevice& operator=(const COnSipDevice&);
 	std::auto_ptr<OnSipTapi> m_OnSipTapi;
 	CriticalSection m_cs;
-	volatile bool m_bInitialized;
 	list<COnSip_CallEvent *> _getEvents( list< OnSipTapiCall >& lstCallEvents );
 	list<COnSip_ConnectEvent *> _getEvents( list< OnSipInitState >& lstInitEvents );
 	// Processes the event in TAPI, passes it on to the TAPI thread pools
 	bool _processEvent( COnSipEvent* pEvent );
-	volatile OnSipInitStatesType::InitStatesType m_initStateType;
+	bool _initOnSipTapi(OnSipTapi* pOnSipTapi,LoginInfo& loginInfo,HANDLE hDevStop);
 
 // Class Data
 protected:

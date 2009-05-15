@@ -27,7 +27,6 @@ COnSipEvent::COnSipEvent(OnSipEventType evtType)
 { 
 	Logger::log_debug( _T("COnSipEvent::COnSipEvent evtType=%d this=%p"), evtType, this );
 	m_evtType = evtType; 
-	m_initStateType = OnSipInitStatesType::DISCONNECTED;
 }
 
 //virtual 
@@ -252,8 +251,6 @@ bool COnSipDevice::OpenDevice (CTSPIConnection* pConn)
 	// Reset the OpenDevice event, this will be reset once the ConnectionThread
 	// has gone through the initialization of trying to open the XMPP device
 	ResetEvent(m_hOpenDevice);
-	m_bInitialized = false;
-	m_initStateType = OnSipInitStatesType::DISCONNECTED;
 	// Clear Stop event used to signal stop in the connection thread
 	ResetEvent(m_hevtStop);
 
@@ -273,24 +270,30 @@ bool COnSipDevice::OpenDevice (CTSPIConnection* pConn)
 
 	// Wait for the ConnectionThread to get started and go through the 
 	// init code of the XMPP
-	if ( WaitForSingleObject( m_hOpenDevice, 10000) == WAIT_TIMEOUT )
+	HANDLE handles[] = { m_hOpenDevice, m_hConnThread };
+	DWORD dwWait = WaitForMultipleObjects( 2, handles, FALSE, 30000 );
+
+	Logger::log_debug( _T("COnSipDevice::OpenDevice wait Init done.. dwWait=%ld"), dwWait );
+
+	// If OpenDevice event, then it initialized ok!
+	if ( dwWait == WAIT_OBJECT_0 )
 	{
-		Logger::log_error( _T("COnSipDevice::OpenDevice timeout wait for init") );
-		_killThreads();
+		Logger::log_debug( _T("COnSipDevice::OpenDevice init success") );
+		return true;
+	}
+
+	// If connection thread, then it was an error
+	if ( dwWait == WAIT_OBJECT_1 )
+	{
+		Logger::log_error( _T("COnSipDevice::OpenDevice init ERROR") );
 		return false;
 	}
 
-	// See if the device connection was initialized
-	// bool flag set in connection thread if successful XMPP init
-	if ( !m_bInitialized )
-	{
-		Logger::log_error( _T("COnSipDevice::OpenDevice unable to init XMPP") );
-		_killThreads();
-		return false;
-	}
-
-	Logger::log_debug( _T("COnSipDevice::OpenDevice exit success") );
-	return true;
+	// Must be a timeout, still not initialized, assume error
+	_ASSERT( dwWait == WAIT_TIMEOUT );
+	Logger::log_error( _T("COnSipDevice::OpenDevice timeout wait for init") );
+	_killThreads();
+	return false;
 }
 
 // Kill the threads
@@ -353,27 +356,18 @@ unsigned COnSipDevice::ConnectionThread()
 
 	LoginInfo loginInfo(userName,password,domain);
 
-	// Try first Connect to XMPP
-	if ( !m_OnSipTapi->Connect(loginInfo) )
+	// connect and do intialization
+	if ( !_initOnSipTapi(m_OnSipTapi.get(),loginInfo,m_hevtStop) )
 	{
-		// Signal OpenDevice thread that we have done our initial connect
-		m_initStateType = OnSipInitStatesType::DISCONNECTED;
-		m_bInitialized = true;
-		SetEvent( m_hOpenDevice );
-		// Go ahead and exit the thread, not needed
+		Logger::log_error(_T("COnSipDevice::ConnectionThread init error") );
+		m_OnSipTapi->Disconnect();
+		CriticalSectionScope css(&m_cs);
+		m_OnSipTapi.reset( NULL );
 		return false;
 	}
 
-	// Wait for initial connect...
-	while (true)
-	{
-		if ( !m_OnSipTapi->Poll() )
-		{
-			return false;
-		}
-		OnSipInitStates::InitStates curState = m_OnSipTapi->GetInitStateMachineState();
-		OnSipInitStatesType::InitStatesType curStateType  = OnSipInitStatesType::GetInitStatesType( curState  );
-	}
+	// Signal back to main thread that we are initialized
+	SetEvent( m_hOpenDevice );
 
 	Logger::log_debug(_T("COnSipDevice::ConnectionThread loop..."));
 
@@ -383,11 +377,11 @@ unsigned COnSipDevice::ConnectionThread()
 	list<COnSip_CallEvent *> lstCallEvents;
 	list<COnSip_ConnectEvent *> lstConnectEvents;
 
-	// Keep track of the current state of the Init/Connect state machine
-	OnSipInitStatesType::InitStatesType 
+	// Keep track of the current init state stype
+	OnSipInitStatesType::InitStatesType initStateType = OnSipInitStatesType::OK;
 
 	// Loop around trying to connect and then receiving data
-	bool fConnected = m_bInitialized;
+	bool fConnected = true;
 	while (WaitForSingleObject(m_hevtStop, 0) == WAIT_TIMEOUT)
 	{
 		// Keep trying to connect
@@ -404,7 +398,6 @@ unsigned COnSipDevice::ConnectionThread()
 			{
 				Logger::log_debug(_T("COnSipDevice::ConnectionThread connected"));
 				fConnected = true;
-//				OnConnect(true);
 			}
 		}
 
@@ -468,17 +461,18 @@ unsigned COnSipDevice::ConnectionThread()
 				// Update the Init State Machine current state type
 				OnSipInitStates::InitStates curState = m_OnSipTapi->GetInitStateMachineState();
 				OnSipInitStatesType::InitStatesType curStateType  = OnSipInitStatesType::GetInitStatesType( curState  );
+
 				// If the InitStateMachine type has changed!!
-				if ( curStateType != m_initStateType )
+				if ( curStateType != initStateType )
 				{
 					Logger::log_debug( _T("COnSipevice::ConnectionThread initStateChange prev=%s cur=%s state=%s"),
 						OnSipInitStatesType::InitStatesTypeToString(initStateType), OnSipInitStatesType::InitStatesTypeToString(curStateType),
 						OnSipInitStates::InitStatesToString( curState ) );
-					m_initStateType = curStateType;
+					initStateType = curStateType;
 					// Report OnConnect state
-					OnConnect( m_initStateType == OnSipInitStatesType::OK );
+					OnConnect( initStateType == OnSipInitStatesType::OK );
 					// If disconnected, clear our connected flag
-					if ( m_initStateType == OnSipInitStatesType::DISCONNECTED)
+					if ( initStateType == OnSipInitStatesType::DISCONNECTED)
 					{
 						Logger::log_debug( _T("COnSipevice::ConnectionThread initStateChange disconnected") );
 						fConnected = false;
@@ -503,6 +497,65 @@ unsigned COnSipDevice::ConnectionThread()
 	return 0;
 
 }// COnSipDevice::ConnectionThread
+
+bool COnSipDevice::_initOnSipTapi(OnSipTapi* pOnSipTapi,LoginInfo& loginInfo,HANDLE hDevStop)
+{
+	// Try first Connect to XMPP
+	if ( !pOnSipTapi->Connect(loginInfo) )
+	{
+		// Signal OpenDevice thread that we have done our initial connect
+		Logger::log_error(_T("COnSipDevice::_initOnSipTapi Connect error exiting thread"));
+		// Go ahead and exit the thread, not needed
+		return false;
+	}
+
+	Logger::log_debug(_T("COnSipDevice::ConnectionThread poll for init"));
+
+	// Wait for initial connect...
+	while ( true )
+	{
+		// See if requested to exit by main thread
+		if ( WaitForSingleObject(hDevStop, 0) != WAIT_TIMEOUT )
+		{
+			Logger::log_error(_T("COnSipDevice::_initOnSipTapi Poll Init SIGNAL stop") );
+			return false;
+		}
+
+		if ( !pOnSipTapi->Poll() )
+		{
+			Logger::log_error(_T("COnSipDevice::_initOnSipTapi Poll error exiting thread"));
+			return false;
+		}
+		// Shouldn't require a sleep, the Poll does this some, but have anyway
+		Sleep(50);
+
+		// Get the current state and state type
+		OnSipInitStates::InitStates curState = m_OnSipTapi->GetInitStateMachineState();
+		OnSipInitStatesType::InitStatesType curStateType  = OnSipInitStatesType::GetInitStatesType( curState  );
+		Logger::log_debug(_T("COnSipDevice::_initOnSipTapi Poll Init state=%s stateType=%s"), 
+			OnSipInitStates::InitStatesToString(curState), OnSipInitStatesType::InitStatesTypeToString( curStateType ) );
+
+		// See if error type of state
+		if ( curStateType == OnSipInitStatesType::DISCONNECTED || curStateType == OnSipInitStatesType::FATAL )
+		{
+			Logger::log_error(_T("COnSipDevice::_initOnSipTapi Poll init error, state=%s stateType=%s, exiting thread"), 
+				OnSipInitStates::InitStatesToString(curState), OnSipInitStatesType::InitStatesTypeToString( curStateType ) );
+			return false;
+		}
+
+		// See if initialized
+		if ( curStateType == OnSipInitStatesType::OK )
+		{
+			Logger::log_debug(_T("COnSipDevice::_initOnSipTapi Poll Init OK" ));
+			break;
+		}
+	}
+
+	// Clear all events that occurred during the initialization
+	pOnSipTapi->ClearEvents();
+
+	return true;
+}
 
 // Processes the event in TAPI, passes it on to the TAPI thread pools
 bool COnSipDevice::_processEvent( COnSipEvent* pEvent )

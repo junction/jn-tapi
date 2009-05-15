@@ -408,14 +408,20 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 				assignNewState( OnSipXmppStates::Connected, pEvent );
 				// Update the CallState data
 				OnSipCallStateHelper::AssignCallStateData(getCurrentStateData(),ace,-1);
+				return true;
 			}
 			// TODO:  Currently a bug on the server side with #2 call being retracted, then created and retracted again.
 			// Currently just connect for CONNECTED state and ignoring these.  Probably ok for final
 			// version, but just need to check in the retracted check below better
+			// Delete event since not keeping it
+			delete pEvent;
 			return true;
 		}
 
+		// Unknown state we should handle???
 		Logger::log_error(_T("OnSipMakeCallStateHandler::IsYourEvent unhandled state %s and event %s "), OnSipXmppStates::CallStateToString(getCurrentState()), ace->ToString().c_str() );
+		// Delete event since not keeping it
+		delete pEvent;
 		return true;
 	}
 
@@ -443,6 +449,8 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			return true;
 		}
 		Logger::log_debug("OnSipMakeCallStateHandler::IsYourEvent dropped ignored");
+		// Delete event since not keeping it
+		delete pEvent;
 		return true;
 	}
 
@@ -455,6 +463,7 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		{
 			Logger::log_error(_T("OnSipMakeCallStateHandler::IsYourEvent IQResult error"));
 			assignNewState( OnSipXmppStates::Dropped, pEvent  );
+			return true;
 		}
 
 		// TODO!! Need to have a timeout in this state
@@ -463,6 +472,9 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		// The reason is that the IQ result is not guaranteed to come in before the message events start coming in.
 		// Signify the call is trying, next state will be incoming call
 		Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent PreMakeCall IQ result"));
+
+		// Delete event since not keeping it
+		delete pEvent;
 		return true;
 	}
 

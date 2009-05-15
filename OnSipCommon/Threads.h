@@ -1,6 +1,9 @@
 #ifndef THREADS_H
 #define THREADS_H
 
+#define WAIT_OBJECT_1 (WAIT_OBJECT_0+1)
+#define WAIT_OBJECT_2 (WAIT_OBJECT_0+2)
+
 // Class used to check for single or multi-thread operation.
 // Methods can be used to determine if being called from
 // the same thread the CheckThread object was created,

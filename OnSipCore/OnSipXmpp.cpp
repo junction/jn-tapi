@@ -20,16 +20,6 @@
 
 // BIG TO DO ITEMS...
 
-// 1) Add the "depth" to the xmpp subscribe - this is why I am not getting call events
-
-// 2) values in the xmpp-active-call events have changed, e.g. to-aor now used, a couple of fields have changed!!
-//     the ones used for remote-id and called-id
-
-// 3) MakeCall handling is now in using custom tags.  See nots in StickyNotes regarding new custom-tag
-//     a) append custom-tag=xyz on both SIP TO and FROM fields.
-//     b) The TO field with custom-tag will be used to match the incoming message fields for incoming call
-//     c)  The FROM field with custom-tag will be used to match the outgoing call
-
 //  4) Use Gizmo phone to register 2 phone clients on the computer.
 //      a) XMPP will get 2 incoming requested events for incoming calls and possibly other events.
 //      b) The SIP callid is the same for the multiple reqeusts, but the branches will be different.
@@ -39,9 +29,21 @@
 
 //  Test button in the TAPI Config Dialog
 
+//  Need to call whitespaceping every 5 minutes or so from the client to keep the server connection alive.
+//     see  http://camaya.net/api/gloox-trunk/classgloox_1_1ClientBase.html#a33 , search for whitespacePing().
+
+//  Get rid of caller-id for incoming calls, currently is showing sip numbers.  And for PSTN calls, is showing your own sip address.
+
+// Double check all IsYourEvent and make sure events are being deleted if returning back TRUE
+
 //  Decrypt the password for logon
 
 //  Drop Call
+
+//  Take over Init() method in Line.cpp  TAPI dependent source
+// e.g. void CDSLine::Init (CTSPIDevice* pDev, DWORD dwLineDeviceID, DWORD dwPos, DWORD /*dwItemData*/)
+//      see above in dssp\tsp\line.cpp, set capabilities etc.
+//     This could also be done in the Line::read() method, see  jtsp\tsp\line.cpp,  set capabilities, etc.
 
 //  TAPI dwAddressSize/Offset - change to "OnSIP [PHONENUMBER]"
 
@@ -70,7 +72,7 @@ OnSipXmpp::OnSipXmpp()
 	m_callStateMachine->AddIStateNotify(this);
 	m_initStateMachine->AddIStateNotify(this);
 
-	m_lastInitState = OnSipInitStates::Disconnected;
+	m_lastInitState = OnSipInitStates::NotSet;
 }
 
 OnSipXmpp::~OnSipXmpp()

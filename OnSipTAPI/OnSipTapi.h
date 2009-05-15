@@ -85,5 +85,8 @@ public:
 	// Retrieve any CallEvents that have occurred in the last poll.
 	// Returns true if events were found.
 	bool GetCallEvents( std::list<OnSipTapiCall>& lstEvents);
+
+	// Clear all Init and Call Events that were collected during the Poll
+	void ClearEvents();
 };
 #endif

@@ -83,13 +83,34 @@ TStream& COnSipLine::read(TStream& istm)
 
 	// TODO: Read any information stored in the line stream
 
-    LPLINEDEVCAPS lpLineCaps = GetLineDevCaps();
+	LPLINEDEVCAPS lpLineCaps = GetLineDevCaps();
 	// TODO: Adjust the device capabilities for this line
 
-	// TODO: Add any WAV devices which will be used for I/O - locate your WAV drive
-	// and use the device identifier given by the multimedia system.
-	// AddDeviceClass(_T("wave/in"), dwWaveInDeviceID);
-	// AddDeviceClass(_T("wave/out"), dwWaveOutDeviceID);
+	tstring phoneNumber;
+
+	// Get the phone number
+	COnSipDevice* pDevice = GetDeviceInfo();
+	if ( pDevice != NULL )
+	{
+		DWORD dwProviderID = pDevice->GetProviderID();
+		phoneNumber = GetSP()->ReadProfileString(dwProviderID, REG_PHONENUMBER, _T("") );
+		Logger::log_debug( _T("COnSipLine::read dwProvID=%ld phoneNumber=%s"), dwProviderID, phoneNumber.c_str() );
+	}
+	else
+	{
+		Logger::log_error( _T("COnSipLine::read no ProviderID") );
+	}
+	// Default line name to switch name if no phone number is specified
+	tstring lineName = SWITCH_NAME;
+
+	 // Set the name associated with this line.  This is optional, it gives
+	// the user a displayable name which is associated with the line.  Most
+	// applications use this name in their UI.
+	if ( !phoneNumber.empty() )
+		lineName = Strings::stringFormat( LINE_NAME, phoneNumber.c_str() );
+
+	// Set TAPI Line Name
+	SetName (lineName.c_str());
 
 	// Configure the line based on the type
 	switch (GetLineType())

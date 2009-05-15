@@ -136,6 +136,8 @@ ConnectionError OnSipXmppBase::Start(LoginInfo& loginInfo,bool bSync)
 // Method will stay in this poll loop for max time of dwMsecs
 ConnectionError OnSipXmppBase::AsyncPolling(DWORD dwMsecs)
 {
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
 	ConnectionError ce = ConnNoError;
 	TimeOut to(dwMsecs);
 	while( ce == ConnNoError && !to.IsExpired() )
@@ -158,10 +160,21 @@ ConnectionError OnSipXmppBase::AsyncPolling(DWORD dwMsecs)
 void OnSipXmppBase::AsyncCleanup()
 {
 	Logger::log_debug(_T("OnSipXmppBase::AsyncCleanup"));
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
 	if ( m_gloox.get() != NULL )
 		m_gloox->disconnect();
 	// Delete the gloox object
 	m_gloox.reset(NULL);
+}
+
+//
+void OnSipXmppBase::Ping()
+{
+	Logger::log_debug(_T("OnSipXmppBase::Ping"));
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+	if ( m_gloox.get() != NULL )
+		m_gloox->whitespacePing();
 }
 
 /**

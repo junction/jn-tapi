@@ -92,13 +92,22 @@ bool COnSipLine::UnsolicitedCallEvent(const COnSip_CallEvent *pCallEvent)
 		// If incoming call
 		if ( pCallEvent->CallType() == OnSipXmppCallType::IncomingCall )
 		{
+			// Create CallAppearance
 			pCall = OnNewCallDetected( false, pCall, pCallEvent );
 			return true;
 		}
 		// If physical call
 		if ( pCallEvent->CallType() == OnSipXmppCallType::PhysicalCall )
 		{
+			// Create CallAppearance
 			pCall = OnNewCallDetected( false, pCall, pCallEvent );
+			return true;
+		}
+
+		// If was make call, then most likely just Dropped state of this call.
+		if ( pCallEvent->CallType() == OnSipXmppCallType::MakeCall && pCallEvent->GetTapiCallState() == LINECALLSTATE_IDLE )
+		{
+			Logger::log_debug(_T("COnSipLine::UnsolicitedCallEvent newCall is MakeCall IDLE, ignored") );
 			return true;
 		}
 

@@ -7,6 +7,8 @@ TCHAR* OnSipInitStates::InitStatesToString(InitStates state)
 {
 	switch (state)
 	{
+		case NotSet:
+			return _T("NotSet");
 		case PreLogin:
 			return _T("PreLogin");
 		case LoginError:
@@ -38,6 +40,8 @@ TCHAR* OnSipInitStatesType::InitStatesTypeToString(OnSipInitStatesType::InitStat
 {
 	switch ( state )
 	{
+		case OnSipInitStatesType::NOTSET:
+			return _T("NOTSET");
 		case OnSipInitStatesType::DISCONNECTED:
 			return _T("DISCONNTECTED");
 		case OnSipInitStatesType::FATAL:
@@ -53,10 +57,14 @@ TCHAR* OnSipInitStatesType::InitStatesTypeToString(OnSipInitStatesType::InitStat
 }
 
 //static 
+// Maps InitStates state enum to a category/InitStatesType
 OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSipInitStates::InitStates initState)
 {
 	switch (initState)
 	{
+		case OnSipInitStates::NotSet:
+			return OnSipInitStatesType::NOTSET;
+
 		case OnSipInitStates::PreLogin:
 		case OnSipInitStates::Authorizing:
 		case OnSipInitStates::EnablingCallEvents:
@@ -87,7 +95,7 @@ OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSip
 
 OnSipInitStateHandler::OnSipInitStateHandler(OnSipXmpp* pOnSipXmpp) 
 		: StateHandler<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>( OnSipInitStates::PreLogin, NULL ),
-		m_authTO( AUTHTIMEOUT )
+		m_authTO( AUTHTIMEOUT ), m_ping(PINGTIMEOUT)
 {
 	Logger::log_debug("OnSipInitStateHandler::OnSipInitStateHandler this=%x onSipXmpp=%x", this, pOnSipXmpp );
 	m_pOnSipXmpp = pOnSipXmpp;
@@ -268,6 +276,17 @@ bool OnSipInitStateHandler::PollStateHandler()
 		m_pOnSipXmpp->Authorize( _contextId );
 		assignNewState( OnSipInitStates::ReAuthorizing, NULL );
 		return true;
+	}
+
+	// If time to ping server to keep alive
+	if ( IsState(OnSipInitStates::OK) && m_ping.IsExpired() )
+	{
+		Logger::log_debug(_T("OnSipInitStateHandler::PollStateHandler pingTimeout %ld "),m_ping.Msecs() );
+
+		// Do the ping
+		m_pOnSipXmpp->Ping();
+		// Return false since there should be no change in states
+		return false;
 	}
 
 	return false;

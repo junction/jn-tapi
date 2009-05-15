@@ -8,6 +8,9 @@
 
 #define SWITCH_NAME 		_T("OnSIP Hosted PBX")
 
+// Format for Line Name
+#define LINE_NAME 		_T("OnSIP %s")
+
 // Unique LINE ID used in Julmar framework to map our Line Device
 #define LINE_ID_UNIQUE		1
 

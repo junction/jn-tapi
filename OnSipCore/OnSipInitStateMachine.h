@@ -12,7 +12,7 @@ class OnSipInitStates
 {
 public:
 	// Note: if new states added, modify InitStatesToString and GetInitStatesType method!!
-	enum InitStates { PreLogin, LoginError, Authorizing, Authorized, AuthorizedError, EnablingCallEvents, OK, EnabledCallError, Disconnected, ReAuthorizing };
+	enum InitStates { NotSet, PreLogin, LoginError, Authorizing, Authorized, AuthorizedError, EnablingCallEvents, OK, EnabledCallError, Disconnected, ReAuthorizing };
 
 	static TCHAR* InitStatesToString(InitStates state);
 
@@ -23,7 +23,7 @@ public:
 class OnSipInitStatesType
 {
 public:
-	enum InitStatesType { INPROGRESS, OK, FATAL, DISCONNECTED };
+	enum InitStatesType { NOTSET, INPROGRESS, OK, FATAL, DISCONNECTED };
 
 	static TCHAR* InitStatesTypeToString(OnSipInitStatesType::InitStatesType state);
 
@@ -40,9 +40,11 @@ public:
 
 
 // Authorization timeouts
-#define AUTHTIMEOUT_QUICK_RETRY (30 * MSECS_IN_SEC)
-#define AUTHTIMEOUT_RETRY		(15 * MSECS_IN_MIN)
+#define AUTHTIMEOUT_QUICK_RETRY	(30 * MSECS_IN_SEC)
+#define AUTHTIMEOUT_RETRY			(15 * MSECS_IN_MIN)
 #define AUTHTIMEOUT				( 2 * MSECS_IN_HOUR)
+#define PINGTIMEOUT					( 2 * MSECS_IN_MIN)
+
 //#define AUTHTIMEOUT_QUICK_RETRY (30 * MSECS_IN_SEC)
 //#define AUTHTIMEOUT_RETRY		(1 * MSECS_IN_MIN)
 //#define AUTHTIMEOUT				(2 * MSECS_IN_MIN)
@@ -55,6 +57,7 @@ private:
 	int _contextId;
 	tstring m_enableCallEventsId;
 	TimeOut m_authTO;
+	TimeOut m_ping;
 	bool m_bEnabledCallEvents;
 
 protected:

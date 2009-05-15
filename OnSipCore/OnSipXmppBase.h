@@ -64,6 +64,7 @@ public:
 	ConnectionError Start(LoginInfo& loginInfo,bool bSync=true);
 	ConnectionError AsyncPolling(DWORD dwMsecs);
 	void AsyncCleanup();
+	void Ping();
 };
 
 #endif
