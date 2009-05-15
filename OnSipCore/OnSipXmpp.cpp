@@ -123,7 +123,7 @@ string OnSipXmpp::EnableCallEvents()
 	return id;
 }
 
-// Authorize with OnSip PBX
+// Call number on PBX
 // Pass unique contextId to be associated with this request,
 // the Iq Result will have the same contextId.
 //   customTag = unique value in form of "x=y" that is to be added to the TO and FROM fields

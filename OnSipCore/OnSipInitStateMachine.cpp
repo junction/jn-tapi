@@ -274,6 +274,7 @@ bool OnSipInitStateHandler::PollStateHandler()
 		// Start the re-authorize
 		_contextId = m_pOnSipXmpp->getUniqueId();
 		m_pOnSipXmpp->Authorize( _contextId );
+		m_authTO.Reset();
 		assignNewState( OnSipInitStates::ReAuthorizing, NULL );
 		return true;
 	}
@@ -285,6 +286,7 @@ bool OnSipInitStateHandler::PollStateHandler()
 
 		// Do the ping
 		m_pOnSipXmpp->Ping();
+		m_ping.Reset();
 		// Return false since there should be no change in states
 		return false;
 	}
