@@ -1,0 +1,6 @@
+Initial Console Test 4-7-09.zip - first console program that just registered with server and active call events.  It just output the XML sent and received and showed the call events.  It would also output low-level XML received to OutputDebugString as a verification.   Logon info can be specified via command line
+
+TestOnSipCore 5-11-09.zip -  new console test program that uses the new C++ wrappers.  Just registers and watches for call events, but can also dial a number by entering in the number and pressing ENTER.
+
+TSP debug/release 5-12-09.zip - was to be the initial release of the TAPI driver.  Will do makeCall, notify of incoming calls, and notify of outgoing physical calls.  Does not have lineDrop.  This version still has issue with Outlook.  Outlook does a lineOpen and then immediately does a makeCall.  This version did asynchronous lineOpen, e.g. it verified connection and then returned back, then did rest of initialization asynchronously.   Issue with Outlook was that it would call makeCall before init was complete.  This would work if the TAPI driver was initially opened first by another program, e.g. TAPI Browser.   Will change lineOpen to be synchronous in next release.
+
