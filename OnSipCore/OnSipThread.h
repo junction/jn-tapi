@@ -40,6 +40,12 @@ public:
 	// Returns the unique call-id to track the call.
 	// Returns 0 if error.
 	long MakeCall(const tstring& number);
+
+	// THREAD-SAFE
+	//
+	// Request to drop the specified call
+	void DropCall(long callId);
+
 };
 
 #endif

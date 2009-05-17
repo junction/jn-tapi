@@ -145,6 +145,31 @@ public:
 //*******************************************************************
 //*******************************************************************
 
+// TODO:: Change StateItem to use this??
+// Simple class that maintains the association of the TState and TstateData
+template <class Tstate,class TstateData> 
+class StateAndStateData
+{
+public:
+	Tstate m_state;					// considered to be an enum
+	TstateData m_stateData;			// considered to be a struct item with operator= overload
+
+	StateAndStateData() { }
+	StateAndStateData(Tstate state,TstateData stateData)
+	{	m_state = state; m_stateData = stateData; };
+
+	const StateAndStateData& operator=(const StateAndStateData& stateAndStateData)
+	{
+		if ( &stateAndStateData == this )
+			return *this;
+		m_state = stateAndStateData.m_state;
+		m_stateData = stateAndStateData.m_stateData;
+	}
+};
+
+//*******************************************************************
+//*******************************************************************
+
 // Template class for a State Handler, an object that 
 // can accept events and handle the logic from one state
 // to another.	A StateHandler will keep track of the
@@ -368,6 +393,26 @@ public:
 		_checkStateHandlersExist();
 
 //		Logger::log_trace(_T("StateMachine::PollStateHandlers exit"));
+	}
+
+	// Returns a list of all State and StateData for all handlers in the StateMachine.
+	std::list< StateAndStateData<Tstate,TstateData> > GetAllStates()
+	{
+		_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+		std::list< StateAndStateData<Tstate,TstateData> > ret;
+
+		// iterate through list of active state handlers
+		std::list< StateHandler<Tstate,TeventData,TstateData> * >::iterator iter = m_stateHandlers.begin();
+		while ( iter != m_stateHandlers.end() )
+		{
+			StateHandler<Tstate,TeventData,TstateData> *pStateHandler = *iter;
+			StateAndStateData<Tstate,TstateData> item( pStateHandler->getCurrentState(), pStateHandler->getCurrentStateData() );
+			ret.push_back(item);
+			iter++;
+		}
+		Logger::log_debug(_T("StateMachine::GetAllStates this=%x retsz=%d"), this, ret.size() );
+		return ret;
 	}
 
 	// Signal the state machine with a new event.

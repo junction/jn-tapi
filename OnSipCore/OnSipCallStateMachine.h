@@ -15,7 +15,8 @@ public:
 						MakeCallSet=6,       // A Make call IQ SET has been done, no response yet..
 						MakeCallRequested=7, // The incoming REQUESTED dialog state for the Make Call request
 						MakeCallRequestedAnswered=8,  // Caller answered their physical phone to continue the Make Call request
-						MakeCallOutgoingCreated=9	 // Outgoing call has been created to to complete the call
+						MakeCallOutgoingCreated=9,	 // Outgoing call has been created to to complete the call
+						PreDropCall=10				 // State before we attempt to drop the call
                      	};
 
 	// Helper method to convert CallStates enum to a string (for debug purposes)
@@ -46,6 +47,8 @@ public:
 	string m_calledId;
 	string m_sipCallId;						// The SIP callId
 	OnSipXmppCallType::CallType m_callType;
+	string m_fromTag;		// needed for DropCall
+	string m_toTag;			// needed for DropCall
 
 	OnSipCallStateData() 
 	{  m_callId = 0;  m_callType = OnSipXmppCallType::Unknown; }
@@ -60,6 +63,8 @@ public:
 		m_remoteId = callData.m_remoteId; 
 		m_calledId = callData.m_calledId; 
 		m_sipCallId = callData.m_sipCallId;
+		m_fromTag = callData.m_fromTag;
+		m_toTag = callData.m_toTag;
 		return *this;
 	}
 
@@ -192,9 +197,34 @@ public:
 	// PreExecute method that will be called before
 	// StateHandler is added to the state machine to
 	// take care of the initial make call
-	virtual bool PreExecute(OnSipXmpp *pOnSipXmpp);
+	virtual bool PreExecute(OnSipStateMachineBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,OnSipXmpp *pOnSipXmpp);
 
 	OnSipMakeCallStateHandler (const tstring& toDial,long callId);
+};
+
+//*************************************************************************
+//*************************************************************************
+
+// Handler to drop a call.
+// This is type of "PreExecute", we drop the call in the PreExecute.
+// The StateHandler is never added to the state machine, it is
+// used just to drop the call.  Not added since we would then
+// have 2 StateHandlers tracking the same call.
+class OnSipDropCallStateHandler : public OnSipCallStateHandlerBasePreExecute
+{
+private:
+protected:
+	virtual bool IsYourEvent(XmppEvent *pEvent);
+	virtual bool IsStillExist();
+
+	long m_callId;			// call to be dropped
+public:
+	// PreExecute method that will be called before
+	// StateHandler is added to the state machine to
+	// take care of the drop call
+	virtual bool PreExecute(OnSipStateMachineBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,OnSipXmpp *pOnSipXmpp);
+
+	OnSipDropCallStateHandler (long callId);
 };
 
 //*************************************************************************
@@ -232,12 +262,32 @@ public:
 	OnSipCallStateMachine(OnSipXmpp* pOnSipXmpp) : OnSipStateMachineBase(pOnSipXmpp)
 	{ }
 
+	// NOT thread-safe
+	//
+	// Find the specified call in the state machine.
+	// Return its current calsltate and callstatedata.
+	// Returns true if found
+	bool FindCallState(long callId,OnSipXmppStates::CallStates* pCallState,OnSipCallStateData* pCallStateData);
+
+	// NOT thread-safe
+	//
+	// Drop a phone call.  
+	//  callId = unique ID for this call
+	//  unique contextId for the IQ request, it will be in the IQ reply to match the request
+	bool DropCall( long callId,int contextId );
+
 	// THREAD-SAFE
 	//
 	// Make a phone call.  This will be done asynchrously.
 	// The request will be inserted into the state machine for handling.
 	// Returns the unique callid that refers to the unique ID for this call
-	long MakeCall( const tstring& phoneNumber );
+	long MakeCallAsync( const tstring& phoneNumber );
+
+	// THREAD-SAFE
+	//
+	// Drop a phone call.  This will be done asynchronously
+	//  callId = unique ID for this call
+	void DropCallAsync( long callId );
 };
 
 

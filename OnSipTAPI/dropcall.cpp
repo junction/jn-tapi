@@ -36,32 +36,55 @@ bool COnSipLine::OnDropCall(RTDropCall* pRequest, LPCVOID lpBuff)
 	const COnSipEvent* pEvent = static_cast<const COnSipEvent*>(lpBuff);
 	CTSPICallAppearance* pCall = pRequest->GetCallInfo();
 
+	// See if this is a call event
+	const COnSip_CallEvent* pCallEvent = (pEvent == NULL) ? NULL : COnSipEvent::getCallEvent(pEvent);
+	// Get the CallId from the call event
+	DWORD callEventCallId = (pCallEvent == NULL) ? 0 : pCallEvent->CallId();
+
+	Logger::log_debug( _T("COnSipLine::OnDropCall lpBuff=%p callEvent=%p pCall.CallId=%d evt.Callid=%ld"), lpBuff, pCallEvent, pCall->GetCallID(), callEventCallId );
+
 	// If we are in the initial state (i.e. this request has not been processed
 	// before by any other thread). Then move the packet to the waiting state so 
 	// other threads will not interfere with other events or timers.  This is 
 	// guaranteed to be thread-safe and atomic.
 	if (pRequest->EnterState(STATE_INITIAL, STATE_WAITING))
 	{
-		// TODO: Send a command to drop the call on the hardware
+		Logger::log_debug( _T("COnSipLine::OnDropCall STATE_INITIAL pCall.CallId=%d"), pCall->GetCallID() );
+
+		// Otherwise we have a number to dial - send it to the PBX
+		// Transition to the WAITING state
+		pRequest->SetState(STATE_WAITING);
+
+		// Send the drop call to the Device
+		bool ret = GetDeviceInfo()->DRV_DropCall(this, pCall );
+		Logger::log_debug( _T("COnSipLine::OnDropCall STATE_INITIAL DRV_DropCall  callId=%ld ret=%d"), pCall->GetCallID(), ret );
+
+		// If error
+		if ( !ret )
+		{
+			Logger::log_error( _T("COnSipLine::OnDropCall STATE_INITIAL DRV_DropCall failed") );
+			CompleteRequest(pRequest,LINEERR_OPERATIONFAILED);
+		}
+		return true;
 	}
 
 	// If we are in the waiting stage (2) then see if we received an event from the
 	// switch (vs. an interval timer) and if that event was an ACK/NAK in response
 	// to the command we issued.
-	else if (pRequest->GetState() == STATE_WAITING && lpBuff != NULL)
+	else if (pRequest->GetState() == STATE_WAITING && pCallEvent != NULL && callEventCallId == pCall->GetCallID() )
 	{
-		// TODO: Check the return code from the PBX and fail the request or
-		// complete it with a zero return code
-		bool fError = true;
-		if (!fError)
+		// Get the TAPI callstate for this event
+		DWORD dwCallState = pCallEvent->GetTapiCallState();
+
+		Logger::log_debug( _T("COnSipLine::OnDropCall STATE_WAITING callId=%d tapiCallState=%ld"), callEventCallId, dwCallState );
+
+		// If IDLE callstate, then complete
+		if ( dwCallState == LINECALLSTATE_IDLE )
 		{
+			Logger::log_debug( _T("COnSipLine::OnDropCall STATE_WAITING IDLE callId=%d %s"), callEventCallId, pCallEvent->ToString().c_str() );
 			CompleteRequest(pRequest, 0);
 		}
-		else
-		{
-			// TODO: Replace with a specific error.
-			CompleteRequest(pRequest, LINEERR_OPERATIONFAILED);
-		}
+		return true;
 	}
 
 	// Check to see if our request has exceeded the limit for processing.  If 

@@ -19,6 +19,33 @@ OnSipXmpp *OnSipThread::CreateOnSipXMPP()
 
 // THREAD-SAFE
 //
+// Request to drop the specified call
+void OnSipThread::DropCall(long callId)
+{
+	Logger::log_app(_T("OnSipThread::DropCall %ld"), callId );
+	// If thread is not running
+	if ( !MyThread::IsInThread() )
+	{
+		Logger::log_error(_T("OnSipThread::DropCall %ld - NOT IN THREAD"), callId );
+		return;
+	}
+
+	// Access the main XMPP object
+	{
+		CriticalSectionScope css(&m_cs);
+		if ( m_xmpp.get() == NULL )
+		{
+			Logger::log_error(_T("OnSipThread::DropCall %ld - No XMPP object"), callId );
+			return;
+		}
+		m_xmpp->DropCall(callId);
+	}
+
+	Logger::log_app(_T("OnSipThread::DropCall callId=%d"), callId );
+}
+
+// THREAD-SAFE
+//
 // Request to dial the specified number.
 // Returns the unique call-id to track the call.
 // Returns 0 if error.

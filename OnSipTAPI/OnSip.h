@@ -193,7 +193,7 @@ public:
 	COnSipDevice();
 	virtual ~COnSipDevice();
 
-	long DRV_DropCall(const COnSipLine* pLine, CTSPICallAppearance* pCall);
+	bool DRV_DropCall(const COnSipLine* pLine, CTSPICallAppearance* pCall);
 	long DRV_MakeCall(const COnSipLine* pLine, const TString& strDigits, DWORD dwCountryCode=0);
 
 // Overridden functions from CTSPIDevice

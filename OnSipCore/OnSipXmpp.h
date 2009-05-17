@@ -64,7 +64,7 @@ public:
 	void Ping()
 	{	OnSipXmppBase::Ping();	}
 
-	// Authorize with OnSip PBX
+	// Call Number on OnSip PBX
 	// Pass unique contextId to be associated with this request,
 	// the Iq Result will have the same contextId.
 	//   customTag = unique value in form of "x=y" that is to be added to the TO and FROM fields
@@ -74,6 +74,12 @@ public:
 	// to the outbound part.
 	//    toField/fromField = optional tstring values to retrieve the exact TO and FROM values used in the XMPP request.
 	tstring CallNumber(tstring number,int contextId,tstring customTag,tstring* toField=NULL,tstring* fromField=NULL);
+
+	// Hangup call PBX
+	// Pass unique contextId to be associated with this request,
+	// the Iq Result will have the same contextId.
+	// Returns the XMPP id used for the request
+	tstring DropCall(tstring sipCallid,tstring fromTag,tstring toTag, int contextId);
 
 	// THREAD-SAFE
 	// Get next unique ID for contextId and other various purposes
@@ -104,6 +110,12 @@ public:
 	// Request a phone number to be dialed.
 	// Returns the unique callId for this request.
 	long MakeCall(const tstring& number);
+
+	// THREAD-SAFE
+	//
+	// This is asynchronous and thread-safe.
+	// Drop the specified call
+	void DropCall(long callId);
 
 	// Return the last notified (current) state of the InitStateMachine
 	OnSipInitStates::InitStates GetInitStateMachineState()

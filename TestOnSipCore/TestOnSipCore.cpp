@@ -6,6 +6,7 @@
 #include "conio.h"
 #include <sstream>
 #include "OnSipThread.h"
+#include <stdlib.h>
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -45,7 +46,22 @@ int _tmain(int argc, _TCHAR* argv[])
 		if ( buffer[0] == 0 )
 			break;
 		Logger::log_debug(_T("MAIN input:%s"),buffer);
-		thread.MakeCall(buffer);
+		long callId = 0;
+		// If starts with "-", then it is callid to drop
+		if ( buffer[0] == '-' )
+		{
+			callId = atoi(buffer+1);
+		}
+		if ( callId == 0 )
+		{
+			thread.MakeCall(buffer);
+			Logger::log_debug( _T("MAIN MakeCall callId=%ld"), callId );
+		}
+		else
+		{
+			Logger::log_debug( _T("MAIN DropCall callid=%ld"), callId );
+			thread.DropCall(callId);
+		}
 	}
 
 	// Stop XMPP thread

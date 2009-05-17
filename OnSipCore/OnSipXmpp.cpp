@@ -47,6 +47,8 @@
 
 //  TAPI dwAddressSize/Offset - change to "OnSIP [PHONENUMBER]"
 
+// Move a lot of the PreExecute and PollStateHandlers and other state machine code in  OnSipStateMachine.h to standard StateMachine.h
+
 //  Can we get rid of Crypt32.dll from DLL required in OnSip.tsp - I guess this is from gloox! also brings in MSVCRT.DLL
 
 // TODO
@@ -190,6 +192,39 @@ tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tst
 	m_gloox->send( iq, this, contextId );
 	return id;
 }
+
+// Hangup call PBX
+// Pass unique contextId to be associated with this request,
+// the Iq Result will have the same contextId.
+// Returns the XMPP id used for the request
+tstring OnSipXmpp::DropCall(tstring sipCallid,tstring fromTag,tstring toTag, int contextId)
+{
+	Logger::log_debug("OnSipXmpp::DropCall sipCallid=%s fromTag=%s toTag=%s contextId=%d", sipCallid.c_str(), fromTag.c_str(), toTag.c_str(), contextId );
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	// Create DataForm
+	DataForm* settings = new DataForm( gloox::TypeSubmit );
+	// Add from field
+	DataFormField* dff = new DataFormField( "from-tag", fromTag );
+	settings->addField(dff);
+	// Add to field
+	dff = new DataFormField( "to-tag", toTag );
+	settings->addField(dff);
+	// Add callid field
+	dff = new DataFormField( "call-id", sipCallid );
+	settings->addField(dff);
+
+	// Add command
+	JID toJid( ONSIP_ACTIVECALLS_COMMAND );
+	string id = m_gloox->getID();
+	IQ iq( IQ::Set, toJid, id );
+	Adhoc::Command *cmd = new Adhoc::Command( "terminate", EmptyString, Adhoc::Command::Executing, settings );
+	iq.addExtension( cmd );
+	Logger::log_debug("OnSipXmpp::DropCall '%s' using id=%s",sipCallid.c_str(),id.c_str());
+	m_gloox->send( iq, this, contextId );
+	return id;
+}
+
 
 // virtual
 void OnSipXmpp::onConnect()
@@ -388,5 +423,15 @@ void OnSipXmpp::Cleanup()
 // Returns the unique callId for this request.
 long OnSipXmpp::MakeCall(const tstring& number)
 {
-	return m_callStateMachine->MakeCall(number);
+	return m_callStateMachine->MakeCallAsync(number);
 }
+
+// THREAD-SAFE
+//
+// This is asynchronous and thread-safe.
+// Drop the specified call
+void OnSipXmpp::DropCall(long callId)
+{
+	m_callStateMachine->DropCallAsync(callId);
+}
+

@@ -92,6 +92,9 @@ void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData
 		callStateData.m_remoteId = ace->m_to_aor;
 		//	callStateData.m_calledId = ace->m_uas_aor;
 	}
+	// Assign from/to tags
+	callStateData.m_fromTag = ace->m_from_tag;
+	callStateData.m_toTag = ace->m_to_tag;
 }
 
 //****************************************************************************
@@ -294,7 +297,7 @@ OnSipMakeCallStateHandler::OnSipMakeCallStateHandler(const tstring& todial,long 
 }
 
 //virtual 
-bool OnSipMakeCallStateHandler::PreExecute(OnSipXmpp *pOnSipXmpp)
+bool OnSipMakeCallStateHandler::PreExecute(OnSipStateMachineBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* /*pStateMachine*/,OnSipXmpp *pOnSipXmpp)
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
@@ -490,6 +493,55 @@ bool OnSipMakeCallStateHandler::IsStillExist()
 
 //****************************************************************************
 //****************************************************************************
+// State Handler for generated outgoing call
+//****************************************************************************
+
+OnSipDropCallStateHandler::OnSipDropCallStateHandler(long callId) : OnSipCallStateHandlerBasePreExecute(OnSipXmppStates::PreDropCall, NULL )
+{ 
+	Logger::log_debug(_T("OnSipDropCallHandler::OnSipDropCallHandler callId=%ld"), callId );
+	m_callId = callId;
+}
+
+//virtual 
+bool OnSipDropCallStateHandler::PreExecute(OnSipStateMachineBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,OnSipXmpp *pOnSipXmpp)
+{
+	Logger::log_debug(_T("OnSipDropCallHandler::OnSipDropCallHandler callId=%ld"), m_callId );
+
+	OnSipCallStateMachine* pCallStateMachine = dynamic_cast<OnSipCallStateMachine*>(pStateMachine);
+
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	// Get unique context ID for the drop request
+	long contextId = pOnSipXmpp->getUniqueId();
+	pCallStateMachine->DropCall( m_callId, contextId );
+	return true;
+}
+
+//virtual 
+bool OnSipDropCallStateHandler::IsYourEvent(XmppEvent *pEvent)
+{
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+	_ASSERT(false);
+	// IsYourEvent is not used, we do not track the drop call status.
+	// Assume this to be handled by the other call state handler that is
+	// tracking the active call.
+	//
+	// We don't have this handler active due to we would have 2 state handlers
+	// tracking the same call.
+	//
+	// We avoid the handler being added to the StateMachein due to IsStillExist() returns false
+	return false;
+}
+
+//virtual 
+bool OnSipDropCallStateHandler::IsStillExist()
+{	
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+	return false;
+}
+
+//****************************************************************************
+//****************************************************************************
 
 //virtual 
 StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData> *OnSipCallStateMachine::UnknownEvent(XmppEvent* pEvent)
@@ -498,7 +550,7 @@ StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData> *OnSipCal
 	XmppActiveCallEvent* ace = OnSipCallStateHelper::getActiveCallEvent(pEvent);
 	if ( ace != NULL )
 	{
-		Logger::log_debug(_T("OnSipIncomingCallStateHandler::UnknownEvent activeCallEvent dialogState=%d"),ace->m_dialogState);
+		Logger::log_debug(_T("OnSipCallStateMachine::UnknownEvent activeCallEvent dialogState=%d"),ace->m_dialogState);
 
 		// See if User outgoing call using physical phone device
 		if ( ace->m_dialogState == XmppActiveCallEvent::CREATED )
@@ -508,7 +560,7 @@ StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData> *OnSipCal
 		if ( ace->m_dialogState == XmppActiveCallEvent::REQUESTED )
 			return new OnSipIncomingCallStateHandler(pEvent,m_pOnSipXmpp->getUniqueId());
 	}
-	Logger::log_warn(_T("OnSipIncomingCallStateHandler::UnknownEvent UNKNOWN %s"),pEvent->ToString().c_str());
+	Logger::log_warn(_T("OnSipCallStateMachine::UnknownEvent UNKNOWN %s"),pEvent->ToString().c_str());
 	return NULL;
 }
 
@@ -516,12 +568,63 @@ StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData> *OnSipCal
 //virtual 
 void OnSipCallStateMachine::OnStateChange(OnSipXmppStates::CallStates callState,OnSipCallStateData& stateData,StateChangeReason::eOnStateChangeReason reason)
 {
-	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 	Logger::log_debug(_T("OnSipCallStateMachine::OnStateChange callState=%d/%s stateData=%s reason=%d"),
 		callState, OnSipXmppStates::CallStateToString(callState), stateData.ToString().c_str(), reason );
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
 	// Pass on to parent so external IStateNotify instances will be done
 	OnSipStateMachineBase::OnStateChange(callState,stateData,reason);
+}
+
+// Find the specified call in the state machine.
+// Return its current calsltate and callstatedata.
+// Returns true if found
+bool OnSipCallStateMachine::FindCallState(long callId,OnSipXmppStates::CallStates* pCallState,OnSipCallStateData* pCallStateData)
+{
+	Logger::log_debug(_T("OnSipCallStateMachine::FindCallState callId=%ld"), callId );
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	// Get all states from the state machine
+	std::list< StateAndStateData<OnSipXmppStates::CallStates,OnSipCallStateData>> ret = GetAllStates();
+	// Iterate through them looking for matching callid
+	std::list< StateAndStateData<OnSipXmppStates::CallStates,OnSipCallStateData>>::iterator iter = ret.begin();
+	while ( iter != ret.end() )
+	{
+		// If matching unique callId found
+		if ( iter->m_stateData.m_callId == callId )
+		{
+			*pCallState = iter->m_state;
+			*pCallStateData = iter->m_stateData;
+			Logger::log_debug(_T("OnSipCallStateMachine::FindCallState callId=%ld found state=%s stateData=%s"), 
+				callId, OnSipXmppStates::CallStateToString( *pCallState ), pCallStateData->ToString().c_str() );
+			return true;
+		}
+		iter++;
+	}
+	Logger::log_warn(_T("OnSipCallStateMachine::FindCallState callId=%ld notFound"), callId );
+	return false;
+}
+
+// NOT thread-safe
+//
+// Drop a phone call.  
+//  callId = unique ID for this call
+//  unique contextId for the IQ request, it will be in the IQ reply to match the request
+bool OnSipCallStateMachine::DropCall( long callId, int contextId )
+{
+	Logger::log_debug( _T("OnSipCallStateMachine::DropCall callId=%ld"), callId );
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	// See if we can find this call in the state machine
+	OnSipXmppStates::CallStates callState;
+	OnSipCallStateData callData;
+	if ( !FindCallState(callId,&callState,&callData) )
+	{
+		Logger::log_error( _T("OnSipCallStateMachine::DropCall callId=%ld call notFound"), callId );
+		return false;
+	}
+	m_pOnSipXmpp->DropCall( callData.m_sipCallId, callData.m_fromTag, callData.m_toTag, contextId );
+	return true;
 }
 
 // THREAD-SAFE
@@ -529,11 +632,22 @@ void OnSipCallStateMachine::OnStateChange(OnSipXmppStates::CallStates callState,
 // Make a phone call.  This will be done asynchrously.
 // The request will be inserted into the state machine for handling.
 // Returns the unique callid that refers to the unique ID for this call
-long OnSipCallStateMachine::MakeCall( const tstring& phoneNumber )
+long OnSipCallStateMachine::MakeCallAsync( const tstring& phoneNumber )
 {
+	// Generate new unique ID
 	long callId = m_pOnSipXmpp->getUniqueId();
-	Logger::log_debug( _T("OnSipCallStateMachine::MakeCall %s callId=%ld"), phoneNumber.c_str(), callId );
+	Logger::log_debug( _T("OnSipCallStateMachine::MakeCallAsync %s callId=%ld"), phoneNumber.c_str(), callId );
 	AddStateHandler( new OnSipMakeCallStateHandler(phoneNumber, callId ) );
 	return callId;
 }
 
+// THREAD-SAFE
+//
+// Drop a phone call.  This will be done asynchronously
+//  callId = unique ID for this call
+void OnSipCallStateMachine::DropCallAsync( long callId )
+{
+	Logger::log_debug( _T("OnSipCallStateMachine::DropCallAsync callId=%ld"), callId );
+	// Create Drop CallStateHandler that will do the drop in its PreExecute() method
+	AddStateHandler( new OnSipDropCallStateHandler(callId ) );
+}

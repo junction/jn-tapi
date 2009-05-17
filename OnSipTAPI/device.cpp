@@ -203,9 +203,18 @@ bool COnSipDevice::Init(DWORD dwProviderId, DWORD dwBaseLine, DWORD dwBasePhone,
 
 }// COnSipDevice::Init
 
-long  COnSipDevice::DRV_DropCall(const COnSipLine * pLine, CTSPICallAppearance* pCall)
+bool COnSipDevice::DRV_DropCall(const COnSipLine * pLine, CTSPICallAppearance* pCall)
 {
-	return 0;
+	Logger::log_debug( _T("COnSipDevice::DRV_DropCall pLine=%p pCall=%p pCall.CallId=%ld"), pLine, pCall, pCall->GetCallID() );
+
+	CriticalSectionScope css(&m_cs);
+	if ( m_OnSipTapi.get() == NULL )
+	{
+		Logger::log_error( _T("COnSipDevice::DRV_DropCall callId=%ld notavail"), pCall->GetCallID() );
+		return false;
+	}
+	m_OnSipTapi->DropCall(pCall->GetCallID());
+	return true;
 }
 
 long COnSipDevice::DRV_MakeCall(const COnSipLine* pLine, const TString& strDigits, DWORD dwCountryCode)

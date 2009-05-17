@@ -4,6 +4,9 @@
 #include "statemachine.h"
 
 class OnSipXmpp;
+template <class Tstate,class TeventData,class TstateData>
+class OnSipStateMachineBase;
+
 
 // A template wrapper around a StateHanlder that has the option
 // to pre-execute a XMPP operation before being added to the
@@ -14,7 +17,7 @@ template <class Tstate,class TeventData,class TstateData>
 class StateHandlerPreExecute : public StateHandler<Tstate,TeventData,TstateData>
 {
 public:
-	virtual bool PreExecute(OnSipXmpp *pOnSipXmpp) = 0;
+	virtual bool PreExecute(OnSipStateMachineBase<Tstate,TeventData,TstateData>* pStateMachine,OnSipXmpp *pOnSipXmpp) = 0;
 
 public:
 	StateHandlerPreExecute(Tstate m_state,TeventData *eventData) : StateHandler(m_state,eventData)
@@ -151,8 +154,9 @@ public:
 				{
 					Logger::log_debug(_T("OnSipStateMachineBase::PollStateHandlers do PreExecute"));
 					// Allow the StateHandler to do an execute first
-					bPreExecute = pRequest->getStateHandlerPreExecute()->PreExecute(m_pOnSipXmpp);
+					bPreExecute = pRequest->getStateHandlerPreExecute()->PreExecute(this,m_pOnSipXmpp);
 				}
+
 				// If PreExecute failed
 				if ( !bPreExecute )
 				{
@@ -160,12 +164,16 @@ public:
 					// Delete the StateHandler since it will not be added to the state machine
 					delete pRequest->getStateHandler();
 				}
-				// else add the StateHandler
-				else
+				// else if StateHandler is still good, add it 
+				else if ( pRequest->getStateHandler()->IsStillExist() )
 				{
 					// Add and pass off ownership of the StateHandler to the StateMachine
 					StateMachine::AddStateHandler( pRequest->getStateHandler(), pRequest->IsPreExecute() );
 				}
+				// else do not add the state handler
+				else
+					delete pRequest->getStateHandler();
+
 				// Delete the StateHandlerRequest
 				delete pRequest;
 
