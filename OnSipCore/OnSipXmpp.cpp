@@ -38,7 +38,9 @@
 
 //  Decrypt the password for logon
 
-//  Drop Call
+//  Are there some cases where to-tag or from-tag are not specified in the active call events.
+//  If so, will there be a case that we need to hang up this call.  The terminate method
+// requries a valid value for both.  I did have an error, but didn't spend much time on it.
 
 //  Take over Init() method in Line.cpp  TAPI dependent source
 // e.g. void CDSLine::Init (CTSPIDevice* pDev, DWORD dwLineDeviceID, DWORD dwPos, DWORD /*dwItemData*/)
@@ -154,7 +156,15 @@ tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tst
 			iter++;
 		}
 		toNumber = Strings::stringFormat(_T("sip:%s@%s"), tempNumber.c_str(), m_login.m_domain.c_str() );
-		Logger::log_debug("OnSipXmpp::CallNumber converted number=%s to %s", number.c_str(), toNumber.c_str() );
+		Logger::log_debug("OnSipXmpp::CallNumber converted phone number=%s to %s", number.c_str(), toNumber.c_str() );
+	}
+	// if begins with "Tsip:", then it was a sip dial request, 
+	// but the application preceded the number with a "T" to signify
+	// to dial as tone.  Strip the "T" and dial only the sip number.
+	else if ( Strings::startsWith( Strings::tolower(number), _T("tsip:") ) )
+	{
+		toNumber = number.substr(1,number.size()-1);
+		Logger::log_debug( _T("OnSipXmpp::CallNumber removed T from sip number=%s"), toNumber.c_str() );
 	}
 
 	tstring fromNumber = Strings::stringFormat(_T("sip:%s"), m_login.SIPAddress().c_str() );

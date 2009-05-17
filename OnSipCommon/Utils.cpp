@@ -78,7 +78,7 @@ tstring Strings::trim (const tstring & s, const tstring & t)
 tstring Strings::tolower (const tstring & s)
 {
 	tstring d (s);
-	transform (d.begin (), d.end (), d.begin (), (int(*)(int)) Strings::tolower);
+	transform (d.begin (), d.end (), d.begin (), (int(*)(int)) ::tolower);
 	return d;
 }
 
@@ -86,7 +86,7 @@ tstring Strings::tolower (const tstring & s)
 tstring Strings::toupper (const tstring & s)
 {
 	tstring d (s);
-	transform (d.begin (), d.end (), d.begin (), (int(*)(int)) Strings::toupper);
+	transform (d.begin (), d.end (), d.begin (), (int(*)(int)) ::toupper);
 	return d;
 }
 
