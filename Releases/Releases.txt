@@ -4,3 +4,10 @@ TestOnSipCore 5-11-09.zip -  new console test program that uses the new C++ wrap
 
 TSP debug/release 5-12-09.zip - was to be the initial release of the TAPI driver.  Will do makeCall, notify of incoming calls, and notify of outgoing physical calls.  Does not have lineDrop.  This version still has issue with Outlook.  Outlook does a lineOpen and then immediately does a makeCall.  This version did asynchronous lineOpen, e.g. it verified connection and then returned back, then did rest of initialization asynchronously.   Issue with Outlook was that it would call makeCall before init was complete.  This would work if the TAPI driver was initially opened first by another program, e.g. TAPI Browser.   Will change lineOpen to be synchronous in next release.
 
+TSP release 5-15-09.zip - first official release given to Erick. fixes issue with Outlook and lineOpen.
+   lineOpen is now synchronous.  works with Outlook and dialing numbers.
+
+TSP release 5-16-09.zip - fixes...
+    a) added lineDrop support
+    b) fixed issue with Dialer dialing SIP number like   "Tsip:....".  Strip the "T" now.
+    c) fixed issue with continous ping server, also possible stuck look in re-authorize   
