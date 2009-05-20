@@ -96,11 +96,12 @@ bool COnSipLine::UnsolicitedCallEvent(const COnSip_CallEvent *pCallEvent)
 			pCall = OnNewCallDetected( false, pCall, pCallEvent );
 			return true;
 		}
-		// If physical call
+		// If physical outgoing call
 		if ( pCallEvent->CallType() == OnSipXmppCallType::PhysicalCall )
 		{
-			// Create CallAppearance
-			pCall = OnNewCallDetected( false, pCall, pCallEvent );
+			// Create CallAppearance, dialing state
+			pCall = OnNewCallDetected( true, pCall, pCallEvent );
+			pCall->SetCallState(LINECALLSTATE_PROCEEDING);
 			return true;
 		}
 

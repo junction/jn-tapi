@@ -29,6 +29,8 @@
 
 //  Test button in the TAPI Config Dialog
 
+// Turn off debug in release mode, enable by registry key
+
 //  Need to call whitespaceping every 5 minutes or so from the client to keep the server connection alive.
 //     see  http://camaya.net/api/gloox-trunk/classgloox_1_1ClientBase.html#a33 , search for whitespacePing().
 
@@ -41,6 +43,7 @@
 //  Are there some cases where to-tag or from-tag are not specified in the active call events.
 //  If so, will there be a case that we need to hang up this call.  The terminate method
 // requries a valid value for both.  I did have an error, but didn't spend much time on it.
+//     MakeCall - initial inbound call,  MakeCall - initial outbound call
 
 //  Take over Init() method in Line.cpp  TAPI dependent source
 // e.g. void CDSLine::Init (CTSPIDevice* pDev, DWORD dwLineDeviceID, DWORD dwPos, DWORD /*dwItemData*/)

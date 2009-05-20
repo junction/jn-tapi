@@ -348,7 +348,7 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			return false;
 		}
 
-		// If MakeCallTrying->MakeCallRequested,  e.g. physical phone ringing to begin the call sequence
+		// If MakeCallTrying->MakeCallRequested,  e.g. physical phone inbound call ringing to begin the call sequence
 		if ( IsState(OnSipXmppStates::MakeCallSet) && m_fromSipField == ace->m_to_uri )
 		{
 			// Make sure requested state!
@@ -366,7 +366,7 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			return true;
 		}
 
-		// If MakeCallRequested -> MakeCallRequestedAnswered , e.g. answered physical phone, next doing outgoing call
+		// If MakeCallRequested -> MakeCallRequestedAnswered , e.g. see if person answered the inbound call on physical phone
 		if ( IsState(OnSipXmppStates::MakeCallRequested) && m_fromSipField == ace->m_to_uri )
 		{
 			// See if confirmed state
@@ -382,10 +382,10 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			return true;
 		}
 
-		// If MakeCallRequestedAnswered -> MakeCallOutgoingCreated , e.g. answered physical phone, next doing outgoing call
+		// If MakeCallRequestedAnswered -> MakeCallOutgoingCreated , e.g. see if now doing outgoing call
 		if ( IsState(OnSipXmppStates::MakeCallRequestedAnswered) && m_toSipField == ace->m_to_uri )
 		{
-			// See if confirmed state
+			// See if created state
 			bool bCreated = ace->m_dialogState == XmppActiveCallEvent::CREATED;
 			Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent MakeCallRequestedAnswered->MakeCallOutgoingCreated bCreated=%d dialogState=%d "),bCreated,ace->m_dialogState);
 			if ( bCreated )
@@ -400,7 +400,7 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			return true;
 		}
 
-		// If MakeCallOutgoingCreated->Connected , e.g. outgoing call is now being called
+		// If MakeCallOutgoingCreated->Connected , e.g. outgoing call has been answered, phone call complete
 		if ( IsState(OnSipXmppStates::MakeCallOutgoingCreated) && m_toSipField == ace->m_to_uri )
 		{
 			// See if connected state
@@ -413,11 +413,9 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 				OnSipCallStateHelper::AssignCallStateData(getCurrentStateData(),ace,-1);
 				return true;
 			}
-			// TODO:  Currently a bug on the server side with #2 call being retracted, then created and retracted again.
-			// Currently just connect for CONNECTED state and ignoring these.  Probably ok for final
-			// version, but just need to check in the retracted check below better
-			// Delete event since not keeping it
-			delete pEvent;
+			// TODO?? Error condtion?
+			else
+				assignNewState( OnSipXmppStates::Dropped, pEvent );
 			return true;
 		}
 
@@ -427,31 +425,38 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		delete pEvent;
 		return true;
 	}
-
-	// TODO!!!
-	// Need to update the retracted check below, remove the check for the CONNECTED state.
-	// Do this once Erick has fixed bug with getting retracted call on the 2nd call
-	// while the outgoing call is being created!!!
-
+	
 	// See if a retracted (dropped call)
 	XmppRetractCallEvent *rce = OnSipCallStateHelper::getRetractCallEvent(pEvent);
 	if ( rce != NULL )
 	{
-		// If this is the successful connected call being dropped
-		if ( m_out_id == pEvent->m_id && IsState(OnSipXmppStates::Connected) )
+		// if initial "incoming" call being disconnected
+		if ( m_in_id == pEvent->m_id ) 
 		{
-			Logger::log_debug("OnSipMakeCallStateHandler::IsYourEvent primary connected dropped");
+			Logger::log_debug("OnSipMakeCallStateHandler::IsYourEvent initial incall dropped. out_id=%s",m_out_id.c_str());
+			// If outbound call has not been created, then initial call has disconnected.  Drop the call
+			if ( m_out_id.empty() )
+			{
+				assignNewState( OnSipXmppStates::Dropped, pEvent );
+			}
+			else
+			{
+				// We have outbound call still, so no change in state.
+				// Clear out the inbound id, no longer need
+				m_in_id.clear();
+			}
+			return true;
+		}
+
+		// If this is the outbound call, then call is dropped
+		if ( m_out_id == pEvent->m_id )
+		{
+			Logger::log_debug("OnSipMakeCallStateHandler::IsYourEvent outcall dropped");
 			assignNewState( OnSipXmppStates::Dropped, pEvent );
 			return true;
 		}
-		// if initial "incoming" call being disconnected, 2nd outbound call not done yet
-		if ( m_in_id == pEvent->m_id && m_out_id.empty() )
-		{
-			Logger::log_debug("OnSipMakeCallStateHandler::IsYourEvent initial incall dropped");
-			assignNewState( OnSipXmppStates::Dropped, pEvent );
-			return true;
-		}
-		Logger::log_debug("OnSipMakeCallStateHandler::IsYourEvent dropped ignored");
+
+		Logger::log_warn("OnSipMakeCallStateHandler::IsYourEvent unknown dropped id=%s",pEvent->m_id.c_str());
 		// Delete event since not keeping it
 		delete pEvent;
 		return true;
