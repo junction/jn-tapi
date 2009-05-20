@@ -11,3 +11,9 @@ TSP release 5-16-09.zip - fixes...
     a) added lineDrop support
     b) fixed issue with Dialer dialing SIP number like   "Tsip:....".  Strip the "T" now.
     c) fixed issue with continous ping server, also possible stuck look in re-authorize   
+
+TSP release 5-19-09.zip - fixes...
+   1) fixed makecall state machine now that onsip server has been fixed.
+      now does proper tracking of call and when it drops
+   2) fixed bug with physical outgoing calls. It was being reported
+      as offering, now is reported as dialing/proceeding
