@@ -10,7 +10,9 @@
 class OnSipXmppStates
 {
 public:
-	enum CallStates { Unknown=0, Offering=1, Proceeding=2, Connected=3, Dropped=4, 
+	enum CallStates { Unknown=0, Offering=1, 
+						PhysicalOutProceeding=2, 	// User is placing a call directly on the SIP phone
+						Connected=3, Dropped=4, 
 						PreMakeCall=5,		 // Make call needs to be done, no XMPP has been done yet
 						MakeCallSet=6,       // A Make call IQ SET has been done, no response yet..
 						MakeCallRequested=7, // The incoming REQUESTED dialog state for the Make Call request
@@ -117,6 +119,16 @@ public:
 		Logger::log_debug(_T("OnSipCallStateHandlerBase::assignNewState callState=%d/%s"), callState, OnSipXmppStates::CallStateToString(callState) );
 		StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>::assignNewState(callState,pEvent,stateData);
 	}
+
+	// General static helper method so can be used from PreExecute handlers.
+	// Checks to see if the state has been in the specified state for the specified timeout in msecs.
+	// If so, then the call will be put in the Dropped state and return true.
+	static bool CheckStateTimeout( StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateHandler, OnSipXmppStates::CallStates callState, DWORD timeout );
+
+	// Checks to see if the state has been in the specified state for the specified timeout in msecs.
+	// If so, then the call will be put in the Dropped state and return true.
+	bool CheckStateTimeout( OnSipXmppStates::CallStates callState, DWORD timeout )
+	{	return CheckStateTimeout( this, callState, timeout ); }
 };
 
 // Call State Handler Base object with "PreExecute" option that is
@@ -143,6 +155,11 @@ public:
 		Logger::log_debug(_T("OnSipCallStateHandlerBasePreExecute::assignNewState callState=%d/%s"), callState, OnSipXmppStates::CallStateToString(callState) );
 		StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>::assignNewState(callState,pEvent,stateData);
 	}
+
+	// Checks to see if the state has been in the specified state for the specified timeout in msecs.
+	// If so, then the call will be put in the Dropped state and return true.
+	bool CheckStateTimeout( OnSipXmppStates::CallStates callState, DWORD timeout )
+	{	return OnSipCallStateHandlerBase::CheckStateTimeout( this, callState, timeout ); }
 };
 
 //*************************************************************************

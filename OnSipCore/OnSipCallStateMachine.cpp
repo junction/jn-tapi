@@ -110,8 +110,8 @@ TCHAR *OnSipXmppStates::CallStateToString(CallStates state)
 			return _T("CallState::Unknown");
 		case Offering:
 			return _T("CallState::Offering");
-		case Proceeding:
-			return _T("CallState::Proceeding");
+		case PhysicalOutProceeding:
+			return _T("CallState::PhysicalOutProceeding");
 		case Connected:
 			return _T("CallState::Connected");
 		case Dropped:
@@ -167,10 +167,64 @@ tstring OnSipCallStateData::ToString() const
 
 //****************************************************************************
 //****************************************************************************
+
+// Checks to see if the state has been in the specified state for the specified timeout in msecs.
+// If so, then the call will be put in the Dropped state and return true.
+// static
+bool OnSipCallStateHandlerBase::CheckStateTimeout( StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateHandler, OnSipXmppStates::CallStates callState, DWORD timeout )
+{
+	// If we are stuck in the MakeCallSet state, then most likely we did not get any call events for the request
+	if ( pStateHandler->IsState( callState ) && pStateHandler->MsecsSinceLastStateChange() > timeout  )
+	{
+		Logger::log_error(_T("CheckStateTimeout %s TIMEOUT msecs=%ld.  DROPPING call"), OnSipXmppStates::CallStateToString(callState), pStateHandler->MsecsSinceLastStateChange() );
+		pStateHandler->assignNewState( OnSipXmppStates::Dropped, NULL );
+		// Do not report that call does not exist yet, let it be handled on the next poll check
+		return true;
+	}
+
+	return false;
+}
+
+//****************************************************************************
+//****************************************************************************
+
+// # msecs timeout that we wait max after requesting a makecall, that we will drop the call
+// if there has been no call events reported on the call.
+// This can occur if the SIP phone device is down, or the call events server is down
+// and we request the call.  It will be stuck in DIALTONE state until we start seeing activity.
+#define MAKECALL_CREATE_TIMEOUT				(7 * MSECS_IN_SEC)
+
+// # msecs timeout that we wait max after the inbound call is ringing for the person to answer.
+// Maybe the SIP phone is not ringing for some reason.  Allow reasonable time for person to answer
+#define MAKECALL_INBOUND_REQUEST_TIMEOUT	(30 * MSECS_IN_SEC)
+
+// # msecs timeout that we wait max after the inbound call has been answered and waiting for the outbound call.
+#define MAKECALL_INBOUND_ANSWERED_TIMEOUT	(15 * MSECS_IN_SEC)
+
+// # msecs timeout that we wait max after the outbound call to be answered.
+// We should really wait a long time here, maybe the person is just persistent and
+// want the other user's phone to ring over and over again.  Just a check to
+// make sure we don't get stuck in this state forever.
+#define OUTBOUND_REQUEST_TIMEOUT	(2 * MSECS_IN_MIN)
+
+// # msecs timeout that we will allow a call to be in the CONNECTED state.
+// Have a very long time, possible that a person is on a very long call,
+// but we just don't want to be stuck in this state forever due to some communication error.
+// There will be no negative effects, it will not affect the call, just the call will not be tracked anymore.
+#define CONNECTED_CALL_TIMEOUT				(3 * MSECS_IN_HOUR)
+
+// # msecs timeout that we will allow an incoming call to be ringing without an answer.
+#define INBOUND_OFFERING_TIMEOUT				(5 * MSECS_IN_MIN)
+
+// # msecs timeout that we allow a request to drop a call to wait before just assuming that it is dropped
+#define DROP_REQUEST_TIMEOUT					(30 * MSECS_IN_SEC)
+
+//****************************************************************************
+//****************************************************************************
 // State Handler for user created manual out-going phone calls
 //****************************************************************************
 
-OnSipOutgoingCallStateHandler::OnSipOutgoingCallStateHandler(XmppEvent* pEvent,long callId) : OnSipCallStateHandlerBase( OnSipXmppStates::Proceeding, pEvent )
+OnSipOutgoingCallStateHandler::OnSipOutgoingCallStateHandler(XmppEvent* pEvent,long callId) : OnSipCallStateHandlerBase( OnSipXmppStates::PhysicalOutProceeding, pEvent )
 { 
 	Logger::log_debug("OnSipOutgoingCallStateHandler::OnSipOutgoingCallStateHandler %s callId=%ld", pEvent->ToString().c_str(), callId );
 	getCurrentStateData().m_callType = OnSipXmppCallType::PhysicalCall;
@@ -220,6 +274,18 @@ bool OnSipOutgoingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 bool OnSipOutgoingCallStateHandler::IsStillExist()
 {	
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	// If we are stuck in a proceeding state, then the call is not being answered on the other end.
+	// Have a reasonable timeout for this in case server errors.
+	// No negative effects, will not affect the actual call
+	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::PhysicalOutProceeding, OUTBOUND_REQUEST_TIMEOUT	 ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
+	// If we are stuck in a connected call for VERY long time, then drop the call.
+	// No negative effects, will not affect the actual call
+	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::Connected, CONNECTED_CALL_TIMEOUT ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
 	return !IsState( OnSipXmppStates::Dropped );
 }
 
@@ -279,6 +345,17 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 bool OnSipIncomingCallStateHandler::IsStillExist()
 {	
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	// If we are stuck in a connected call for VERY long time, then drop the call.
+	// No negative effects, will not affect the actual call
+	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::Offering, INBOUND_OFFERING_TIMEOUT ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
+	// If we are stuck in a connected call for VERY long time, then drop the call.
+	// No negative effects, will not affect the actual call
+	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::Connected, CONNECTED_CALL_TIMEOUT ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+	
 	return !IsState( OnSipXmppStates::Dropped );
 }
 
@@ -491,8 +568,33 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 
 //virtual 
 bool OnSipMakeCallStateHandler::IsStillExist()
-{	
+{
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	// If we are stuck in the MakeCallSet state, then most likely we did not get any call events for the request
+	if ( CheckStateTimeout( OnSipXmppStates::MakeCallSet, MAKECALL_CREATE_TIMEOUT ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
+	// If we are stuck in the MakeCallRequested, then for some reason the person is not
+	// answering the inbound call.   Assume they will at least answer within a reasonable time
+	if ( CheckStateTimeout( OnSipXmppStates::MakeCallRequested, MAKECALL_INBOUND_REQUEST_TIMEOUT  ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
+	// If we are stuck in the MakeCallRequestedAnswered, then for some reason the server 
+	// is not responding with the outbound call.
+	if ( CheckStateTimeout( OnSipXmppStates::MakeCallRequestedAnswered, MAKECALL_INBOUND_ANSWERED_TIMEOUT ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
+	// If we are stuck in the MakeCallOutgoingCreated, then allow reasonable time for the person to answer on the other end.
+	// If no answer, then assume some type of server error.  Does not really have any effect on the physical call
+	if ( CheckStateTimeout( OnSipXmppStates::MakeCallOutgoingCreated, OUTBOUND_REQUEST_TIMEOUT  ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
+	// If we are stuck in a connected call for VERY long time, then drop the call.
+	// No negative effects, will not affect the actual call
+	if ( CheckStateTimeout( OnSipXmppStates::Connected, CONNECTED_CALL_TIMEOUT ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+   
 	return !IsState( OnSipXmppStates::Dropped );
 }
 
@@ -534,14 +636,22 @@ bool OnSipDropCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 	// We don't have this handler active due to we would have 2 state handlers
 	// tracking the same call.
 	//
-	// We avoid the handler being added to the StateMachein due to IsStillExist() returns false
+	// We avoid the handler being added to the StateMachine due to IsStillExist() returns false
 	return false;
 }
 
 //virtual 
 bool OnSipDropCallStateHandler::IsStillExist()
-{	
+{
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	// Return false here since we don't want to have another CallStateHandler tracking a call that 
+	// is already being handled by another StateHandler.   
+
+	// TODO: May need to see if we can somehow notify the other state handler
+	// that a drop call request was done and have it report it dropped after some timeout.
+	// e.g. drop request not working due to server issues, so just assume dropped
+
 	return false;
 }
 

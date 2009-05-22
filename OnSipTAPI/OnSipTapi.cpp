@@ -42,7 +42,7 @@ DWORD OnSipTapiCall::GetTapiCallState( OnSipXmppStates::CallStates callState, co
 		dwCallState = LINECALLSTATE_IDLE ;
 	else if ( callState == OnSipXmppStates::Connected )
 		dwCallState = LINECALLSTATE_CONNECTED;
-	else if ( callState == OnSipXmppStates::Proceeding  )
+	else if ( callState == OnSipXmppStates::PhysicalOutProceeding )
 		dwCallState = LINECALLSTATE_PROCEEDING;
 	else if ( callState == OnSipXmppStates::Offering )
 		dwCallState = LINECALLSTATE_OFFERING;

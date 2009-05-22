@@ -172,7 +172,10 @@ public:
 				}
 				// else do not add the state handler
 				else
+				{
+					Logger::log_debug(_T("OnSipStateMachineBase::PollStateHandlers request IsStillExist is false, handler not added"));
 					delete pRequest->getStateHandler();
+				}
 
 				// Delete the StateHandlerRequest
 				delete pRequest;

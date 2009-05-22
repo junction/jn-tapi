@@ -241,6 +241,7 @@ protected:
 	virtual DWORD OnCallFeaturesChanged(CTSPICallAppearance* pCall, DWORD dwCallFeatures);
 	virtual bool OpenDevice();
 	virtual bool UnsolicitedEvent(LPCVOID lpBuff);
+	void CompleteRequest(CTSPIRequest* pReq, LONG lResult=0, bool fTellTapi=true, bool fRemoveRequest=true);
 
 	virtual void OnTimer();
 

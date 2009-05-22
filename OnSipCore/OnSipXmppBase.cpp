@@ -217,7 +217,7 @@ void OnSipXmppBase::handleLog( LogLevel level, LogArea area, const std::string& 
 void OnSipXmppBase::onConnect()
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-	Logger::log_debug("OnSipXmppBase::connected" );
+	Logger::log_debug("OnSipXmppBase::onConnect" );
 //	int contextId = UniqueId::getUniqueId();
 //	Authorize(contextId);
 }
@@ -226,7 +226,7 @@ void OnSipXmppBase::onConnect()
 void OnSipXmppBase::onDisconnect( ConnectionError e )
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-	Logger::log_debug("OnSipXmppBase::disconnected: %d", e );
+	Logger::log_debug("OnSipXmppBase::OnDisconnect: %d", e );
 //	if( e == ConnAuthenticationFailed )
 //		printf( "auth failed. reason: %d\n", j->authError() );
 }

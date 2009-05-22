@@ -84,6 +84,7 @@ private:
 	std::auto_ptr<TeventData> m_eventData;
 	TstateData m_stateData;
 	CheckThread _checkThread;
+	DWORD m_lastStateChange;		// Last time the state has been updated
 
 public:
 	StateItem(Tstate state,TeventData* eventData)
@@ -91,6 +92,7 @@ public:
 		Logger::log_trace("StateItem::StateItem this=%x state=%d eventData=%x",this,state,eventData);
 		m_state = state;
 		m_eventData.reset(eventData);
+		m_lastStateChange = GetTickCount();
 	}
 
 	StateItem(Tstate state,TeventData* eventData,TstateData& stateData)
@@ -99,6 +101,7 @@ public:
 		m_state = state;
 		m_eventData.reset(eventData);
 		m_stateData = stateData;
+		m_lastStateChange = GetTickCount();
 	}
 
 	// Reset the CheckThread to current executing thread.
@@ -118,6 +121,7 @@ public:
 		Logger::log_debug("StateItem::assignNewState this=%x state=%d eventData=%x",this,state,eventData);
 		m_state = state;
 		m_eventData.reset(eventData);
+		m_lastStateChange = GetTickCount();
 	}
 
 	void assignNewState(Tstate state,TeventData* eventData,TstateData& stateData)
@@ -127,7 +131,12 @@ public:
 		m_state = state;
 		m_eventData.reset(eventData);
 		m_stateData = stateData;
+		m_lastStateChange = GetTickCount();
 	}
+
+	// # of msecs since the last time there was a state change
+	DWORD MsecsSinceLastStateChange()
+	{	return GetTickCount() - m_lastStateChange;	}
 
 	Tstate getState()
 	{	return m_state; }
@@ -231,6 +240,10 @@ public:
 
 	TstateData& getCurrentStateData()
 	{	return m_currentState->getStateData(); }
+
+	// # of msecs since the last time there was a state change
+	long MsecsSinceLastStateChange()
+	{	return m_currentState->MsecsSinceLastStateChange(); }
 
 	void assignNewState(Tstate state,TeventData *eventData)
 	{

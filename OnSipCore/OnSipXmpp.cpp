@@ -27,7 +27,20 @@
 //      d) Need to track the branches for the multiple requests and do not reports all events for these, need
 //          to track the active one and not report the retracted one unless they all go retracted
 
+//   Should the server do an update on callstate every so often so that we know that the call still lives.
+
+//  If the server disconnects, we need to report all calls as being dropped.
+// Same thing for any reason that the line is closed, CloseDevice().
+//   e.g.  open tapi line, create a call, then close tapi line, but not TAPI initialization.  If you re-open the line, there will be a call still present.
+
 //  Test button in the TAPI Config Dialog
+
+// On a drop call request, if the drop call request does not work, then we
+// need to notify the state handler handling this request to go ahead and drop
+// the call.  Assume that there is some issue with the server not responding
+// and the call really is dropped.
+// Currently, we create new handler to drop the call, and it really is never
+// added to the state macine.  Need to notify current state handler somehow.
 
 // Turn off debug in release mode, enable by registry key
 

@@ -184,6 +184,13 @@ void COnSipLine::InitAddress(CTSPIAddressInfo* pAddress)
 
 }// COnSipLine::InitAddress
 
+// Overrides CTSPIConnection::CompleteRequest just for logging purposes 
+void COnSipLine::CompleteRequest(CTSPIRequest* pReq, LONG lResult, bool fTellTapi, bool fRemoveRequest)
+{
+	Logger::log_debug( _T("COnSipLine::CompleteRequest pReq=%p lResult=%ld fTellTapi=%d fRemoveReq=%d"), pReq, lResult, fTellTapi, fRemoveRequest );
+	CTSPIConnection::CompleteRequest( pReq, lResult, fTellTapi, fRemoveRequest );
+}
+
 /*****************************************************************************
 ** Procedure:  COnSipLine::OnAddressFeaturesChanged
 **
