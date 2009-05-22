@@ -17,3 +17,11 @@ TSP release 5-19-09.zip - fixes...
       now does proper tracking of call and when it drops
    2) fixed bug with physical outgoing calls. It was being reported
       as offering, now is reported as dialing/proceeding
+
+TSP release 5-22-09.zip - fixes...
+   1) put in many checks in the state machine to catch errors where we may get stuck in
+      a state due to server call events not working.  e.g. makecall and SIP phone not connected.
+   2) fixed many of the TAPI flags for line and address object
+   3) fixed bug with line open with wrong login stuff, then try to open again, got assert
+   4) other minor cleanup
+
