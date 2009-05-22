@@ -135,8 +135,8 @@ public:
 	}
 
 	// # of msecs since the last time there was a state change
-	DWORD MsecsSinceLastStateChange()
-	{	return GetTickCount() - m_lastStateChange;	}
+	long MsecsSinceLastStateChange()
+	{	return (long) (GetTickCount() - m_lastStateChange);	}
 
 	Tstate getState()
 	{	return m_state; }

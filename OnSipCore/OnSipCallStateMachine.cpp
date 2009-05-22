@@ -240,6 +240,14 @@ bool OnSipOutgoingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 	if ( !OnSipCallStateHelper::IsSameId( getCurrentEvent(), pEvent ) )
 		return false;
 
+	// If an error, then assume dropped call
+	if ( pEvent->IsError() )
+	{
+		Logger::log_error( _T("OnSipOutgoingCallStateHandler::IsYourEvent EVENTERROR callId=%ld pEvent=%s"), getCurrentStateData().m_callId , pEvent->ToString().c_str() );
+		assignNewState( OnSipXmppStates::Dropped, pEvent );
+		return true;
+	}
+
 	// See if an ActiveCallEvent with callstate change
 	XmppActiveCallEvent *ace = OnSipCallStateHelper::getActiveCallEvent(pEvent);
 	if ( ace != NULL )
@@ -310,6 +318,14 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 	// See if this event refers to our call
 	if ( !OnSipCallStateHelper::IsSameId( getCurrentEvent(), pEvent ) )
 		return false;
+
+	// If an error, then assume dropped call
+	if ( pEvent->IsError() )
+	{
+		Logger::log_error( _T("OnSipIncomingCallStateHandler::IsYourEvent EVENTERROR callId=%ld pEvent=%s"), getCurrentStateData().m_callId, pEvent->ToString().c_str() );
+		assignNewState( OnSipXmppStates::Dropped, pEvent );
+		return true;
+	}
 
 	// See if an ActiveCallEvent with callstate change
 	XmppActiveCallEvent *ace = OnSipCallStateHelper::getActiveCallEvent(pEvent);
@@ -423,6 +439,14 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		{
 			Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent notEvent") );
 			return false;
+		}
+
+		// If an error, then assume dropped call
+		if ( ace->IsError() )
+		{
+			Logger::log_error( _T("OnSipMakeCallStateHandler::IsYourEvent EVENTERROR callId=%ld pEvent=%s"), getCurrentStateData().m_callId, pEvent->ToString().c_str() );
+			assignNewState( OnSipXmppStates::Dropped, pEvent );
+			return true;
 		}
 
 		// If MakeCallTrying->MakeCallRequested,  e.g. physical phone inbound call ringing to begin the call sequence
@@ -550,8 +574,6 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			assignNewState( OnSipXmppStates::Dropped, pEvent  );
 			return true;
 		}
-
-		// TODO!! Need to have a timeout in this state
 
 		// Leave the state in the MakeCallSet, do not have another state here.
 		// The reason is that the IQ result is not guaranteed to come in before the message events start coming in.
