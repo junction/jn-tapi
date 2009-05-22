@@ -246,19 +246,6 @@ bool COnSipDevice::OpenDevice (CTSPIConnection* pConn)
 		return false;
 	}
 
-/*
-	// Get the phone number
-	if ( pLine != NULL )
-	{
-		tstring phoneNumber = GetSP()->ReadProfileString(m_dwProviderId, REG_PHONENUMBER, _T("") );
-		CTSPIAddressInfo* pAddr = pLine->GetAddress(0);
-		Logger::log_debug( _T("COnSipDevice::OpenDevice setAddress number=%s pAddr=%p"), phoneNumber.c_str(), pAddr );
-		// TODO: Set phone number with OnSIP prefix. ??
-		if ( pAddr != NULL )
-			pAddr->SetDialableAddress( phoneNumber.c_str() );
-	}
-*/
-
 	// Reset the OpenDevice event, this will be reset once the ConnectionThread
 	// has gone through the initialization of trying to open the XMPP device
 	ResetEvent(m_hOpenDevice);
@@ -533,6 +520,7 @@ bool COnSipDevice::_initOnSipTapi(OnSipTapi* pOnSipTapi,LoginInfo& loginInfo,HAN
 			return false;
 		}
 
+		// Poll to keep the state machine going and process XMPP events
 		if ( !pOnSipTapi->Poll() )
 		{
 			Logger::log_error(_T("COnSipDevice::_initOnSipTapi Poll error exiting thread"));
@@ -649,44 +637,4 @@ CTSPIConnection* COnSipDevice::LocateOwnerFromEvent(COnSipEvent* pEvent)
 		return pConnOwner;
 	Logger::log_error( _T("COnSipDevice::LocateOwnerFromEvent no LINE found") );
 	return NULL;
-
-/*
-	// Is this a call/line event
-	bool fIsLineEvent =  pCallEvent != NULL;
-	CTSPIConnection* pConnOwner = NULL;
-	if (pConnOwner == NULL && fIsLineEvent)
-	{
-		pConnOwner = FindLineConnectionByPermanentID(LINE_ID_UNIQUE);
-		Logger::log_debug( _T("COnSipDevice::LocateOwnerFromEvent pConnOwner=%p for Line"), pConnOwner );
-	}
-
-	// If we received a call-id, check for in-switch calls (station-to-station)
-	// and see if another call object is sharing this call-id. If this is the
-	// case, determine which call the event refers to.
-	if (pConnOwner == NULL && callID != 0)
-	{
-		const CTSPICallHub* pHub = FindCallHub(callID);
-		Logger::log_debug( _T("COnSipDevice::LocateOwnerFromEvent callId=%ld callHub=%p"), callID, pHub );
-		if (pHub != NULL)
-		{
-			Logger::log_debug( _T("COnSipDevice::LocateOwnerFromEvent callId=%ld callHub=%p hubCount=%d"), callID, pHub, pHub->GetHubCount() );
-			if (pHub->GetHubCount() > 1)
-			{
-				// Shouldn't occur for our device
-				Logger::log_debug( _T("COnSipDevice::LocateOwnerFromEvent multiCalls in hub - %d"), pHub->GetHubCount() );
-				_ASSERT(false);
-				CTSPICallAppearance* pCall = pHub->GetCall(0);
-			}
-			else
-			{
-				_ASSERT( pHub->GetHubCount() > 0 );
-				CTSPICallAppearance* pCall = pHub->GetCall(0);
-				pConnOwner = pCall->GetLineOwner();
-			}
-		}
-	}
-
-	return pConnOwner;
-*/
-
 }// COnSipDevice::LocateOwnerFromEvent

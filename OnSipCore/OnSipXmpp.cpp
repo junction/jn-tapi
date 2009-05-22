@@ -29,10 +29,6 @@
 
 //   Should the server do an update on callstate every so often so that we know that the call still lives.
 
-//  If the server disconnects, we need to report all calls as being dropped.
-// Same thing for any reason that the line is closed, CloseDevice().
-//   e.g.  open tapi line, create a call, then close tapi line, but not TAPI initialization.  If you re-open the line, there will be a call still present.
-
 //  Test button in the TAPI Config Dialog
 
 // On a drop call request, if the drop call request does not work, then we
@@ -44,7 +40,7 @@
 
 // Turn off debug in release mode, enable by registry key
 
-// Detect busy call.  If so, add BUSY to LINEADDRESSCAPS.dwBusyModes and dwCallStates
+// Detect busy call.  If able to, add BUSY to LINEADDRESSCAPS.dwBusyModes and dwCallStates
 
 //  Get rid of caller-id for incoming calls, currently is showing sip numbers.  And for PSTN calls, is showing your own sip address.
 //   DONE - verify
@@ -68,7 +64,6 @@
 // Move a lot of the PreExecute and PollStateHandlers and other state machine code in  OnSipStateMachine.h to standard StateMachine.h
 
 // TODO
-//  1) delete all handlers when shutting down a state machine
 //  3) In IsYourEvent and handlers, need to check for error event!!
 //  4) In any state where a response is expected, need to poll and make sure not stuck.
 //      e.g. did authorized or enable call events, and never got a response
@@ -76,7 +71,6 @@
 //       Need to check the subscription result and make sure not an error.  Response does not come to iq, 
 //       it goes resultsHandler::handleSubscriptionResult.  
 //  8) verify the TLS on connect
-//  9) Need to check error states in TAPI CallEvents and handle appropriate!
 
 OnSipXmpp::OnSipXmpp()
 {

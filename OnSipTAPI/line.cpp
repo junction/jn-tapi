@@ -217,7 +217,7 @@ void COnSipLine::CompleteRequest(CTSPIRequest* pReq, LONG lResult, bool fTellTap
 	Logger::log_debug( _T("COnSipLine::CompleteRequest pReq=%p lResult=%ld fTellTapi=%d fRemoveReq=%d"), pReq, lResult, fTellTapi, fRemoveRequest );
 	CTSPILineConnection::CompleteRequest( pReq, lResult, fTellTapi, fRemoveRequest );
 }
-
+		
 /*****************************************************************************
 ** Procedure:  COnSipLine::OnAddressFeaturesChanged
 **
