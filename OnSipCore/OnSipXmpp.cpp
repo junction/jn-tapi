@@ -44,10 +44,10 @@
 
 // Turn off debug in release mode, enable by registry key
 
-//  Need to call whitespaceping every 5 minutes or so from the client to keep the server connection alive.
-//     see  http://camaya.net/api/gloox-trunk/classgloox_1_1ClientBase.html#a33 , search for whitespacePing().
+// Detect busy call.  If so, add BUSY to LINEADDRESSCAPS.dwBusyModes and dwCallStates
 
 //  Get rid of caller-id for incoming calls, currently is showing sip numbers.  And for PSTN calls, is showing your own sip address.
+//   DONE - verify
 
 // Double check all IsYourEvent and make sure events are being deleted if returning back TRUE
 
@@ -66,8 +66,6 @@
 //  TAPI dwAddressSize/Offset - change to "OnSIP [PHONENUMBER]"
 
 // Move a lot of the PreExecute and PollStateHandlers and other state machine code in  OnSipStateMachine.h to standard StateMachine.h
-
-//  Can we get rid of Crypt32.dll from DLL required in OnSip.tsp - I guess this is from gloox! also brings in MSVCRT.DLL
 
 // TODO
 //  1) delete all handlers when shutting down a state machine

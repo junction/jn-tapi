@@ -87,9 +87,10 @@ void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData
 		callStateData.m_callId = callId;
 	callStateData.m_sipCallId = ace->m_sipCallid;		// SIP callId
 	// TODO?? Are these correct?  
+	// Caller-id not supported, so skip this for now.  May check in doing called-id for outgoing calls.
 	if ( bUpdateCallInfo )
 	{
-		callStateData.m_remoteId = ace->m_to_aor;
+		// callStateData.m_remoteId = ace->m_to_aor;
 		//	callStateData.m_calledId = ace->m_uas_aor;
 	}
 	// Assign from/to tags
@@ -118,8 +119,6 @@ TCHAR *OnSipXmppStates::CallStateToString(CallStates state)
 			return _T("CallState::Dropped");
 		case PreMakeCall:
 			return _T("CallState::PreMakeCall");
-//		case Dialing:
-//			return _T("CallState::Dialing");
 		case MakeCallSet:
 			return _T("CallState::MakeCallSet");
 		case MakeCallRequested:
@@ -205,7 +204,7 @@ bool OnSipCallStateHandlerBase::CheckStateTimeout( StateHandler<OnSipXmppStates:
 // We should really wait a long time here, maybe the person is just persistent and
 // want the other user's phone to ring over and over again.  Just a check to
 // make sure we don't get stuck in this state forever.
-#define OUTBOUND_REQUEST_TIMEOUT	(2 * MSECS_IN_MIN)
+#define OUTBOUND_REQUEST_TIMEOUT				(2 * MSECS_IN_MIN)
 
 // # msecs timeout that we will allow a call to be in the CONNECTED state.
 // Have a very long time, possible that a person is on a very long call,
@@ -362,7 +361,7 @@ bool OnSipIncomingCallStateHandler::IsStillExist()
 {	
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
-	// If we are stuck in a connected call for VERY long time, then drop the call.
+	// If we are stuck in an incoming call not being answered for long time, then drop the call.
 	// No negative effects, will not affect the actual call
 	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::Offering, INBOUND_OFFERING_TIMEOUT ) )
 		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check

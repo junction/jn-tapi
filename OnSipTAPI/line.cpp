@@ -64,6 +64,32 @@ COnSipLine::~COnSipLine()
 
 }// COnSipLine::~COnSipLine
 
+
+// Reads the phoneNumber from the registry config, and line name 
+void COnSipLine::_getConfigInfo(tstring* phoneNumber,tstring* lineName)
+{
+	// Get the phone number
+	COnSipDevice* pDevice = GetDeviceInfo();
+	if ( pDevice != NULL )
+	{
+		DWORD dwProviderID = pDevice->GetProviderID();
+		*phoneNumber = GetSP()->ReadProfileString(dwProviderID, REG_PHONENUMBER, _T("") );
+		Logger::log_debug( _T("COnSipLine::_getConfigInfo dwProvID=%ld phoneNumber=%s"), dwProviderID, phoneNumber->c_str() );
+	}
+	else
+	{
+		Logger::log_error( _T("COnSipLine::_getConfigInfo no ProviderID") );
+	}
+	// Default line name to switch name if no phone number is specified
+	*lineName = SWITCH_NAME;
+
+	// Set the name associated with this line.  This is optional, it gives
+	// the user a displayable name which is associated with the line.  Most
+	// applications use this name in their UI.
+	if ( !phoneNumber->empty() )
+		*lineName = Strings::stringFormat( LINE_NAME, phoneNumber->c_str() );
+}
+
 /*****************************************************************************
 ** Procedure:  COnSipLine::read
 **
@@ -81,33 +107,22 @@ TStream& COnSipLine::read(TStream& istm)
 	// Always call the base class to read in default line information
 	CTSPILineConnection::read(istm);
 
-	// TODO: Read any information stored in the line stream
-
 	LPLINEDEVCAPS lpLineCaps = GetLineDevCaps();
-	// TODO: Adjust the device capabilities for this line
+	lpLineCaps->dwDevCapFlags = 0 ;
+	lpLineCaps->dwLineStates = LINEDEVSTATE_CONNECTED | 
+			LINEDEVSTATE_DISCONNECTED | 
+			LINEDEVSTATE_INSERVICE | 
+			LINEDEVSTATE_OUTOFSERVICE | 
+			LINEDEVSTATE_NUMCALLS;
 
+	// Specify that we want all calls closed on exit of the driver.
+	// This does not drop the calls, just IDLEs them.
+	DeleteCallsOnClose();
+
+	// Get the phoneNumber and line name to use (from config)
 	tstring phoneNumber;
-
-	// Get the phone number
-	COnSipDevice* pDevice = GetDeviceInfo();
-	if ( pDevice != NULL )
-	{
-		DWORD dwProviderID = pDevice->GetProviderID();
-		phoneNumber = GetSP()->ReadProfileString(dwProviderID, REG_PHONENUMBER, _T("") );
-		Logger::log_debug( _T("COnSipLine::read dwProvID=%ld phoneNumber=%s"), dwProviderID, phoneNumber.c_str() );
-	}
-	else
-	{
-		Logger::log_error( _T("COnSipLine::read no ProviderID") );
-	}
-	// Default line name to switch name if no phone number is specified
-	tstring lineName = SWITCH_NAME;
-
-	 // Set the name associated with this line.  This is optional, it gives
-	// the user a displayable name which is associated with the line.  Most
-	// applications use this name in their UI.
-	if ( !phoneNumber.empty() )
-		lineName = Strings::stringFormat( LINE_NAME, phoneNumber.c_str() );
+	tstring lineName;
+	_getConfigInfo(&phoneNumber,&lineName);
 
 	// Set TAPI Line Name
 	SetName (lineName.c_str());
@@ -137,8 +152,6 @@ void COnSipLine::InitializeStation()
 {
 	LPLINEDEVCAPS lpCaps = GetLineDevCaps();
 
-
-
 	// TODO: Adjust the ADDRESSCAPS based on this being a station
 	for (int iAddress = 0; iAddress < GetAddressCount(); iAddress++)
 	{
@@ -147,10 +160,6 @@ void COnSipLine::InitializeStation()
 
 		// Initialize the address information to be the basic set of information
 		InitAddress(pAddress);
-
-		// TODO: Adjust the address capabilities based on a station capabilities.
-		// Look at the COnSipLine::InitAddress function to see how the
-		// address is configured for all lines.
 	}
 
 }// COnSipLine::InitializeStation
@@ -167,28 +176,46 @@ void COnSipLine::InitializeStation()
 *****************************************************************************/
 void COnSipLine::InitAddress(CTSPIAddressInfo* pAddress)
 {
+	Logger::log_debug( _T("COnSipLine::InitAddress pAddr=%p"), pAddress );
 	_TSP_ASSERTE (pAddress != NULL);
+
 	LPLINEADDRESSCAPS lpAddrCaps = pAddress->GetAddressCaps();
-	lpAddrCaps->dwMaxCallDataSize = MAXCALLDATA_SIZE;
+	lpAddrCaps->dwAddrCapFlags = LINEADDRCAPFLAGS_DIALED;
+	lpAddrCaps->dwMaxCallDataSize = 0;
+	lpAddrCaps->dwCallInfoStates= 0;
 
-	// Set the dialtone modes
+	lpAddrCaps->dwCallerIDFlags = 
+		lpAddrCaps->dwConnectedIDFlags = 
+		lpAddrCaps->dwRedirectionIDFlags =
+		lpAddrCaps->dwRedirectingIDFlags =
+		lpAddrCaps->dwCalledIDFlags =
+		lpAddrCaps->dwCalledIDFlags = LINECALLPARTYID_UNAVAIL;
+	lpAddrCaps->dwCallStates &= ~(LINECALLSTATE_SPECIALINFO | LINECALLSTATE_RINGBACK | LINECALLSTATE_BUSY );
+	lpAddrCaps->dwDialToneModes = LINEDIALTONEMODE_NORMAL;
+	lpAddrCaps->dwBusyModes = LINEBUSYMODE_UNAVAIL;
+	lpAddrCaps->dwSpecialInfo = LINESPECIALINFO_UNAVAIL;
+	lpAddrCaps->dwDisconnectModes &= ~LINEDISCONNECTMODE_REJECT;
+	lpAddrCaps->dwCallFeatures &= ~(LINECALLFEATURE_MONITORMEDIA | LINECALLFEATURE_SETCALLPARAMS | LINECALLFEATURE_SETCALLDATA );
 
-	lpAddrCaps->dwDialToneModes &= ~(LINEDIALTONEMODE_INTERNAL | LINEDIALTONEMODE_EXTERNAL | LINEDIALTONEMODE_SPECIAL);
+	// Get the phoneNumber and line name to use (from config)
+	tstring phoneNumber;
+	tstring lineName;
+	_getConfigInfo(&phoneNumber,&lineName);
 
-	// TODO: Adjust the address capabilities to reflect the device
-	// features and abilities. The wizard has set the following flags
-	// for you based on your requested feature set:
-
-	// The phone is not automatically taken off hook
-	lpAddrCaps->dwAddrCapFlags &= ~LINEADDRCAPFLAGS_ORIGOFFHOOK;
+	// Set the address name
+	if ( !phoneNumber.empty() )
+	{
+		pAddress->SetDialableAddress( phoneNumber.c_str() );
+		pAddress->SetName( phoneNumber.c_str() );
+	}
 
 }// COnSipLine::InitAddress
 
-// Overrides CTSPIConnection::CompleteRequest just for logging purposes 
+// Overrides CTSPILineConnection::CompleteRequest just for logging purposes 
 void COnSipLine::CompleteRequest(CTSPIRequest* pReq, LONG lResult, bool fTellTapi, bool fRemoveRequest)
 {
 	Logger::log_debug( _T("COnSipLine::CompleteRequest pReq=%p lResult=%ld fTellTapi=%d fRemoveReq=%d"), pReq, lResult, fTellTapi, fRemoveRequest );
-	CTSPIConnection::CompleteRequest( pReq, lResult, fTellTapi, fRemoveRequest );
+	CTSPILineConnection::CompleteRequest( pReq, lResult, fTellTapi, fRemoveRequest );
 }
 
 /*****************************************************************************
@@ -206,6 +233,8 @@ void COnSipLine::CompleteRequest(CTSPIRequest* pReq, LONG lResult, bool fTellTap
 *****************************************************************************/
 DWORD COnSipLine::OnAddressFeaturesChanged (CTSPIAddressInfo* pAddr, DWORD dwFeatures)
 {
+	Logger::log_debug( _T("COnSipLine::OnAddressFeaturesChanged dwFeatures=%lx"), dwFeatures );
+
 	// TODO: Adjust any features for the address based on the current state of the
 	// hardware. This is where you can restrict the features shown in the provider for
 	// special cases.
@@ -227,6 +256,8 @@ DWORD COnSipLine::OnAddressFeaturesChanged (CTSPIAddressInfo* pAddr, DWORD dwFea
 *****************************************************************************/
 DWORD COnSipLine::OnLineFeaturesChanged (DWORD dwFeatures)
 {
+	Logger::log_debug( _T("COnSipLine::OnLineFeaturesChanged dwFeatures=%lx"), dwFeatures );
+
 	// TODO: Adjust any features for the line based on the current state of the
 	// hardware. This is where you can restrict the features shown in the provider for
 	// special cases.
@@ -249,6 +280,8 @@ DWORD COnSipLine::OnLineFeaturesChanged (DWORD dwFeatures)
 *****************************************************************************/
 DWORD COnSipLine::OnCallFeaturesChanged(CTSPICallAppearance* pCall, DWORD dwCallFeatures)
 {      
+	Logger::log_debug( _T("COnSipLine::OnCallFeaturesChanged dwCallFeatures=%lx"), dwCallFeatures );
+
 	// TODO: Adjust the call features for the given call based on information
 	// associated with the call and hardware capabilities.
 	return CTSPILineConnection::OnCallFeaturesChanged(pCall, dwCallFeatures);
@@ -270,6 +303,8 @@ DWORD COnSipLine::OnCallFeaturesChanged(CTSPICallAppearance* pCall, DWORD dwCall
 *****************************************************************************/
 bool COnSipLine::OpenDevice()
 {
+	Logger::log_debug( _T("COnSipLine::OpenDevice"));
+
 	// TODO: Validate the connection to the hardware and return FALSE if it
 	// is not connected or pass through to the default implementation if it is.
 	return CTSPILineConnection::OpenDevice();

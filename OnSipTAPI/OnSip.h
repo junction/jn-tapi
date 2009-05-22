@@ -242,6 +242,7 @@ protected:
 	virtual bool OpenDevice();
 	virtual bool UnsolicitedEvent(LPCVOID lpBuff);
 	void CompleteRequest(CTSPIRequest* pReq, LONG lResult=0, bool fTellTapi=true, bool fRemoveRequest=true);
+	void _getConfigInfo(tstring* phoneNumber,tstring* lineName);;
 
 	virtual void OnTimer();
 

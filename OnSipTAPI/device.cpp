@@ -246,6 +246,7 @@ bool COnSipDevice::OpenDevice (CTSPIConnection* pConn)
 		return false;
 	}
 
+/*
 	// Get the phone number
 	if ( pLine != NULL )
 	{
@@ -256,6 +257,7 @@ bool COnSipDevice::OpenDevice (CTSPIConnection* pConn)
 		if ( pAddr != NULL )
 			pAddr->SetDialableAddress( phoneNumber.c_str() );
 	}
+*/
 
 	// Reset the OpenDevice event, this will be reset once the ConnectionThread
 	// has gone through the initialization of trying to open the XMPP device
@@ -295,6 +297,7 @@ bool COnSipDevice::OpenDevice (CTSPIConnection* pConn)
 	if ( dwWait == WAIT_OBJECT_1 )
 	{
 		Logger::log_error( _T("COnSipDevice::OpenDevice init ERROR") );
+		m_hConnThread = NULL;
 		return false;
 	}
 
