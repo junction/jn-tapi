@@ -289,7 +289,7 @@ bool OnSipInitStateHandler::PollStateHandler()
 
 // Checks to see if the state has been in the specified state for the specified timeout in msecs.
 // If so, then the call will be put in the Error state and return true.
-bool OnSipInitStateHandler::CheckStateTimeout( OnSipInitStates::InitStates initState, DWORD timeout )
+bool OnSipInitStateHandler::CheckStateTimeout( OnSipInitStates::InitStates initState, long timeout )
 {
 	// If in specified state past timeout
 	if ( IsState( initState ) && MsecsSinceLastStateChange() > timeout  )
@@ -300,10 +300,8 @@ bool OnSipInitStateHandler::CheckStateTimeout( OnSipInitStates::InitStates initS
 		// Do not report that call does not exist yet, let it be handled on the next poll check
 		return true;
 	}
-
 	return false;
 }
-
 
 //***************************************************************************
 //***************************************************************************

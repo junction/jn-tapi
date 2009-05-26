@@ -34,6 +34,10 @@
 // Need to handle timeouts in the OnSipInitMachine state handlers in case it is
 //  in a wrong state too long (besides error).  It may need to re-start the authorize
 
+// Branches..
+//  If multiple calls, does DROP need to drop them all!
+//  Update IncomingCallHandler to check for error, commented out for now
+
 // On a drop call request, if the drop call request does not work, then we
 // need to notify the state handler handling this request to go ahead and drop
 // the call.  Assume that there is some issue with the server not responding

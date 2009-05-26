@@ -82,10 +82,11 @@ void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData
 	_ASSERT( ace != NULL );
 	if ( ace == NULL )
 		return;
-	// TODO: extract out call information and put in OnSipCallStateData
 	if ( callId != -1 )
 		callStateData.m_callId = callId;
+	callStateData.m_id = ace->m_id;
 	callStateData.m_sipCallId = ace->m_sipCallid;		// SIP callId
+	callStateData.m_branch = ace->m_branch;
 	// TODO?? Are these correct?  
 	// Caller-id not supported, so skip this for now.  May check in doing called-id for outgoing calls.
 	if ( bUpdateCallInfo )
@@ -96,6 +97,125 @@ void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData
 	// Assign from/to tags
 	callStateData.m_fromTag = ace->m_from_tag;
 	callStateData.m_toTag = ace->m_to_tag;
+}
+
+//****************************************************************************
+//****************************************************************************
+
+// Checks the branches list for a call with the specified XMPP id.
+// Returns the index in the list, or returns -1 if not found
+int callBranches::_getIdIndex(tstring id)
+{
+	int index=0;
+	for ( vector<OnSipCallStateData>::iterator iter = m_branches.begin(); iter != m_branches.end(); iter++ )
+	{
+		if ( (*iter).m_id == id )
+		{
+			Logger::log_debug( _T("callBranches_getIdIndex id=%s ndx=%d"), id.c_str(), index );
+			return index;
+		}
+		index++;
+	}
+	// not found
+	return -1;
+}
+
+// Returns true if the specified XMPP id is in the list of branch calls
+bool callBranches::HasId(tstring id)
+{
+	int index = _getIdIndex(id);
+	if ( index >= 0 )
+	{
+		Logger::log_debug( _T("callBranchesHasId id=%s"), id.c_str() );
+		return true;
+	}
+	return false;
+}
+
+// Add the branch call to our branches list.
+// Added by the active call event and the callId
+
+void callBranches::AddBranch(OnSipCallStateData& callData)
+{
+	Logger::log_debug( _T("callBranchesAddBranch id=%s branch=%s callId=%ld"), callData.m_id.c_str(), callData.m_branch.c_str(), callData.m_callId );
+	// If we already have this item in the branches
+	int index = _getIdIndex( callData.m_id );
+	// If already in the list, then just update the calldata
+	if ( index >= 0 )
+	{
+		m_branches[index] = callData;
+		return;
+	}
+	// Add to branches
+	m_branches.push_back( callData );
+}
+
+// Add the branch call to our branches list.
+// Added by the active call event and the callId
+// If call is already part of the 
+void callBranches::AddBranch(XmppActiveCallEvent *ace,long callId)
+{
+	Logger::log_debug( _T("callBranchesAddBranch ace id=%s branch=%s callId=%ld"), ace->m_id.c_str(), ace->m_branch.c_str(), callId );
+
+	// Get the callstate data from the call event
+	OnSipCallStateData callData;
+	OnSipCallStateHelper::AssignCallStateData(callData,ace,callId);
+
+	// If we already have this item in the branches
+	int index = _getIdIndex( ace->m_id );
+	// If already in the list, then just update the calldata
+	if ( index >= 0 )
+	{
+		m_branches[index] = callData;
+		return;
+	}
+	// Add to branches
+	m_branches.push_back( callData );
+}
+
+// Removes the branch call by its XMPP id
+void callBranches::_removeById(tstring id)
+{
+	for ( vector<OnSipCallStateData>::iterator iter = m_branches.begin(); iter != m_branches.end(); iter++ )
+	{
+		if ( (*iter).m_id == id )
+		{
+			Logger::log_debug( _T("callBranches_removeById %s"), id.c_str() );
+			m_branches.erase( iter );
+			return;
+		}
+	}
+	Logger::log_error( _T("callBranches_removeById %s not found"), id.c_str() );
+}
+
+// Checks to see if the id (XMPP id) of a dropped call is the last one
+// of the branches.  If so, returns true to signify the call is really dropping
+//
+// The callData will be updated with a valid callData of a remaining 
+// call in the branches
+bool callBranches::CheckDroppedCall( OnSipCallStateData* callData, tstring droppedId )
+{
+	Logger::log_debug( _T("callBranchesCheckDroppedCall calldata=%s droppedId=%s"), callData->m_id.c_str(), droppedId.c_str() );
+
+	// If this branch list does not have the call
+	if ( !HasId( droppedId ) )
+		return false;
+
+	// Remove the branch by its XMPP id
+	Logger::log_debug( _T("callBranchesCheckDroppedCall found in branch, removing. branches=%d"), m_branches.size() );
+	_removeById( droppedId );
+
+	// If there are still more branches in this list,
+	// then do not drop the call
+	if ( m_branches.size() > 0 )
+	{
+		// Update the callData with a valid call that still exists
+		*callData = m_branches[0];
+		return false;
+	}
+
+	// No more calls left in the branches, drop the call
+	return true;
 }
 
 //****************************************************************************
@@ -160,8 +280,8 @@ TCHAR *OnSipXmppCallType::CallTypeToString(CallType calltype)
 // Convert OnSipCallStateData instance to a displayable string for debug purposes
 tstring OnSipCallStateData::ToString() const
 {
-	return Strings::stringFormat(_T("<OnSipCallStateData callType=%s callId=%ld remote=%s calledId=%s sipCallId=%s>"),
-		OnSipXmppCallType::CallTypeToString(m_callType), m_callId, m_remoteId.c_str(), m_calledId.c_str(), m_sipCallId.c_str() );
+	return Strings::stringFormat(_T("<OnSipCallStateData id=%s callType=%s callId=%ld remote=%s calledId=%s sipCallId=%s branch=%s>"),
+		m_id.c_str(), OnSipXmppCallType::CallTypeToString(m_callType), m_callId, m_remoteId.c_str(), m_calledId.c_str(), m_sipCallId.c_str(), m_branch.c_str() );
 }
 
 //****************************************************************************
@@ -169,7 +289,7 @@ tstring OnSipCallStateData::ToString() const
 
 // Checks to see if the state has been in the specified state for the specified timeout in msecs.
 // If so, then the call will be put in the Dropped state and return true.
-bool OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::CallStates callState, DWORD timeout )
+bool OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::CallStates callState, long timeout )
 {
 	// If we are stuck in the state, then most likely we did not get any call events for the request
 	if ( IsState( callState ) && MsecsSinceLastStateChange() > timeout  )
@@ -279,7 +399,7 @@ bool OnSipOutgoingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 
 //virtual 
 bool OnSipOutgoingCallStateHandler::IsStillExist()
-{	
+{
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
 	// If we are stuck in a proceeding state, then the call is not being answered on the other end.
@@ -305,8 +425,16 @@ OnSipIncomingCallStateHandler::OnSipIncomingCallStateHandler(XmppEvent* pEvent,l
 { 
 	Logger::log_debug("OnSipIncomingCallStateHandler::OnSipIncomingCallStateHandler pEvent=%s callId=%ld", pEvent->ToString().c_str(), callId );
 	getCurrentStateData().m_callType = OnSipXmppCallType::IncomingCall;
+
 	// Set call information from the XmppActiveCallEvent
-	OnSipCallStateHelper::AssignCallStateData(getCurrentStateData(),OnSipCallStateHelper::getActiveCallEvent(pEvent),callId);
+	XmppActiveCallEvent *ace = OnSipCallStateHelper::getActiveCallEvent(pEvent);
+	_ASSERTE( ace != NULL );
+	OnSipCallStateHelper::AssignCallStateData(getCurrentStateData(),ace,callId);
+
+	// Add the initial call to our branch list.
+	// Branch list is required to track multi events for the same call when user 
+	// has multiple SIP phones registered at the same location.
+	m_branches.AddBranch( ace, getCurrentStateData().m_callId );
 }
 
 //virtual 
@@ -314,22 +442,20 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
-	// See if this event refers to our call
-	if ( !OnSipCallStateHelper::IsSameId( getCurrentEvent(), pEvent ) )
-		return false;
-
-	// If an error, then assume dropped call
-	if ( pEvent->IsError() )
-	{
-		Logger::log_error( _T("OnSipIncomingCallStateHandler::IsYourEvent EVENTERROR callId=%ld pEvent=%s"), getCurrentStateData().m_callId, pEvent->ToString().c_str() );
-		assignNewState( OnSipXmppStates::Dropped, pEvent );
-		return true;
-	}
-
 	// See if an ActiveCallEvent with callstate change
 	XmppActiveCallEvent *ace = OnSipCallStateHelper::getActiveCallEvent(pEvent);
 	if ( ace != NULL )
 	{
+		// If not same SIP CallId, then not our event
+		if ( ace->m_sipCallid != getCurrentStateData().m_sipCallId )
+			return false;
+
+		// See if this is a new branch call event.
+		// This can occur if the user has multiple SIP phones registered for the same phone number.
+		// Get multiple events, one for each SIP device.
+		// Events will have same SIP callid, but a different branch and XMPP id value
+		m_branches.AddBranch( ace, getCurrentStateData().m_callId );
+
 		// If connected call
 		if ( ace->m_dialogState == XmppActiveCallEvent::CONFIRMED )
 		{
@@ -339,16 +465,36 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			OnSipCallStateHelper::AssignCallStateData(getCurrentStateData(),ace,-1);
 			return true;
 		}
-		Logger::log_error("OnSipIncomingCallStateHandler::IsYourEvent Unknown State in OnSipIncomingCallStateHandler %s", pEvent->ToString().c_str() );
-		return false;
+
+		// If not connected, then should be the REQUESTED event of call on another branch.
+		// Just ignore, we are only tracking the connected event
+
+		// Delete event, we did not keep
+		delete pEvent;
+		return true;
 	}
 
 	// See if a retracted (dropped call)
 	XmppRetractCallEvent *rce = OnSipCallStateHelper::getRetractCallEvent(pEvent);
 	if ( rce != NULL )
 	{
-		Logger::log_debug("OnSipIncomingCallStateHandler::IsYourEvent dropped call");
-		assignNewState( OnSipXmppStates::Dropped, pEvent );
+		// See if id is in our branches
+		// If not, then not our event
+		if ( !m_branches.HasId(rce->m_id) )
+			return false;
+
+		Logger::log_debug("OnSipIncomingCallStateHandler::IsYourEvent dropped call. branches=%d", m_branches.CountBranches() );
+
+		// Check to see if this is the last call on a branch hanging up.
+		// Also update the callData with a valid CallData of one of the branch calls
+		OnSipCallStateData& callData = getCurrentStateData() ;
+		if ( m_branches.CheckDroppedCall( &callData, rce->m_id ) )
+		{
+			assignNewState( OnSipXmppStates::Dropped, pEvent );
+			return true;
+		}
+		// Ignore event, just one of the branches disconnecting
+		delete pEvent;
 		return true;
 	}
 

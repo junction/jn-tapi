@@ -44,13 +44,15 @@ class OnSipCallStateData
 {
 public:
 	CheckThread _checkThread;
-	long m_callId;							// Unique call-id, internal value, not related to OnSip callid
-	string m_remoteId;
-	string m_calledId;
-	string m_sipCallId;						// The SIP callId
+	tstring m_id;							// XMPP id
+	long m_callId;						// Unique call-id, internal value, not related to OnSip callid
+	tstring m_remoteId;
+	tstring m_calledId;
+	tstring m_sipCallId;						// The SIP callId
 	OnSipXmppCallType::CallType m_callType;
-	string m_fromTag;		// needed for DropCall
-	string m_toTag;			// needed for DropCall
+	tstring m_fromTag;		// needed for DropCall
+	tstring m_toTag;			// needed for DropCall
+	tstring m_branch;
 
 	OnSipCallStateData() 
 	{  m_callId = 0;  m_callType = OnSipXmppCallType::Unknown; }
@@ -60,6 +62,7 @@ public:
 		_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 		if ( this == &callData )
 			return *this;
+		m_id = callData.m_id;
 		m_callType = callData.m_callType;
 		m_callId = callData.m_callId; 
 		m_remoteId = callData.m_remoteId; 
@@ -67,10 +70,42 @@ public:
 		m_sipCallId = callData.m_sipCallId;
 		m_fromTag = callData.m_fromTag;
 		m_toTag = callData.m_toTag;
+		m_branch = callData.m_branch;
 		return *this;
 	}
 
+	bool SameBranch(tstring branch)
+	{	return m_branch == branch; }
+
 	tstring ToString() const;
+};
+
+// Class to manage keeping track of branches of a call.
+// Branches of a call occur when the user has multiple SIP endpoints registered
+// at the same location.
+// e.g. an incoming call will get multiple XMPP events, one for each SIP device
+class callBranches
+{
+private:
+	vector<OnSipCallStateData> m_branches;
+	void _removeById(tstring id);
+	// Checks the branches list for a call with the specified XMPP id.
+	// Returns the index in the list, or returns -1 if not found
+	int _getIdIndex(tstring id);
+
+public:
+	bool HasId(tstring id);
+
+	size_t CountBranches()
+	{	return m_branches.size(); }
+	
+	void AddBranch(OnSipCallStateData& callData);
+
+	void AddBranch(XmppActiveCallEvent *ace,long callId);
+
+	// We need to see which call was dropped, and if the one in our
+	// main CallStateData, then move one of the branches to replace it.
+	bool CheckDroppedCall( OnSipCallStateData* callData, tstring droppedId );
 };
 
 // Utility class to provide helper methods for the OnSip state machine
@@ -85,7 +120,7 @@ public:
 
 	static bool IsSameId(XmppEvent* pEvent1,XmppEvent* pEvent2);
 	static bool IsSameContext(XmppEvent* pEvent1,XmppEvent* pEvent2);
-	
+
 	static XmppActiveCallEvent* getActiveCallEvent(XmppEvent* pEvent);
 	static XmppRetractCallEvent* getRetractCallEvent(XmppEvent* pEvent);
 	static XmppIqResultEvent* getXmppIqResultEvent(XmppEvent* pEvent);
@@ -122,7 +157,7 @@ public:
 
 	// Checks to see if the state has been in the specified state for the specified timeout in msecs.
 	// If so, then the call will be put in the Dropped state and return true.
-	bool CheckStateTimeout( OnSipXmppStates::CallStates callState, DWORD timeout );
+	bool CheckStateTimeout( OnSipXmppStates::CallStates callState, long timeout );
 };
 
 //*************************************************************************
@@ -146,6 +181,7 @@ public:
 class OnSipIncomingCallStateHandler : public OnSipCallStateHandlerBase
 {
 private:
+	callBranches m_branches;
 protected:
 	virtual bool IsYourEvent(XmppEvent *pEvent);
 	virtual bool IsStillExist();

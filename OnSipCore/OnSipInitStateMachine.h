@@ -35,19 +35,14 @@ class OnSipInitStateData
 {
 public:
 	// No State Data at this type
-	// TODO??  Keep track of how long within a InitStatesType type of state???
 };
 
-
 // Authorization timeouts
-#define AUTHTIMEOUT_QUICK_RETRY	(30 * MSECS_IN_SEC)
+#define AUTHTIMEOUT_QUICK_RETRY		(30 * MSECS_IN_SEC)
 #define AUTHTIMEOUT_RETRY			(15 * MSECS_IN_MIN)
-#define AUTHTIMEOUT				( 2 * MSECS_IN_HOUR)
+#define AUTHTIMEOUT					( 2 * MSECS_IN_HOUR)
 #define PINGTIMEOUT					( 5 * MSECS_IN_MIN)
 
-//#define AUTHTIMEOUT_QUICK_RETRY (30 * MSECS_IN_SEC)
-//#define AUTHTIMEOUT_RETRY		(1 * MSECS_IN_MIN)
-//#define AUTHTIMEOUT				(2 * MSECS_IN_MIN)
 
 // User outgoing call using physical phone device
 class OnSipInitStateHandler : public OnSipStateHandlerBase<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>
@@ -67,7 +62,7 @@ protected:
 
 	// Checks to see if the state has been in the specified state for the specified timeout in msecs.
 	// If so, then the call will be put in the Error state and return true.
-	bool CheckStateTimeout( OnSipInitStates::InitStates initState, DWORD timeout );
+	bool CheckStateTimeout( OnSipInitStates::InitStates initState, long timeout );
 
 public:
 	OnSipInitStateHandler(OnSipXmpp* pOnSipXmpp);
