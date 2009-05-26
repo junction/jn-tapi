@@ -94,7 +94,7 @@ OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSip
 //***************************************************************************
 
 OnSipInitStateHandler::OnSipInitStateHandler(OnSipXmpp* pOnSipXmpp) 
-		: StateHandler<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>( OnSipInitStates::PreLogin, NULL ),
+		: OnSipStateHandlerBase<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>( OnSipInitStates::PreLogin, NULL ),
 		m_authTO( AUTHTIMEOUT ), m_ping(PINGTIMEOUT)
 {
 	Logger::log_debug("OnSipInitStateHandler::OnSipInitStateHandler this=%x onSipXmpp=%x", this, pOnSipXmpp );

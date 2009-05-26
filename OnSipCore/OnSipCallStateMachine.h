@@ -102,64 +102,27 @@ public:
 
 // Call State Handler Base object.
 // All Call State handlers inherit from this
-class OnSipCallStateHandlerBase : public StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>
+class OnSipCallStateHandlerBase : public OnSipStateHandlerBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>
 {
 public:
-	OnSipCallStateHandlerBase( OnSipXmppStates::CallStates callState, XmppEvent* pEvent) : StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>( callState , pEvent )
+	OnSipCallStateHandlerBase( OnSipXmppStates::CallStates callState, XmppEvent* pEvent) : OnSipStateHandlerBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>( callState , pEvent )
 	{ }
 
 	void assignNewState(OnSipXmppStates::CallStates callState,XmppEvent* pEvent)
 	{
 		Logger::log_debug(_T("OnSipCallStateHandlerBase::assignNewState callState=%d/%s"), callState, OnSipXmppStates::CallStateToString(callState) );
-		StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>::assignNewState(callState,pEvent);
+		OnSipStateHandlerBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>::assignNewState(callState,pEvent);
 	}
 
 	void assignNewState(OnSipXmppStates::CallStates callState,XmppEvent* pEvent,OnSipCallStateData& stateData)
 	{
 		Logger::log_debug(_T("OnSipCallStateHandlerBase::assignNewState callState=%d/%s"), callState, OnSipXmppStates::CallStateToString(callState) );
-		StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>::assignNewState(callState,pEvent,stateData);
-	}
-
-	// General static helper method so can be used from PreExecute handlers.
-	// Checks to see if the state has been in the specified state for the specified timeout in msecs.
-	// If so, then the call will be put in the Dropped state and return true.
-	static bool CheckStateTimeout( StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateHandler, OnSipXmppStates::CallStates callState, DWORD timeout );
-
-	// Checks to see if the state has been in the specified state for the specified timeout in msecs.
-	// If so, then the call will be put in the Dropped state and return true.
-	bool CheckStateTimeout( OnSipXmppStates::CallStates callState, DWORD timeout )
-	{	return CheckStateTimeout( this, callState, timeout ); }
-};
-
-// Call State Handler Base object with "PreExecute" option that is
-// derived from StateHandlerPreExecute.
-// The PreExecute(OnSipXmpp* ) virtual is called on this instance
-// before this StateHandler is added to the state machine.
-class OnSipCallStateHandlerBasePreExecute : public StateHandlerPreExecute<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>
-{
-protected:
-//	virtual bool PreExecute(OnSipXmpp *pOnSipXmpp) = 0;
-
-public:
-	OnSipCallStateHandlerBasePreExecute( OnSipXmppStates::CallStates callState, XmppEvent* pEvent) : StateHandlerPreExecute<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>( callState , pEvent )
-	{ }
-
-	void assignNewState(OnSipXmppStates::CallStates callState,XmppEvent* pEvent)
-	{
-		Logger::log_debug(_T("OnSipCallStateHandlerBasePreExecute::assignNewState callState=%d/%s"), callState, OnSipXmppStates::CallStateToString(callState) );
-		StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>::assignNewState(callState,pEvent);
-	}
-
-	void assignNewState(OnSipXmppStates::CallStates callState,XmppEvent* pEvent,OnSipCallStateData& stateData)
-	{
-		Logger::log_debug(_T("OnSipCallStateHandlerBasePreExecute::assignNewState callState=%d/%s"), callState, OnSipXmppStates::CallStateToString(callState) );
-		StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>::assignNewState(callState,pEvent,stateData);
+		OnSipStateHandlerBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>::assignNewState(callState,pEvent,stateData);
 	}
 
 	// Checks to see if the state has been in the specified state for the specified timeout in msecs.
 	// If so, then the call will be put in the Dropped state and return true.
-	bool CheckStateTimeout( OnSipXmppStates::CallStates callState, DWORD timeout )
-	{	return OnSipCallStateHandlerBase::CheckStateTimeout( this, callState, timeout ); }
+	bool CheckStateTimeout( OnSipXmppStates::CallStates callState, DWORD timeout );
 };
 
 //*************************************************************************
@@ -197,7 +160,7 @@ public:
 // Generated Outgoing Call State Handler
 // This is type of "PreExecute" since the number must be dialed
 // before this StateHandler is added to the state machine.
-class OnSipMakeCallStateHandler : public OnSipCallStateHandlerBasePreExecute
+class OnSipMakeCallStateHandler : public OnSipCallStateHandlerBase 
 {
 private:
 protected:
@@ -227,7 +190,7 @@ public:
 // The StateHandler is never added to the state machine, it is
 // used just to drop the call.  Not added since we would then
 // have 2 StateHandlers tracking the same call.
-class OnSipDropCallStateHandler : public OnSipCallStateHandlerBasePreExecute
+class OnSipDropCallStateHandler : public OnSipCallStateHandlerBase
 {
 private:
 protected:

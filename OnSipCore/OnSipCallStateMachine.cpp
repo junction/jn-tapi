@@ -169,14 +169,14 @@ tstring OnSipCallStateData::ToString() const
 
 // Checks to see if the state has been in the specified state for the specified timeout in msecs.
 // If so, then the call will be put in the Dropped state and return true.
-// static
-bool OnSipCallStateHandlerBase::CheckStateTimeout( StateHandler<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateHandler, OnSipXmppStates::CallStates callState, DWORD timeout )
+bool OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::CallStates callState, DWORD timeout )
 {
 	// If we are stuck in the MakeCallSet state, then most likely we did not get any call events for the request
-	if ( pStateHandler->IsState( callState ) && pStateHandler->MsecsSinceLastStateChange() > timeout  )
+	if ( IsState( callState ) && MsecsSinceLastStateChange() > timeout  )
 	{
-		Logger::log_error(_T("CheckStateTimeout %s TIMEOUT msecs=%ld.  DROPPING call"), OnSipXmppStates::CallStateToString(callState), pStateHandler->MsecsSinceLastStateChange() );
-		pStateHandler->assignNewState( OnSipXmppStates::Dropped, NULL );
+		_ASSERTE( !IsState(OnSipXmppStates::Dropped) );
+		Logger::log_error(_T("CheckStateTimeout %s TIMEOUT msecs=%ld.  DROPPING call"), OnSipXmppStates::CallStateToString(callState), MsecsSinceLastStateChange() );
+		assignNewState( OnSipXmppStates::Dropped, NULL );
 		// Do not report that call does not exist yet, let it be handled on the next poll check
 		return true;
 	}
@@ -379,13 +379,15 @@ bool OnSipIncomingCallStateHandler::IsStillExist()
 // State Handler for generated outgoing call
 //****************************************************************************
 
-OnSipMakeCallStateHandler::OnSipMakeCallStateHandler(const tstring& todial,long callId) : OnSipCallStateHandlerBasePreExecute(OnSipXmppStates::PreMakeCall, NULL )
+OnSipMakeCallStateHandler::OnSipMakeCallStateHandler(const tstring& todial,long callId) : OnSipCallStateHandlerBase(OnSipXmppStates::PreMakeCall, NULL )
 { 
 	Logger::log_debug(_T("OnSipMakeCallStateHandler::OnSipMakeCallStateHandler todial=%s callId=%ld"), todial.c_str(), callId );
 	getCurrentStateData().m_callType = OnSipXmppCallType::MakeCall;
 	getCurrentStateData().m_callId = callId;
 	getCurrentStateData().m_remoteId = todial;
 	m_contextId  = 0;
+	// signify that we take over the PreExecute virtual
+	SetHasPreExecute(true);
 }
 
 //virtual 
@@ -624,10 +626,12 @@ bool OnSipMakeCallStateHandler::IsStillExist()
 // State Handler for generated outgoing call
 //****************************************************************************
 
-OnSipDropCallStateHandler::OnSipDropCallStateHandler(long callId) : OnSipCallStateHandlerBasePreExecute(OnSipXmppStates::PreDropCall, NULL )
+OnSipDropCallStateHandler::OnSipDropCallStateHandler(long callId) : OnSipCallStateHandlerBase(OnSipXmppStates::PreDropCall, NULL )
 { 
 	Logger::log_debug(_T("OnSipDropCallHandler::OnSipDropCallHandler callId=%ld"), callId );
 	m_callId = callId;
+	// signify that we take over the PreExecute virtual
+	SetHasPreExecute(true);
 }
 
 //virtual 

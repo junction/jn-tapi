@@ -7,24 +7,39 @@ class OnSipXmpp;
 template <class Tstate,class TeventData,class TstateData>
 class OnSipStateMachineBase;
 
-
-// A template wrapper around a StateHanlder that has the option
-// to pre-execute a XMPP operation before being added to the
-// state machine.
-// Virtual PreExecute() is called before this StateHandler
-// is added to state machine (if using the AddStateHandler() methods)
+// Base State Handler for all OnSip state machines
 template <class Tstate,class TeventData,class TstateData>
-class StateHandlerPreExecute : public StateHandler<Tstate,TeventData,TstateData>
+class OnSipStateHandlerBase : public StateHandler<Tstate,TeventData,TstateData>
 {
-public:
-	virtual bool PreExecute(OnSipStateMachineBase<Tstate,TeventData,TstateData>* pStateMachine,OnSipXmpp *pOnSipXmpp) = 0;
+private:
+	bool m_bHasPreExecute;
+
+protected:
+	// Set by derived class this StateHandler implements the IPreExecute interface
+	void SetHasPreExecute(bool bHasPreExecute)
+	{	m_bHasPreExecute = bHasPreExecute; }
 
 public:
-	StateHandlerPreExecute(Tstate m_state,TeventData *eventData) : StateHandler(m_state,eventData)
-	{ }
+	virtual bool PreExecute(OnSipStateMachineBase<Tstate,TeventData,TstateData>* pStateMachine,OnSipXmpp *pOnSipXmpp)
+	{
+		// Should never make it here, it should be overridden by derived class
+		_ASSERTE(false);
+		return false;
+	}
 
-	StateHandlerPreExecute(Tstate m_state,TeventData *eventData,TstateData& stateData) : StateHandler(m_state,eventData,stateData)
-	{ }
+	OnSipStateHandlerBase(Tstate m_state,TeventData *eventData) : StateHandler(m_state,eventData)
+	{
+		m_bHasPreExecute = false;
+	}
+
+	OnSipStateHandlerBase(Tstate m_state,TeventData *eventData,TstateData& stateData) : StateHandler(m_state,eventData,stateData)
+	{
+		m_bHasPreExecute = false;
+	}
+
+	// Returns true if the derived class takes over the PreExecute virtual
+	bool HasPreExecute()
+	{ return m_bHasPreExecute; }
 };
 
 // Base class for all OnSip state machines
@@ -37,34 +52,27 @@ protected:
 
 private:
 
-	// Internal object that holds StateHandler or StateHandlerPreExecute object.
+	// Internal object that holds OnSipStateHandlerBase object.
 	// A list of these are maintained when adding new StateHandlers from outside
 	// of this class using AddStateHandler()
 	class _stateHandleRequestItem
 	{
 	private:
-		StateHandler<Tstate,TeventData,TstateData>* m_pStateHandler;
-		StateHandlerPreExecute<Tstate,TeventData,TstateData>* m_pStateHandlerEx;
+		OnSipStateHandlerBase<Tstate,TeventData,TstateData>* m_pStateHandler;
 	public:
 
-		_stateHandleRequestItem(StateHandler<Tstate,TeventData,TstateData>* pStateHandler)
-		{	m_pStateHandler = pStateHandler; m_pStateHandlerEx = NULL; }
+		_stateHandleRequestItem(OnSipStateHandlerBase<Tstate,TeventData,TstateData>* pStateHandler)
+		{	m_pStateHandler = pStateHandler; }
 
-		_stateHandleRequestItem(StateHandlerPreExecute<Tstate,TeventData,TstateData>* pStateHandler)
-		{	m_pStateHandler = pStateHandler; m_pStateHandlerEx = pStateHandler;	}
-
-		// Returns true if this instance is holding a StateHandlerPreExecute instance
+		// Returns true if this instance is holding a StateHandler that takes over the PreExecute virtual
 		bool IsPreExecute()
-		{	return m_pStateHandlerEx != NULL; }
+		{	return m_pStateHandler->HasPreExecute(); }
 
-		StateHandler<Tstate,TeventData,TstateData>* getStateHandler()
+		OnSipStateHandlerBase<Tstate,TeventData,TstateData>* getStateHandler()
 		{	return m_pStateHandler;	}
-
-		StateHandlerPreExecute<Tstate,TeventData,TstateData>* getStateHandlerPreExecute()
-		{	return m_pStateHandlerEx;	}
 	};
 
-	// List of the either StateHandler or StateHandlerPreExecute instances
+	// List of the either OnSipStateHandlerBase instances
 	std::list<_stateHandleRequestItem *> m_handlerRequests;
 	CriticalSection m_cs;
 	volatile int m_requestChange;
@@ -105,21 +113,7 @@ public:
 	// The ownership and lifetime will be passed to this state machine,
 	// so be sure to allocate it using "new".  It will be deleted when
 	// removed from the state machine.
-	void AddStateHandler( StateHandler<Tstate,TeventData,TstateData> *pStateHandler )
-	{
-		CriticalSectionScope css(&m_cs);
-		m_handlerRequests.push_back( new _stateHandleRequestItem(pStateHandler) );
-		// Signify handler requests have been changed
-		m_requestChange++;
-	}
-
-	// THREAD-SAFE
-	//
-	// Add a new StateHandler to the state machine.
-	// The ownership and lifetime will be passed to this state machine,
-	// so be sure to allocate it using "new".  It will be deleted when
-	// removed from the state machine.
-	void AddStateHandler( StateHandlerPreExecute<Tstate,TeventData,TstateData> *pStateHandler )
+	void AddStateHandler( OnSipStateHandlerBase<Tstate,TeventData,TstateData> *pStateHandler )
 	{
 		CriticalSectionScope css(&m_cs);
 		m_handlerRequests.push_back( new _stateHandleRequestItem(pStateHandler) );
@@ -147,14 +141,14 @@ public:
 				// Reset the CheckThread on the StateHandler since it is now part of the state machine
 				pRequest->getStateHandler()->ResetCheckThread();
 
-				// If type of StateHandlerPreExecute,
+				// If takes over the PreExecute virtual
 				// then execute its request before being added to the state machine
 				bool bPreExecute=true;
 				if ( pRequest->IsPreExecute() )
 				{
 					Logger::log_debug(_T("OnSipStateMachineBase::PollStateHandlers do PreExecute"));
 					// Allow the StateHandler to do an execute first
-					bPreExecute = pRequest->getStateHandlerPreExecute()->PreExecute(this,m_pOnSipXmpp);
+					bPreExecute = pRequest->getStateHandler()->PreExecute( this, m_pOnSipXmpp );
 				}
 
 				// If PreExecute failed

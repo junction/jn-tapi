@@ -31,6 +31,9 @@
 
 //  Test button in the TAPI Config Dialog
 
+// Need to handle timeouts in the OnSipInitMachine state handlers in case it is
+//  in a wrong state too long (besides error).  It may need to re-start the authorize
+
 // On a drop call request, if the drop call request does not work, then we
 // need to notify the state handler handling this request to go ahead and drop
 // the call.  Assume that there is some issue with the server not responding
@@ -44,6 +47,9 @@
 
 //  Get rid of caller-id for incoming calls, currently is showing sip numbers.  And for PSTN calls, is showing your own sip address.
 //   DONE - verify
+
+// During re-authorization, we may report back OnConnect(false) due to going through the different 
+//states or the re-auth.
 
 // Double check all IsYourEvent and make sure events are being deleted if returning back TRUE
 

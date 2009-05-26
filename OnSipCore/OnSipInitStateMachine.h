@@ -50,7 +50,7 @@ public:
 //#define AUTHTIMEOUT				(2 * MSECS_IN_MIN)
 
 // User outgoing call using physical phone device
-class OnSipInitStateHandler : public StateHandler<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>
+class OnSipInitStateHandler : public OnSipStateHandlerBase<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>
 {
 private:
 	OnSipXmpp* m_pOnSipXmpp;
