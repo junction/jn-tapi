@@ -93,6 +93,12 @@ OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSip
 //***************************************************************************
 //***************************************************************************
 
+#define GENERAL_COMMUNICATION_TIMEOUT		( 10 * MSECS_IN_SEC )
+
+//***************************************************************************
+//***************************************************************************
+
+
 OnSipInitStateHandler::OnSipInitStateHandler(OnSipXmpp* pOnSipXmpp) 
 		: OnSipStateHandlerBase<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>( OnSipInitStates::PreLogin, NULL ),
 		m_authTO( AUTHTIMEOUT ), m_ping(PINGTIMEOUT)
@@ -149,7 +155,7 @@ bool OnSipInitStateHandler::IsYourEvent(XmppEvent *pEvent)
 	// If authorizing
 	if ( ( IsState(OnSipInitStates::Authorizing) || IsState(OnSipInitStates::ReAuthorizing) ) && ((evIqResult!= NULL && pEvent->m_context == _contextId) || evAuthEvent != NULL) )
 	{
-		Logger::log_debug(_T("OnSipInitStateHandler::IsYourEvent authorizing err=%d"), pEvent->IsError() );
+		Logger::log_debug(_T("OnSipInitStateHandler::IsYourEvent curState=%s authorizing err=%d"),  OnSipInitStates::InitStatesToString(getCurrentState()), pEvent->IsError() );
 		// If success
 		if ( !pEvent->IsError() )
 		{
@@ -217,32 +223,6 @@ bool OnSipInitStateHandler::IsYourEvent(XmppEvent *pEvent)
 		return true;
 	}
 
-	// If re-authorizing
-	if ( IsState(OnSipInitStates::ReAuthorizing) && (evIqResult != NULL && pEvent->m_context == _contextId) )
-	{
-		Logger::log_debug(_T("OnSipInitStateHandler::IsYourEvent reauthorizing done - err=%d"),pEvent->IsError() );
-
-		// If success
-		if ( !pEvent->IsError() )
-		{
-			// Go to OK state and set for future re-authorize
-			assignNewState( OnSipInitStates::OK, NULL );
-			m_authTO.SetMsecs( AUTHTIMEOUT );
-		}
-		// If error
-		else
-		{
-			Logger::log_error(_T("OnSipInitStateHandler::IsYourEvent reauthorizing done - error=%s"),pEvent->ToString().c_str()  );
-			// Go back to OK state and try again later
-			assignNewState( OnSipInitStates::OK, NULL );
-			m_authTO.SetMsecs( AUTHTIMEOUT_RETRY );
-		}
-
-		// Delete since not saving the event
-		delete pEvent;
-		return true;
-	}
-
 	Logger::log_debug("OnSipInitStateHandler::IsYourEvent unhandled=%x/%d",pEvent, pEvent->m_type );
 	return false;
 }
@@ -267,7 +247,7 @@ bool OnSipInitStateHandler::PollStateHandler()
 	// If stuck in a state too long, then some type of error??
 
 	// If time to re-authorize
-	if ( ( IsState(OnSipInitStates::OK) || IsState(OnSipInitStates::AuthorizedError) ) && m_authTO.IsExpired() )
+	if ( IsState(OnSipInitStates::OK) && m_authTO.IsExpired() )
 	{
 		Logger::log_debug(_T("OnSipInitStateHandler::PollStateHandler authTimeout %ld curState=%d/%s"),m_authTO.Msecs(),getCurrentState(),OnSipInitStates::InitStatesToString(getCurrentState()) );
 
@@ -289,6 +269,36 @@ bool OnSipInitStateHandler::PollStateHandler()
 		m_ping.Reset();
 		// Return false since there should be no change in states
 		return false;
+	}
+
+	// Check for timeout errors, stuck in a state due to no responses from server
+	if ( CheckStateTimeout( OnSipInitStates::PreLogin, GENERAL_COMMUNICATION_TIMEOUT ) )
+		return true;
+
+	if ( CheckStateTimeout( OnSipInitStates::Authorizing, GENERAL_COMMUNICATION_TIMEOUT ) )
+		return true;
+
+	if ( CheckStateTimeout( OnSipInitStates::EnablingCallEvents, GENERAL_COMMUNICATION_TIMEOUT ) )
+		return true;
+
+	if ( CheckStateTimeout( OnSipInitStates::ReAuthorizing, GENERAL_COMMUNICATION_TIMEOUT ) )
+		return true;
+
+	return false;
+}
+
+// Checks to see if the state has been in the specified state for the specified timeout in msecs.
+// If so, then the call will be put in the Error state and return true.
+bool OnSipInitStateHandler::CheckStateTimeout( OnSipInitStates::InitStates initState, DWORD timeout )
+{
+	// If in specified state past timeout
+	if ( IsState( initState ) && MsecsSinceLastStateChange() > timeout  )
+	{
+		_ASSERTE( !IsState(OnSipInitStates::Disconnected) );
+		Logger::log_error(_T("OnSipInitStateHandler::CheckStateTimeout %s TIMEOUT msecs=%ld.  Disconnecting"), OnSipInitStates::InitStatesToString(initState), MsecsSinceLastStateChange() );
+		assignNewState( OnSipInitStates::Disconnected, NULL );
+		// Do not report that call does not exist yet, let it be handled on the next poll check
+		return true;
 	}
 
 	return false;

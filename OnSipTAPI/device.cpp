@@ -389,6 +389,9 @@ unsigned COnSipDevice::ConnectionThread()
 			Logger::log_trace(_T("COnSipDevice::ConnectionThread tryConnect"));
 			if ( !m_OnSipTapi->Connect(loginInfo) )
 			{
+				// TODO: Increase timeout to longer values if continue to get errors
+				// If authorize error, should we just close line
+				
 				// Failed, sleep for 30 seconds and try again.
 				if (WaitForSingleObject(m_hevtStop, 30000) != WAIT_TIMEOUT)
 					break;
@@ -474,6 +477,7 @@ unsigned COnSipDevice::ConnectionThread()
 					if ( initStateType == OnSipInitStatesType::DISCONNECTED)
 					{
 						Logger::log_debug( _T("COnSipevice::ConnectionThread initStateChange disconnected") );
+						m_OnSipTapi->Disconnect();
 						fConnected = false;
 					}
 				}

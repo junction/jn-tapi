@@ -20,6 +20,9 @@ protected:
 	{	m_bHasPreExecute = bHasPreExecute; }
 
 public:
+	// Virtual that a StateHandler can take over to be called before being added to the state machine.
+	// Has access to the OnSipXmpp
+	// The SetHasPreExecute(true) must be called by the derived class to enable this virtual.
 	virtual bool PreExecute(OnSipStateMachineBase<Tstate,TeventData,TstateData>* pStateMachine,OnSipXmpp *pOnSipXmpp)
 	{
 		// Should never make it here, it should be overridden by derived class
@@ -28,14 +31,10 @@ public:
 	}
 
 	OnSipStateHandlerBase(Tstate m_state,TeventData *eventData) : StateHandler(m_state,eventData)
-	{
-		m_bHasPreExecute = false;
-	}
+	{	m_bHasPreExecute = false;	}
 
 	OnSipStateHandlerBase(Tstate m_state,TeventData *eventData,TstateData& stateData) : StateHandler(m_state,eventData,stateData)
-	{
-		m_bHasPreExecute = false;
-	}
+	{	m_bHasPreExecute = false;	}
 
 	// Returns true if the derived class takes over the PreExecute virtual
 	bool HasPreExecute()

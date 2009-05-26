@@ -171,11 +171,11 @@ tstring OnSipCallStateData::ToString() const
 // If so, then the call will be put in the Dropped state and return true.
 bool OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::CallStates callState, DWORD timeout )
 {
-	// If we are stuck in the MakeCallSet state, then most likely we did not get any call events for the request
+	// If we are stuck in the state, then most likely we did not get any call events for the request
 	if ( IsState( callState ) && MsecsSinceLastStateChange() > timeout  )
 	{
 		_ASSERTE( !IsState(OnSipXmppStates::Dropped) );
-		Logger::log_error(_T("CheckStateTimeout %s TIMEOUT msecs=%ld.  DROPPING call"), OnSipXmppStates::CallStateToString(callState), MsecsSinceLastStateChange() );
+		Logger::log_error(_T("OnSipCallStateHandlerBase::CheckStateTimeout %s TIMEOUT msecs=%ld.  DROPPING call"), OnSipXmppStates::CallStateToString(callState), MsecsSinceLastStateChange() );
 		assignNewState( OnSipXmppStates::Dropped, NULL );
 		// Do not report that call does not exist yet, let it be handled on the next poll check
 		return true;

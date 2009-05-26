@@ -67,8 +67,6 @@
 
 //  TAPI dwAddressSize/Offset - change to "OnSIP [PHONENUMBER]"
 
-// Move a lot of the PreExecute and PollStateHandlers and other state machine code in  OnSipStateMachine.h to standard StateMachine.h
-
 // TODO
 //  3) In IsYourEvent and handlers, need to check for error event!!
 //  4) In any state where a response is expected, need to poll and make sure not stuck.

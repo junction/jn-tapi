@@ -65,6 +65,10 @@ protected:
 	virtual bool IsStillExist();
 	virtual bool PollStateHandler();
 
+	// Checks to see if the state has been in the specified state for the specified timeout in msecs.
+	// If so, then the call will be put in the Error state and return true.
+	bool CheckStateTimeout( OnSipInitStates::InitStates initState, DWORD timeout );
+
 public:
 	OnSipInitStateHandler(OnSipXmpp* pOnSipXmpp);
 };
