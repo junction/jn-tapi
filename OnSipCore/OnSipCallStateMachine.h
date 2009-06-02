@@ -101,11 +101,13 @@ public:
 	
 	void AddBranch(OnSipCallStateData& callData);
 
-	void AddBranch(XmppActiveCallEvent *ace,long callId);
+	void AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType);
 
 	// We need to see which call was dropped, and if the one in our
 	// main CallStateData, then move one of the branches to replace it.
 	bool CheckDroppedCall( OnSipCallStateData* callData, tstring droppedId );
+
+	tstring ToString();
 };
 
 // Utility class to provide helper methods for the OnSip state machine
@@ -199,11 +201,12 @@ public:
 class OnSipMakeCallStateHandler : public OnSipCallStateHandlerBase 
 {
 private:
+	callBranches m_branches;	// Track multiple calls that exist when user has multiple SIP devices registered
 protected:
 	virtual bool IsYourEvent(XmppEvent *pEvent);
 	virtual bool IsStillExist();
 	int m_contextId;		// context for initial IQ request
-	tstring m_in_id;		// Item ID of messages related to inbound call
+	//tstring m_in_id;		// Item ID of messages related to inbound call
 	tstring m_out_id;		// Item ID of messages related to outbound call
 	tstring m_toSipField;		// Exact TO field used in the XMPP request
 	tstring m_fromSipField;	// Exact FROM field used in the XMPP request

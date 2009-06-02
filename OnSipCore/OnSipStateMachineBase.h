@@ -23,7 +23,7 @@ public:
 	// Virtual that a StateHandler can take over to be called before being added to the state machine.
 	// Has access to the OnSipXmpp
 	// The SetHasPreExecute(true) must be called by the derived class to enable this virtual.
-	virtual bool PreExecute(OnSipStateMachineBase<Tstate,TeventData,TstateData>* pStateMachine,OnSipXmpp *pOnSipXmpp)
+	virtual bool PreExecute(OnSipStateMachineBase<Tstate,TeventData,TstateData>* /*pStateMachine*/,OnSipXmpp * /*pOnSipXmpp*/)
 	{
 		// Should never make it here, it should be overridden by derived class
 		_ASSERTE(false);
