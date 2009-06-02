@@ -53,8 +53,6 @@ bool COnSipLine::OnMakeCall(RTMakeCall* pRequest, LPCVOID lpBuff)
 		Logger::log_debug( _T("COnSipLine::OnMakeCall STATE_INITIAL pAddr=%p number=%s isPartial=%d"), 
 			pAddress, (pAddress == NULL) ? NULL : pAddress->strNumber.c_str(), (pAddress == NULL) ? NULL : pAddress->fIsPartialAddress );
 
-// TODO: See Julmar JTSP example
-
 		// If we have no dialing information (i.e. NULL specified in lineMakeCall)
 		// or the number given is incomplete (i.e. it is terminated by a semicolon
 		// as per the TAPI specification) then mark the call as a "fake" call until 
@@ -95,11 +93,6 @@ bool COnSipLine::OnMakeCall(RTMakeCall* pRequest, LPCVOID lpBuff)
 		DWORD dwCallState = pCallEvent->GetTapiCallState();
 
 		Logger::log_debug( _T("COnSipLine::OnMakeCall STATE_WAITING callId=%d tapiCallState=%ld"), callEventCallId, dwCallState );
-
-		// TODO: Check the return code from the PBX and fail the request or
-		// complete it with a zero return code
-		
-		// NEED TO DO MORE VERIFICATION OF THE pCallEvent to ensure working and success
 
 		// If IDLE callstate, then must be some type of error
 		if ( dwCallState == LINECALLSTATE_IDLE )

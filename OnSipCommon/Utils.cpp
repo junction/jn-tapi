@@ -113,6 +113,19 @@ tstring Strings::replace(const tstring& source, const tstring& target, const tst
 	return str;
 };
 
+// Strip all non-numeric values from string
+tstring Strings::stripNonNumeric(const tstring& str)
+{
+	const TCHAR* pstr = str.data();
+	tstring strReturn;
+    while ( *pstr )
+    {   
+        if (is_tdigit(*pstr) )
+            strReturn += *pstr;
+        pstr++;
+    }
+	return strReturn;
+}
 // case insensitive compare of strings
 bool Strings::stringsSame(const tstring& str1,const tstring& str2)
 {	return _tcsicmp(str1.c_str(), str2.c_str()) == 0; }

@@ -86,11 +86,24 @@ COnSipServiceProvider::COnSipServiceProvider() :
 **               contents to persistent storage.
 **
 *****************************************************************************/
-void COnSipServiceProvider::TraceOut(TString& /*strBuff*/)
+//virtual
+void COnSipServiceProvider::TraceOut(TString& strBuff)
 {
-	// TODO:
-	// Add code to process the given string and output to some storage
-	// device such as a window, file, etc.
-
+	Logger::log_debug( strBuff.c_str() );
 }// COnSipServiceProvider::TraceOut
+
+
+// Override the version from CServiceProvider since it does not appear to work very well.
+//
+// This is the main function which converts a dialable number from TAPI into the
+// displayed canonical format.  It utilizes the below two routines.
+//virtual 
+TString COnSipServiceProvider::ConvertDialableToCanonical (LPCTSTR pszNumber, DWORD dwCountry, bool fInbound)
+{
+	// Return back unmodified
+	if ( pszNumber == NULL )
+		return _T("");
+	return TString( pszNumber );
+}
+
 

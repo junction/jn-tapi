@@ -101,7 +101,7 @@ public:
 	
 	void AddBranch(OnSipCallStateData& callData);
 
-	void AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType);
+	void AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType,bool bUpdateCallInfo=true);
 
 	// We need to see which call was dropped, and if the one in our
 	// main CallStateData, then move one of the branches to replace it.
@@ -112,7 +112,6 @@ public:
 
 // Utility class to provide helper methods for the OnSip state machine
 // Provides all static methods
-// TODO:  This is more of a general helper rather than just for CallState, move to different area??
 class OnSipCallStateHelper
 {
 private:

@@ -131,6 +131,19 @@ bool COnSipLine::UnsolicitedCallEvent(const COnSip_CallEvent *pCallEvent)
 			Logger::log_debug(_T("COnSipLine::UnsolicitedCallEvent callStateChange callId=%ld tapiCallState=%lx"), pCallEvent->CallId(), dwCurCallState );
 			pCall->SetCallState( dwCallState, 0, LINEMEDIAMODE_INTERACTIVEVOICE );
 		}
+
+		// If caller-id is available
+		DWORD dwFlags = LINECALLPARTYID_ADDRESS;
+		tstring remoteId = pCallEvent->RemoteID();
+		if ( !remoteId.empty() )
+			pCall->SetCallerIDInformation(dwFlags, remoteId.c_str(), NULL );
+
+		// If called-id is available
+		tstring calledId = pCallEvent->CalledID();
+		if ( !calledId.empty() )
+			pCall->SetCalledIDInformation(dwFlags,calledId.c_str(),NULL);
+
+		Logger::log_debug(_T("COnSipLine::UnsolicitedCallEvent activeCall callId=%ld callerId=%s calledId=%s"), pCallEvent->CallId(), remoteId.c_str(), calledId.c_str() );
 		return true;
 	}
 

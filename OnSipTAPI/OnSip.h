@@ -84,6 +84,28 @@ private:
 // Wraper aroudn the State Machine CallState and CallStateData
 class COnSip_CallEvent : public COnSipEvent
 {
+private:
+
+	// Extract the phone number from a phone number in SIP format, 
+	// e.g.    sip:1234567890@domain.sip.com
+	tstring _extractNumberFromSIP( const tstring& toFromUri ) const
+	{
+		// If not sip, then ignore
+		if ( !Strings::startsWith( toFromUri,_T("sip:") ) )
+			return _T("");
+		//See if has "@"
+		if ( !Strings::contains(toFromUri, _T("@") ) )
+			return _T("");
+		// Get contents inbetween
+		tstring::size_type npos = toFromUri.find( _T("@") );
+		tstring ret = toFromUri.substr( 4, npos-4 );
+		// Strip our all non-numeric
+		ret = Strings::stripNonNumeric(ret);
+		// See if all numeric
+		Logger::log_debug( _T("COnSip_CallEvent::_extractNumberFromSIP str=%s npos=%d ret=%s"), toFromUri.c_str(), npos, ret.c_str() );
+		return ret;
+	}
+
 public:
 	OnSipTapiCall m_onSipCall;
 
@@ -101,13 +123,14 @@ public:
 	DWORD GetTapiCallState() const
 	{	return m_onSipCall.GetTapiCallState(); }
 
+
 	// Remote ID
 	tstring RemoteID() const
-	{	return m_onSipCall.RemoteID(); }
+	{	return _extractNumberFromSIP( m_onSipCall.RemoteID() );	}
 
 	// Called ID
 	tstring CalledID() const
-	{	return m_onSipCall.CalledID(); }
+	{	return _extractNumberFromSIP( m_onSipCall.CalledID() );	}
 
 	// Get the CallType
 	OnSipXmppCallType::CallType CallType() const
@@ -153,6 +176,13 @@ public:
 	// Overrides from CServiceProvider
 public:
 	virtual void TraceOut(TString& strBuff);
+
+	// Override the version from CServiceProvider since it does not appear to work very well.
+	//
+	// This is the main function which converts a dialable number from TAPI into the
+	// displayed canonical format.  It utilizes the below two routines.
+	virtual TString ConvertDialableToCanonical (LPCTSTR pszNumber, DWORD dwCountry=0, bool fInbound=false);
+	
 };
 
 /**************************************************************************

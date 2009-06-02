@@ -60,8 +60,6 @@ COnSipLine::COnSipLine()
 *****************************************************************************/
 COnSipLine::~COnSipLine()
 {
-	// TODO: destroy any allocated memory here
-
 }// COnSipLine::~COnSipLine
 
 
@@ -305,7 +303,6 @@ bool COnSipLine::OpenDevice()
 {
 	Logger::log_debug( _T("COnSipLine::OpenDevice"));
 
-	// TODO: Validate the connection to the hardware and return FALSE if it
 	// is not connected or pass through to the default implementation if it is.
 	return CTSPILineConnection::OpenDevice();
 
@@ -354,12 +351,13 @@ CTSPICallAppearance* COnSipLine::OnNewCallDetected(bool fPlaced,
 
 	// Set Caller-Id and Called-Id
 	// TODO??  Is Caller-ID and Called-ID different depending on call direction????
-//	if ( !fPlaced )
 	DWORD dwFlags = LINECALLPARTYID_ADDRESS;
-//		if (!peCaller->GetName().empty())
-//			dwFlags |= LINECALLPARTYID_NAME;
-	pCall->SetCallerIDInformation(dwFlags, callEvent->RemoteID().c_str(), NULL );
-//	pCall->SetCalledIDInformation(dwFlags, callEvent->RemoteID().c_str(), NULL );
+	tstring remoteId = callEvent->RemoteID();
+	if ( !remoteId.empty() )
+		pCall->SetCallerIDInformation(dwFlags, remoteId.c_str(), NULL );
+	tstring calledId = callEvent->CalledID();
+	if ( !calledId.empty() )
+		pCall->SetCalledIDInformation(dwFlags, calledId .c_str(), NULL );
 
 	// If we have no reason code for this call then assign it now.
 	LPLINECALLINFO lpci = pCall->GetCallInfo();

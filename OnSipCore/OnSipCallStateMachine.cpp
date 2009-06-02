@@ -87,13 +87,14 @@ void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData
 	callStateData.m_id = ace->m_id;
 	callStateData.m_sipCallId = ace->m_sipCallid;		// SIP callId
 	callStateData.m_branch = ace->m_branch;
-	// TODO?? Are these correct?  
+
 	// Caller-id not supported, so skip this for now.  May check in doing called-id for outgoing calls.
 	if ( bUpdateCallInfo )
 	{
-		// callStateData.m_remoteId = ace->m_to_aor;
-		//	callStateData.m_calledId = ace->m_uas_aor;
+		callStateData.m_remoteId = ace->m_from_uri;
+		callStateData.m_calledId = ace->m_to_uri;
 	}
+
 	// Assign from/to tags
 	callStateData.m_fromTag = ace->m_from_tag;
 	callStateData.m_toTag = ace->m_to_tag;
@@ -153,14 +154,14 @@ void callBranches::AddBranch(OnSipCallStateData& callData)
 // Add the branch call to our branches list.
 // Added by the active call event and the callId
 // If call is already part of the 
-void callBranches::AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType)
+void callBranches::AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType, bool bUpdateCallInfo )
 {
-	Logger::log_debug( _T("callBranches::AddBranch ace id=%s branch=%s callId=%ld callType=%s"), ace->m_id.c_str(), ace->m_branch.c_str(), callId, OnSipXmppCallType::CallTypeToString(callType) );
+	Logger::log_debug( _T("callBranches::AddBranch ace id=%s branch=%s callId=%ld callType=%s bUpdateCall=%d"), ace->m_id.c_str(), ace->m_branch.c_str(), callId, OnSipXmppCallType::CallTypeToString(callType), bUpdateCallInfo );
 
 	// Get the callstate data from the call event
 	OnSipCallStateData callData;
 	callData.m_callType = callType;
-	OnSipCallStateHelper::AssignCallStateData(callData,ace,callId);
+	OnSipCallStateHelper::AssignCallStateData(callData,ace,callId,bUpdateCallInfo);
 
 	// If we already have this item in the branches
 	int index = _getIdIndex( ace->m_id );
@@ -369,6 +370,9 @@ OnSipOutgoingCallStateHandler::OnSipOutgoingCallStateHandler(XmppEvent* pEvent,l
 bool OnSipOutgoingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	Logger::log_debug( _T("OnSipOutgoingCallStateHandler::IsYourEvent %s"), pEvent->ToString().c_str()  );
+
 	// See if this event refers to our call
 	if ( !OnSipCallStateHelper::IsSameId( getCurrentEvent(), pEvent ) )
 		return false;
@@ -385,6 +389,8 @@ bool OnSipOutgoingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 	XmppActiveCallEvent *ace = OnSipCallStateHelper::getActiveCallEvent(pEvent);
 	if ( ace != NULL )
 	{
+		Logger::log_debug( _T("OnSipOutgoingCallStateHandler::IsYourEvent activeCallEvent %s"), pEvent->ToString().c_str()  );
+
 		// If connected call
 		if ( ace->m_dialogState == XmppActiveCallEvent::CONFIRMED )
 		{
@@ -456,6 +462,8 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
+	Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent %s"), pEvent->ToString().c_str()  );
+	
 	// See if an ActiveCallEvent with callstate change
 	XmppActiveCallEvent *ace = OnSipCallStateHelper::getActiveCallEvent(pEvent);
 	if ( ace != NULL )
@@ -463,6 +471,8 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		// If not same SIP CallId, then not our event
 		if ( ace->m_sipCallid != getCurrentStateData().m_sipCallId )
 			return false;
+
+		Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent activeCallEvent matching sipCallId %s"), ace->m_sipCallid.c_str() );
 
 		// See if this is a new branch call event.
 		// This can occur if the user has multiple SIP phones registered for the same phone number.
@@ -473,7 +483,7 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		// If connected call
 		if ( ace->m_dialogState == XmppActiveCallEvent::CONFIRMED )
 		{
-			Logger::log_debug("OnSipIncomingCallStateHandler::IsYourEvent connected");
+			Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent connected") );
 			assignNewState( OnSipXmppStates::Connected, pEvent );
 			// Update our callData
 			OnSipCallStateHelper::AssignCallStateData(getCurrentStateData(),ace,-1);
@@ -497,7 +507,7 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		if ( !m_branches.HasId(rce->m_id) )
 			return false;
 
-		Logger::log_debug("OnSipIncomingCallStateHandler::IsYourEvent dropped call. branches=%d", m_branches.CountBranches() );
+		Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent dropped call. branches=%d"), m_branches.CountBranches() );
 
 		// Check to see if this is the last call on a branch hanging up.
 		// Also update the callData with a valid CallData of one of the branch calls
@@ -625,7 +635,7 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent MakeCallTrying->MakeCallRequested curState=%s"), OnSipXmppStates::CallStateToString( getCurrentState() ) );
 
 			// Add this call to our list of branches
-			m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType  );
+			m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, false  );
 
 			// If we are in the MakeCallSet state, then change to state to MakeCallRequested
 			if ( IsState(OnSipXmppStates::MakeCallSet) )

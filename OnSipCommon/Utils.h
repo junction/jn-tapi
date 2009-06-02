@@ -111,6 +111,11 @@ public:
 	// returns new modified string
 	static tstring replace(const tstring& source, const tstring& target, const tstring& replacement);
 
+	static tstring stripNonNumeric(const tstring& str);
+
+	static inline bool is_tdigit(TCHAR ch) 
+		{return ((ch >= _T('0') && ch <= _T('9')) ? true : false);}
+
 	// Returns true if 'str' starts with 'chars'
 	static bool startsWith(const tstring& str,const tstring& chars);
 	// Returns true if 'str' ends with 'chars'
