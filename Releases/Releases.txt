@@ -25,3 +25,8 @@ TSP release 5-22-09.zip - fixes...
    3) fixed bug with line open with wrong login stuff, then try to open again, got assert
    4) other minor cleanup
 
+TSP release 6-2-09 - fixes
+   1) Added call branch support to incoming calls and make calls
+   2) other minor fixes in call state machine
+   3) put in timeout checking in the init state machine
+   4) did some minor refactoring of IPreExecute
