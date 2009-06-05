@@ -35,7 +35,6 @@ class COnSipDevice;
 #define STATE_WAITING		(STATE_INITIAL + 1)
 #define REQUEST_TIMEOUT		(10000)				// Timeout for requests (mSec)
 
-
 /**************************************************************************
 ** COnSipEvent
 **

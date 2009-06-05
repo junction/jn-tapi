@@ -348,7 +348,7 @@ unsigned COnSipDevice::ConnectionThread()
 
 	// Read the Logon info from the registry
 	tstring userName = GetSP()->ReadProfileString(m_dwProviderId, REG_USERNAME, _T("") );
-	tstring password = GetSP()->ReadProfileString(m_dwProviderId, REG_PASSWORD, _T("") );
+	tstring password = Strings::decryptString( GetSP()->ReadProfileString(m_dwProviderId, REG_PASSWORD, _T("") ), KEY_VALUE );
 	tstring domain =  GetSP()->ReadProfileString(m_dwProviderId, REG_DOMAIN, _T("") );
 
 	Logger::log_debug(_T("COnSipDevice::ConnectionThread userName=%s pwd=%d domain=%s"), userName.c_str(), password.length(), domain.c_str() );

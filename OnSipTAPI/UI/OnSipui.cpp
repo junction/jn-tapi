@@ -136,6 +136,7 @@ LONG CTspUIApp::providerInstall(DWORD dwPermanentProviderID, CWnd* pwndOwner)
 *****************************************************************************/
 LONG CTspUIApp::providerConfig(DWORD dwProviderID, CWnd* pwndOwner)
 {
+	// TODO!!
 	Logger::SetWin32Level( Logger::LEVEL_DEBUG );
 	Logger::log_debug("CTspUIApp::providerConfig providerID=%ld",dwProviderID);
 
@@ -235,7 +236,8 @@ TStream& CUIDevice::read(TStream& istm)
 
 	// Read values directly from the registry
 	m_userName = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_USERNAME, _T("") );
-	m_password = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_PASSWORD, _T("") );
+	CString pwd = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_PASSWORD, _T("") );
+	m_password = Strings::decryptString( pwd.GetBuffer(), KEY_VALUE );
 	m_domain =  GetUISP()->ReadProfileString(m_dwPermProviderID, REG_DOMAIN, _T("") );
 	m_phoneNumber = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_PHONENUMBER, _T("") );
 
@@ -262,7 +264,7 @@ TStream& CUIDevice::write(TStream& ostm) const
 
 	// Write values directly to the registry
 	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_USERNAME, m_userName.c_str() );
-	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_PASSWORD, m_password.c_str() );
+	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_PASSWORD,  Strings::encryptString( m_password, KEY_VALUE ).c_str() );
 	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_DOMAIN, m_domain.c_str() );
 	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_PHONENUMBER, m_phoneNumber.c_str() );
 

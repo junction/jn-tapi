@@ -10,6 +10,8 @@
 #include <iterator>
 #include <algorithm>
 #include "logger.h"
+#include "atlenc.h"
+#include <assert.h>
 
 using namespace std;
 
@@ -215,4 +217,86 @@ tstring Strings::repr(const tstring& _s) {
 	}
 	return Strings::S_TO_T(r);
 }
+
+// Do an XOR of each character in strInput with the charXor.
+// Returns back the XOR string
+tstring Strings::_xorWithChar(const tstring& strInput,TCHAR charXor)
+{
+	// Create the return string
+	tstring strOutput;
+	strOutput.resize(strInput.size());
+
+	// Do XOR on each of the chars
+	unsigned count = 0;
+	tstring::const_iterator iter = strInput.begin();
+	while ( iter != strInput.end() )
+		strOutput[count++] = (*iter++) ^ charXor;
+	return strOutput;
+}
+
+// Do an XOR of each char in strInput with each char in stringXor
+// Returns back the new XOR string
+tstring Strings::_xor(const tstring& strInput,const tstring& stringXor)
+{
+	tstring retString = strInput;
+	for ( tstring::const_iterator iter = stringXor.begin(); iter != stringXor.end(); ++iter )
+		retString = _xorWithChar(retString,*iter);
+	return retString;
+}
+
+// Simple decrypt on 'instr' using the key
+string Strings::decryptString(const string& strInput,const string& decryptKey)
+{
+	// Convert the base64 into bytes
+	char output[1024];
+	int len=sizeof(output);
+	BOOL ret = Base64Decode( strInput.data(), strInput.size(), (BYTE *)output, &len );
+	_ASSERT(ret);
+
+	// Put bytes back into a string
+	string retString;
+	retString.resize(len);
+	for ( int i=0; i<len; ++i )
+		retString[i] = output[i];
+
+	// decrypt the string using the xor chars
+	return _xor(retString,reverseString(decryptKey));
+}
+
+// Do a simple encrypt on strInput with each character in the encryptKey
+string Strings::encryptString(const string& strInput,const string& encryptKey)
+{
+	// Encrypt the string
+	string strRet = _xor(strInput,encryptKey);
+
+	// Convert the string to base64
+	char output[1024];
+	int len=sizeof(output);
+	BOOL ret = Base64Encode( (const BYTE*) strRet.data(), strRet.size(), output, &len, ATL_BASE64_FLAG_NOPAD | ATL_BASE64_FLAG_NOCRLF );
+	_ASSERT(ret);
+
+	// Put the base64 bytes into the return value
+	strRet.resize(len);
+	for ( int i=0; i<len; ++i )
+		strRet[i] = output[i];
+
+	return strRet;
+}
+
+// Returns a reverse copy of 'str'
+tstring Strings::reverseString(const tstring& strInput)
+{
+	// Create return string of same size
+	tstring retString;
+	retString.resize(strInput.size());
+
+	// Reverse the string
+	unsigned count=0;
+	tstring::const_reverse_iterator iter = strInput.rbegin();
+	while ( iter != strInput.rend() )
+		retString[count++] = *iter++;
+	return retString;
+}
+
+
 

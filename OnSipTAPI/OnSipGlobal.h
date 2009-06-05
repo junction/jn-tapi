@@ -21,4 +21,7 @@
 #define REG_DOMAIN		_T("Domain")
 #define REG_PHONENUMBER	_T("PhoneNumber")
 
+// If this value is changed, it must match the value in OnSipUI.h EXACTLY
+#define KEY_VALUE "JunctionNetworksOnSipHostPbx"
+
 #endif

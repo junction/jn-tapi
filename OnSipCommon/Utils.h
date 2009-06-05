@@ -80,6 +80,10 @@ public:
 
 class Strings
 {
+private:
+	static tstring _xorWithChar(const tstring& strInput,TCHAR charXor);
+	static tstring _xor(const tstring& strInput,const tstring& stringXor);
+
 public:
 	static tstring stringFormat(const TCHAR* format, ...);
 
@@ -110,6 +114,13 @@ public:
 	//  replacement = new string to be replaced where target exists
 	// returns new modified string
 	static tstring replace(const tstring& source, const tstring& target, const tstring& replacement);
+
+	// Simple decrypt on 'instr' using the key
+	static string decryptString(const string& strInput,const string& decryptKey);
+	// Do a simple encrypt on strInput with each character in the encryptKey
+	static string encryptString(const string& strInput,const string& encryptKey);
+	// Returns a reverse copy of 'str'
+	static tstring reverseString(const tstring& strInput);
 
 	static tstring stripNonNumeric(const tstring& str);
 
