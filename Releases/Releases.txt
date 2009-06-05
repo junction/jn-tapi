@@ -30,3 +30,12 @@ TSP release 6-2-09 - fixes
    2) other minor fixes in call state machine
    3) put in timeout checking in the init state machine
    4) did some minor refactoring of IPreExecute
+
+TSP release 6-5-09 - fixes
+   1) changed up method of doing a drop request.  Now it is submitted 
+     to the state handler that is handling the specified call.
+   2) fixed some issues with branches, specifically in the
+     make call.
+   3) Have new timeout with an attempt on dropping the call.  Will
+     go ahead and drop the TAPI call after timeout if physical
+     call did not drop (may be server issue)
