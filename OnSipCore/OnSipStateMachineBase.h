@@ -71,10 +71,38 @@ private:
 		{	return m_pStateHandler;	}
 	};
 
-	// List of the either OnSipStateHandlerBase instances
-	std::list<_stateHandleRequestItem *> m_handlerRequests;
 	CriticalSection m_cs;
+
+	// List of XmppEvents to be added to the state machine
+	std::list<XmppEvent *> m_events;
+	volatile int m_eventChange;
+
+	// List of OnSipStateHandlerBase instances to be added to the state machine
+	std::list<_stateHandleRequestItem *> m_handlerRequests;
 	volatile int m_requestChange;
+
+	// THREAD-SAFE
+	//
+	// Retrieves all the pending events to be added to 
+	// the state machine via the thread-safe AddEvent.
+	// This is a thread-safe method that will return all
+	// events from m_events and clear it.
+	std::list<TeventData*> _getEvents()
+	{
+		std::list<TeventData*> lst;
+
+		if ( m_eventChange > 0 )
+		{
+			// Grab thread safety and copy list
+			// so list can be processed safely in its own time
+			CriticalSectionScope css(&m_cs);
+			Logger::log_debug("OnSipStateMachineBase::_getEvents size=%d", m_events.size() );
+			lst = m_events;
+			m_events.clear();
+			m_eventChange=0;
+		}
+		return lst;
+	}
 
 	// THREAD-SAFE
 	//
@@ -118,6 +146,21 @@ public:
 		m_handlerRequests.push_back( new _stateHandleRequestItem(pStateHandler) );
 		// Signify handler requests have been changed
 		m_requestChange++;
+	}
+
+	// THREAD-SAFE
+	//
+	// Add an event to the state machine.
+	// The ownership and lifetime will be passed to this state machine,
+	// so be sure to allocate it using "new".  It will be deleted when
+	// removed from the state machine.
+	void AddEvent( TeventData *pEvent )
+	{
+		Logger::log_debug(_T("AddEvent") );
+		CriticalSectionScope css(&m_cs);
+		m_events.push_back( pEvent );
+		// Signify events list has been changed
+		m_eventChange++;
 	}
 
 	// Poll all state handlers, allows them to signal change in state or state data
@@ -178,6 +221,18 @@ public:
 			}
 		}
 
+		// See if we have any pending events to be added to the state machine
+		// See if we have a pending StateHandlerRequests to be added
+		// Just checks the volatile int flag, no truely thread-safe
+		// but should be fine since we have thread safety below
+		std::list<TeventData*> lstEvents = _getEvents();
+		if ( lstEvents.size() > 0 )
+		{
+			Logger::log_debug(_T("OnSipStateMachineBase::PollStateHandlers addEvents %d"), lstEvents.size() );
+			for ( std::list<TeventData*>::iterator iter = lstEvents.begin(); iter != lstEvents.end(); iter++ )
+				this->SignalEvent(*iter);
+		}
+
 		// Call default polling
 		StateMachine::PollStateHandlers();
 	}
@@ -186,6 +241,7 @@ public:
 	{
 		m_pOnSipXmpp = pOnSipXmpp;
 		m_requestChange = 0;
+		m_eventChange = 0;
 	}
 
 	// TODO: Destructor to clear any pending m_handlerRequests??

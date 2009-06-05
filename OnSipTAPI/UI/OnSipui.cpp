@@ -95,7 +95,7 @@ LONG CTspUIApp::providerInstall(DWORD dwPermanentProviderID, CWnd* pwndOwner)
 
 			// Get our device class
 			CTSPUIDevice* pDevice = GetDeviceByIndex(0);
-			Logger::log_debug("CTspUIApp::providerConfig pDevice=%p",pDevice);
+			Logger::log_debug(_T("CTspUIApp::providerConfig pDevice=%p"),pDevice);
 			ASSERT (pDevice != NULL);
 			CUIDevice* pOurDevice = static_cast<CUIDevice*>(pDevice);
 

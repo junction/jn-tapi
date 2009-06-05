@@ -223,9 +223,9 @@ tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tst
 // Pass unique contextId to be associated with this request,
 // the Iq Result will have the same contextId.
 // Returns the XMPP id used for the request
-tstring OnSipXmpp::DropCall(tstring sipCallid,tstring fromTag,tstring toTag, int contextId)
+tstring OnSipXmpp::DropCall(tstring sipCallid,tstring fromTag,tstring toTag, long contextId)
 {
-	Logger::log_debug("OnSipXmpp::DropCall sipCallid=%s fromTag=%s toTag=%s contextId=%d", sipCallid.c_str(), fromTag.c_str(), toTag.c_str(), contextId );
+	Logger::log_debug("OnSipXmpp::DropCall sipCallid=%s fromTag=%s toTag=%s contextId=%ld", sipCallid.c_str(), fromTag.c_str(), toTag.c_str(), contextId );
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
 	// Create DataForm

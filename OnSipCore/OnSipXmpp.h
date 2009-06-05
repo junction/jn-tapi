@@ -79,7 +79,7 @@ public:
 	// Pass unique contextId to be associated with this request,
 	// the Iq Result will have the same contextId.
 	// Returns the XMPP id used for the request
-	tstring DropCall(tstring sipCallid,tstring fromTag,tstring toTag, int contextId);
+	tstring DropCall(tstring sipCallid,tstring fromTag,tstring toTag, long contextId);
 
 	// THREAD-SAFE
 	// Get next unique ID for contextId and other various purposes

@@ -3,6 +3,8 @@
 #include "onsipcallstatemachine.h"
 #include "logger.h"
 #include "onsipxmpp.h"
+#include <algorithm>
+#include "Registry.h"
 
 //static 
 bool OnSipCallStateHelper::IsSameId(XmppEvent* pEvent1,XmppEvent* pEvent2)
@@ -26,6 +28,14 @@ XmppActiveCallEvent* OnSipCallStateHelper::getActiveCallEvent(XmppEvent* pEvent)
 	if ( pEvent->m_type != XmppEvent::EVT_PUBSUB_ACTIVECALL_EVENT )
 		return NULL;
 	return dynamic_cast<XmppActiveCallEvent *>(pEvent);
+}
+
+//static 
+DropRequestEvent* OnSipCallStateHelper::getDropRequestEvent(XmppEvent* pEvent)
+{
+	if ( pEvent->m_type != XmppEvent::EVT_DROP_REQUEST )
+		return NULL;
+	return dynamic_cast<DropRequestEvent*>(pEvent);
 }
 
 //static
@@ -77,7 +87,7 @@ XmppPubSubSubscribedEvent* OnSipCallStateHelper::getPubSubSubscribedEvent(XmppEv
 }
 
 //static
-void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData,XmppActiveCallEvent* ace,long callId,bool bUpdateCallInfo)
+void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData,XmppActiveCallEvent* ace,long callId,bool bUpdateCallerId)
 {
 	_ASSERT( ace != NULL );
 	if ( ace == NULL )
@@ -89,7 +99,7 @@ void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData
 	callStateData.m_branch = ace->m_branch;
 
 	// Caller-id not supported, so skip this for now.  May check in doing called-id for outgoing calls.
-	if ( bUpdateCallInfo )
+	if ( bUpdateCallerId )
 	{
 		callStateData.m_remoteId = ace->m_from_uri;
 		callStateData.m_calledId = ace->m_to_uri;
@@ -135,7 +145,6 @@ bool callBranches::HasId(tstring id)
 
 // Add the branch call to our branches list.
 // Added by the active call event and the callId
-
 void callBranches::AddBranch(OnSipCallStateData& callData)
 {
 	Logger::log_debug( _T("callBranches::AddBranch id=%s branch=%s callId=%ld"), callData.m_id.c_str(), callData.m_branch.c_str(), callData.m_callId );
@@ -144,34 +153,38 @@ void callBranches::AddBranch(OnSipCallStateData& callData)
 	// If already in the list, then just update the calldata
 	if ( index >= 0 )
 	{
+		Logger::log_debug( _T("callBranches::AddBranch id=%s callData updated") );
 		m_branches[index] = callData;
 		return;
 	}
 	// Add to branches
+	Logger::log_debug( _T("callBranches::AddBranch id=%s newAdded") );
 	m_branches.push_back( callData );
 }
 
 // Add the branch call to our branches list.
 // Added by the active call event and the callId
 // If call is already part of the 
-void callBranches::AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType, bool bUpdateCallInfo )
+void callBranches::AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType, bool bUpdateCallerId )
 {
-	Logger::log_debug( _T("callBranches::AddBranch ace id=%s branch=%s callId=%ld callType=%s bUpdateCall=%d"), ace->m_id.c_str(), ace->m_branch.c_str(), callId, OnSipXmppCallType::CallTypeToString(callType), bUpdateCallInfo );
+	Logger::log_debug( _T("callBranches::AddBranch ace id=%s branch=%s callId=%ld callType=%s bUpdateCallerId=%d cnt=%d"), ace->m_id.c_str(), ace->m_branch.c_str(), callId, OnSipXmppCallType::CallTypeToString(callType), bUpdateCallerId, m_branches.size() );
 
 	// Get the callstate data from the call event
 	OnSipCallStateData callData;
 	callData.m_callType = callType;
-	OnSipCallStateHelper::AssignCallStateData(callData,ace,callId,bUpdateCallInfo);
+	OnSipCallStateHelper::AssignCallStateData(callData,ace,callId,bUpdateCallerId);
 
 	// If we already have this item in the branches
 	int index = _getIdIndex( ace->m_id );
 	// If already in the list, then just update the calldata
 	if ( index >= 0 )
 	{
+		Logger::log_debug( _T("callBranches::AddBranch id=%s callData updated"), ace->m_id.c_str() );
 		m_branches[index] = callData;
 		return;
 	}
 	// Add to branches
+	Logger::log_debug( _T("callBranches::AddBranch id=%s newAdded"), ace->m_id.c_str() );
 	m_branches.push_back( callData );
 }
 
@@ -213,10 +226,12 @@ bool callBranches::CheckDroppedCall( OnSipCallStateData* callData, tstring dropp
 	{
 		// Update the callData with a valid call that still exists
 		*callData = m_branches[0];
+		Logger::log_debug( _T("callBranches::CheckDroppedCall updated callData %s"), callData->ToString().c_str() );
 		return false;
 	}
 
 	// No more calls left in the branches, drop the call
+	Logger::log_debug( _T("callBranches::CheckDroppedCall signal dropped") );
 	return true;
 }
 
@@ -262,6 +277,8 @@ TCHAR *OnSipXmppStates::CallStateToString(CallStates state)
 			return _T("CallState::MakeCallRequestedAnswered");
 		case MakeCallOutgoingCreated:
 			return _T("CallState::MakeCallOutgoingCreated");
+		case PreDropCall:
+			return _T("CallState::PreDropCall");
 		default:
 		{
 			Logger::log_error( Strings::stringFormat( _T("Unknown CallState in CallStateToString - %d"), state ).c_str() );
@@ -310,6 +327,17 @@ bool OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::CallStates c
 	if ( IsState( callState ) && MsecsSinceLastStateChange() > timeout  )
 	{
 		_ASSERTE( !IsState(OnSipXmppStates::Dropped) );
+
+		// See if this is disabled by registry for debugging purposes
+		DWORD dwValue=0;
+		tstring path = Strings::stringFormat( _T("SOFTWARE\\%s\\DisableTimeout"), COMPANY_NAME );
+		Registry::ReadKeyDword( HKEY_LOCAL_MACHINE, path.c_str(), &dwValue );
+		if ( dwValue != 0 )
+		{
+			Logger::log_warn(_T("OnSipCallStateHandlerBase::CheckStateTimeout %s TIMEOUT msecs=%ld.  IGNORED due to registry override"), OnSipXmppStates::CallStateToString(callState), MsecsSinceLastStateChange() );
+			return false;
+		}
+
 		Logger::log_error(_T("OnSipCallStateHandlerBase::CheckStateTimeout %s TIMEOUT msecs=%ld.  DROPPING call"), OnSipXmppStates::CallStateToString(callState), MsecsSinceLastStateChange() );
 		assignNewState( OnSipXmppStates::Dropped, NULL );
 		// Do not report that call does not exist yet, let it be handled on the next poll check
@@ -319,6 +347,54 @@ bool OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::CallStates c
 	return false;
 }
 
+// Check to see if the event is a request to drop the call associated with this handler
+bool OnSipCallStateHandlerBase::CheckDropRequestEvent(StateMachine<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine, XmppEvent* pEvent,long callId)
+{
+	// See if request to drop a call
+	DropRequestEvent* dre = OnSipCallStateHelper::getDropRequestEvent(pEvent);
+	if ( dre == NULL || dre->m_callId != callId )
+		return false;
+
+	Logger::log_debug( _T("OnSipCallStateHandlerBase::CheckDropRequestEvent dropRequestEvent. callId=%ld branches=%d"), dre->m_callId, m_branches.CountBranches() );
+
+	_ASSERTE( m_branches.CountBranches() > 0 );
+
+	OnSipCallStateMachine* pCallStateMachine = dynamic_cast<OnSipCallStateMachine*>(pStateMachine);
+
+	// For all branches, drop the call
+	vector<OnSipCallStateData> abranches = m_branches.getBranches();
+	for ( vector<OnSipCallStateData>::iterator iter = abranches.begin(); iter != abranches.end(); iter++ )
+	{
+		long contextId=0;
+		pCallStateMachine->DropCall( *iter, &contextId );
+		// Save the contextId for the IQ request,
+		// these will be used to watch for IQ replies
+		m_droppedContextIds.push_back(contextId);
+	}
+
+	return true;
+}
+
+// Check to see if the IQ results for out attempts to drop the call.
+// We would try to drop our calls if we got DropRequestEvent and handled (as above)
+bool OnSipCallStateHandlerBase::CheckIqReplyDropRequest(XmppEvent* pEvent)
+{
+	XmppIqResultEvent* iqEvent = OnSipCallStateHelper::getXmppIqResultEvent(pEvent);
+	if ( iqEvent == NULL )
+		return false;
+
+	// See if the contextId is in our list of dropped Iq request contextIds
+	std::vector<long>::iterator iter = std::find( m_droppedContextIds.begin(), m_droppedContextIds.end(), pEvent->m_context );
+	if ( iter == m_droppedContextIds.end() )
+		return false;
+
+	// It is ours.  Remove the contextId and return true to signify our event.
+	m_droppedContextIds.erase( iter );
+	Logger::log_debug( _T("OnSipCallStateHandlerBase::CheckIqReplyDropRequest dropRequestEvent reply for contextId=%d, left=%d"),pEvent->m_context, m_droppedContextIds.size() );
+	return true;
+}
+
+
 //****************************************************************************
 //****************************************************************************
 
@@ -326,13 +402,13 @@ bool OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::CallStates c
 // if there has been no call events reported on the call.
 // This can occur if the SIP phone device is down, or the call events server is down
 // and we request the call.  It will be stuck in DIALTONE state until we start seeing activity.
-#define MAKECALL_CREATE_TIMEOUT				(7 * MSECS_IN_SEC)
+#define MAKECALL_CREATE_TIMEOUT				(10 * MSECS_IN_SEC)
 
 // # msecs timeout that we wait max after the inbound call is ringing for the person to answer.
 // Maybe the SIP phone is not ringing for some reason.  Allow reasonable time for person to answer
-#define MAKECALL_INBOUND_REQUEST_TIMEOUT	(30 * MSECS_IN_SEC)
+#define MAKECALL_INBOUND_REQUEST_TIMEOUT	(45 * MSECS_IN_SEC)
 
-// # msecs timeout that we wait max after the inbound call has been answered and waiting for the outbound call.
+// # msecs timeout that we wait max after the inbound call has been answered and waiting for the outbound call to be created
 #define MAKECALL_INBOUND_ANSWERED_TIMEOUT	(15 * MSECS_IN_SEC)
 
 // # msecs timeout that we wait max after the outbound call to be answered.
@@ -348,10 +424,10 @@ bool OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::CallStates c
 #define CONNECTED_CALL_TIMEOUT				(3 * MSECS_IN_HOUR)
 
 // # msecs timeout that we will allow an incoming call to be ringing without an answer.
-#define INBOUND_OFFERING_TIMEOUT				(5 * MSECS_IN_MIN)
+#define INBOUND_OFFERING_TIMEOUT				(2 * MSECS_IN_MIN)
 
 // # msecs timeout that we allow a request to drop a call to wait before just assuming that it is dropped
-#define DROP_REQUEST_TIMEOUT					(30 * MSECS_IN_SEC)
+#define DROP_REQUEST_TIMEOUT					(10 * MSECS_IN_SEC)
 
 //****************************************************************************
 //****************************************************************************
@@ -364,32 +440,36 @@ OnSipOutgoingCallStateHandler::OnSipOutgoingCallStateHandler(XmppEvent* pEvent,l
 	getCurrentStateData().m_callType = OnSipXmppCallType::PhysicalCall;
 	// Set call information from the XmppActiveCallEvent
 	OnSipCallStateHelper::AssignCallStateData(getCurrentStateData(),OnSipCallStateHelper::getActiveCallEvent(pEvent),callId);
+
+	// Add the initial call to our branch list.  For an out-going call, we should only have 1
+	m_branches.AddBranch( getCurrentStateData() );
 }
 
 //virtual 
-bool OnSipOutgoingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
+bool OnSipOutgoingCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,XmppEvent *pEvent)
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
 	Logger::log_debug( _T("OnSipOutgoingCallStateHandler::IsYourEvent %s"), pEvent->ToString().c_str()  );
 
-	// See if this event refers to our call
-	if ( !OnSipCallStateHelper::IsSameId( getCurrentEvent(), pEvent ) )
-		return false;
-
-	// If an error, then assume dropped call
-	if ( pEvent->IsError() )
-	{
-		Logger::log_error( _T("OnSipOutgoingCallStateHandler::IsYourEvent EVENTERROR callId=%ld pEvent=%s"), getCurrentStateData().m_callId , pEvent->ToString().c_str() );
-		assignNewState( OnSipXmppStates::Dropped, pEvent );
-		return true;
-	}
-
 	// See if an ActiveCallEvent with callstate change
 	XmppActiveCallEvent *ace = OnSipCallStateHelper::getActiveCallEvent(pEvent);
 	if ( ace != NULL )
 	{
+		// If not same SIP CallId, then not our event
+		if ( ace->m_sipCallid != getCurrentStateData().m_sipCallId )
+			return false;
+
+		// For outgoing calls, should only have 1 branch
+		_ASSERTE( m_branches.CountBranches() == 1 );
+		
 		Logger::log_debug( _T("OnSipOutgoingCallStateHandler::IsYourEvent activeCallEvent %s"), pEvent->ToString().c_str()  );
+
+		// Add this call to our list of branches.  For outgoing call, should only have 1!
+		m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType );
+
+		// For outgoing calls, should only have 1 branch
+		_ASSERTE( m_branches.CountBranches() == 1 );
 
 		// If connected call
 		if ( ace->m_dialogState == XmppActiveCallEvent::CONFIRMED )
@@ -401,15 +481,48 @@ bool OnSipOutgoingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			return true;
 		}
 		Logger::log_error("OnSipOutgoingCallStateHandler::IsYourEvent Unknown State in OnSipOutgoingCallStateHandler %s", pEvent->ToString().c_str() );
-		return false;
+		// Not keeping event
+		delete pEvent;
+		return true;
 	}
 
 	// See if a retracted (dropped call)
 	XmppRetractCallEvent *rce = OnSipCallStateHelper::getRetractCallEvent(pEvent);
 	if ( rce != NULL )
 	{
+		// See if id is in our branches
+		// If not, then not our event
+		if ( !m_branches.HasId(rce->m_id) )
+			return false;
+
+		// For outgoing calls, should only have 1 branch
+		_ASSERTE( m_branches.CountBranches() == 1 );
+
 		Logger::log_debug("OnSipOutgoingCallStateHandler::IsYourEvent dropped call");
 		assignNewState( OnSipXmppStates::Dropped, pEvent );
+		return true;
+	}
+
+	// Check to see if the event is a request to drop the call associated with this handler.
+	// If DropRequestEvent for our call, then it will do the IQ requests to drop the calls,
+	// delete the pEvent
+	if ( CheckDropRequestEvent(pStateMachine,pEvent,getCurrentStateData().m_callId) )
+	{
+		Logger::log_debug( _T("OnSipOutgoingCallStateHandler::IsYourEvent dropping call callId=%ld"), getCurrentStateData().m_callId );
+		// Go into dropping state
+		assignNewState( OnSipXmppStates::PreDropCall, NULL );
+		// delete the event, we are not keeping
+		delete pEvent;
+		return true;
+	}
+
+	// Check to see if the IQ results for out attempts to drop the call.
+	// We would try to drop our calls if we got DropRequestEvent and handled (as above)
+	if ( CheckIqReplyDropRequest(pEvent) )
+	{
+		Logger::log_debug( _T("OnSipOutgoingCallStateHandler::IsYourEvent dropcall iqReply") );
+		// delete the event, we are not keeping
+		delete pEvent;
 		return true;
 	}
 
@@ -431,6 +544,11 @@ bool OnSipOutgoingCallStateHandler::IsStillExist()
 	// If we are stuck in a connected call for VERY long time, then drop the call.
 	// No negative effects, will not affect the actual call
 	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::Connected, CONNECTED_CALL_TIMEOUT ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
+	// If we are stuck in a dropping state, then drop the call.
+	// No negative effects, will not affect the actual call
+	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::PreDropCall, DROP_REQUEST_TIMEOUT ) )
 		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
 
 	return !IsState( OnSipXmppStates::Dropped );
@@ -458,7 +576,7 @@ OnSipIncomingCallStateHandler::OnSipIncomingCallStateHandler(XmppEvent* pEvent,l
 }
 
 //virtual 
-bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
+bool OnSipIncomingCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,XmppEvent *pEvent)
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
@@ -472,7 +590,7 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		if ( ace->m_sipCallid != getCurrentStateData().m_sipCallId )
 			return false;
 
-		Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent activeCallEvent matching sipCallId %s"), ace->m_sipCallid.c_str() );
+		Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent activeCallEvent matching sipCallId %s, callId=%ld"), ace->m_sipCallid.c_str(), getCurrentStateData().m_callId );
 
 		// See if this is a new branch call event.
 		// This can occur if the user has multiple SIP phones registered for the same phone number.
@@ -507,7 +625,7 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		if ( !m_branches.HasId(rce->m_id) )
 			return false;
 
-		Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent dropped call. branches=%d"), m_branches.CountBranches() );
+		Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent dropped call. branches=%d, callId=%ld"), m_branches.CountBranches(), getCurrentStateData().m_callId );
 
 		// Check to see if this is the last call on a branch hanging up.
 		// Also update the callData with a valid CallData of one of the branch calls
@@ -518,6 +636,29 @@ bool OnSipIncomingCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			return true;
 		}
 		// Ignore event, just one of the branches disconnecting
+		delete pEvent;
+		return true;
+	}
+
+	// Check to see if the event is a request to drop the call associated with this handler.
+	// If DropRequestEvent for our call, then it will do the IQ requests to drop the calls,
+	// delete the pEvent
+	if ( CheckDropRequestEvent(pStateMachine,pEvent,getCurrentStateData().m_callId) )
+	{
+		Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent dropping call callId=%ld"), getCurrentStateData().m_callId );
+		// Go into dropping state
+		assignNewState( OnSipXmppStates::PreDropCall, NULL );
+		// delete the event, we are not keeping
+		delete pEvent;
+		return true;
+	}
+
+	// Check to see if the IQ results for out attempts to drop the call.
+	// We would try to drop our calls if we got DropRequestEvent and handled (as above)
+	if ( CheckIqReplyDropRequest(pEvent) )
+	{
+		Logger::log_debug( _T("OnSipIncomingCallStateHandler::IsYourEvent dropcall iqReply") );
+		// delete the event, we are not keeping
 		delete pEvent;
 		return true;
 	}
@@ -540,7 +681,12 @@ bool OnSipIncomingCallStateHandler::IsStillExist()
 	// No negative effects, will not affect the actual call
 	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::Connected, CONNECTED_CALL_TIMEOUT ) )
 		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
-	
+
+	// If we are stuck in a dropping state, then drop the call.
+	// No negative effects, will not affect the actual call
+	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::PreDropCall, DROP_REQUEST_TIMEOUT ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
 	return !IsState( OnSipXmppStates::Dropped );
 }
 
@@ -583,7 +729,7 @@ bool OnSipMakeCallStateHandler::PreExecute(OnSipStateMachineBase<OnSipXmppStates
 }
 
 //virtual 
-bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
+bool OnSipMakeCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,XmppEvent *pEvent)
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
@@ -625,6 +771,10 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			return true;
 		}
 
+		// Add this call to our list of branches
+		// Do not update caller-id information at this point, it will be updated later in states if necessary
+		m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, false  );
+
 		// See if REQUESTED incoming call.
 		bool bRequested = ace->m_dialogState == XmppActiveCallEvent::REQUESTED;
 
@@ -633,9 +783,6 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 		if ( m_fromSipField == ace->m_to_uri && bRequested )
 		{
 			Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent MakeCallTrying->MakeCallRequested curState=%s"), OnSipXmppStates::CallStateToString( getCurrentState() ) );
-
-			// Add this call to our list of branches
-			m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, false  );
 
 			// If we are in the MakeCallSet state, then change to state to MakeCallRequested
 			if ( IsState(OnSipXmppStates::MakeCallSet) )
@@ -676,10 +823,16 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			bool bCreated = ace->m_dialogState == XmppActiveCallEvent::CREATED;
 			Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent MakeCallRequestedAnswered->MakeCallOutgoingCreated bCreated=%d dialogState=%d "),bCreated,ace->m_dialogState);
 			if ( bCreated )
+			{
 				assignNewState( OnSipXmppStates::MakeCallOutgoingCreated, pEvent );
+				// Update branch with proper caller-id info, it is now valid
+				m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, true   );
+			}
 			// TODO?? Error condtion?
 			else
+			{
 				assignNewState( OnSipXmppStates::Dropped, pEvent );
+			}
 			m_out_sipCallId = ace->m_sipCallid;
 			m_out_id = pEvent->m_id;
 			// Update the CallState data
@@ -698,6 +851,8 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 				assignNewState( OnSipXmppStates::Connected, pEvent );
 				// Update the CallState data
 				OnSipCallStateHelper::AssignCallStateData(getCurrentStateData(),ace,-1);
+				// Update branch with proper caller-id info, it is now valid
+				m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, true   );
 				return true;
 			}
 			// TODO?? Error condtion?
@@ -725,9 +880,10 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 			// See if this is the last incoming call being dropped.
 			// Multiple calls may occur if user has multiple SIP devices registered.
 			OnSipCallStateData& callData = getCurrentStateData();
+
 			// If outbound call has not been created, then initial call has disconnected.  Drop the call
 			// If just dropped branch, then our callData will get updated with other valid branch calldata
-			if ( m_branches.CheckDroppedCall( &callData, pEvent->m_id ) && m_out_id.empty() )
+			if ( m_branches.CheckDroppedCall( &callData, pEvent->m_id ) ) // && m_out_id.empty() )
 			{
 				Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent initial incall dropped, no outcall"));
 				assignNewState( OnSipXmppStates::Dropped, pEvent );
@@ -748,6 +904,29 @@ bool OnSipMakeCallStateHandler::IsYourEvent(XmppEvent *pEvent)
 
 		Logger::log_warn(_T("OnSipMakeCallStateHandler::IsYourEvent unknown dropped id=%s"),pEvent->m_id.c_str());
 		// Delete event since not keeping it
+		delete pEvent;
+		return true;
+	}
+
+	// Check to see if the event is a request to drop the call associated with this handler.
+	// If DropRequestEvent for our call, then it will do the IQ requests to drop the calls,
+	// delete the pEvent
+	if ( CheckDropRequestEvent(pStateMachine,pEvent,getCurrentStateData().m_callId) )
+	{
+		Logger::log_debug( _T("OnSipMakeCallStateHandler::IsYourEvent dropping call callId=%ld"), getCurrentStateData().m_callId );
+		// Go into dropping state
+		assignNewState( OnSipXmppStates::PreDropCall, NULL );
+		// delete the event, we are not keeping
+		delete pEvent;
+		return true;
+	}
+
+	// Check to see if the IQ results for out attempts to drop the call.
+	// We would try to drop our calls if we got DropRequestEvent and handled (as above)
+	if ( CheckIqReplyDropRequest(pEvent) )
+	{
+		Logger::log_debug( _T("OnSipMakeCallStateHandler::IsYourEvent dropcall iqReply") );
+		// delete the event, we are not keeping
 		delete pEvent;
 		return true;
 	}
@@ -805,70 +984,13 @@ bool OnSipMakeCallStateHandler::IsStillExist()
 	// No negative effects, will not affect the actual call
 	if ( CheckStateTimeout( OnSipXmppStates::Connected, CONNECTED_CALL_TIMEOUT ) )
 		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
-   
+
+	// If we are stuck in a dropping state, then drop the call.
+	// No negative effects, will not affect the actual call
+	if ( OnSipCallStateHandlerBase::CheckStateTimeout( OnSipXmppStates::PreDropCall, DROP_REQUEST_TIMEOUT ) )
+		return true;		// Do not report that call does not exist yet, let it be handled on the next poll check
+
 	return !IsState( OnSipXmppStates::Dropped );
-}
-
-//****************************************************************************
-//****************************************************************************
-// State Handler for generated outgoing call
-//****************************************************************************
-
-OnSipDropCallStateHandler::OnSipDropCallStateHandler(long callId) : OnSipCallStateHandlerBase(OnSipXmppStates::PreDropCall, NULL )
-{ 
-	Logger::log_debug(_T("OnSipDropCallHandler::OnSipDropCallHandler callId=%ld"), callId );
-	m_callId = callId;
-	// signify that we take over the PreExecute virtual
-	SetHasPreExecute(true);
-}
-
-//virtual 
-bool OnSipDropCallStateHandler::PreExecute(OnSipStateMachineBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,OnSipXmpp *pOnSipXmpp)
-{
-	Logger::log_debug(_T("OnSipDropCallHandler::OnSipDropCallHandler callId=%ld"), m_callId );
-
-	// Reset the threads, the OnSipDropCallStateHandler object
-	// may have been created in a different thread via the Async method
-	_checkThread.Reset();
-	getCurrentStateData()._checkThread.Reset();
-
-	OnSipCallStateMachine* pCallStateMachine = dynamic_cast<OnSipCallStateMachine*>(pStateMachine);
-
-	// Get unique context ID for the drop request
-	long contextId = pOnSipXmpp->getUniqueId();
-	pCallStateMachine->DropCall( m_callId, contextId );
-	return true;
-}
-
-//virtual 
-bool OnSipDropCallStateHandler::IsYourEvent(XmppEvent *pEvent)
-{
-	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-	_ASSERT(false);
-	// IsYourEvent is not used, we do not track the drop call status.
-	// Assume this to be handled by the other call state handler that is
-	// tracking the active call.
-	//
-	// We don't have this handler active due to we would have 2 state handlers
-	// tracking the same call.
-	//
-	// We avoid the handler being added to the StateMachine due to IsStillExist() returns false
-	return false;
-}
-
-//virtual 
-bool OnSipDropCallStateHandler::IsStillExist()
-{
-	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-
-	// Return false here since we don't want to have another CallStateHandler tracking a call that 
-	// is already being handled by another StateHandler.   
-
-	// TODO: May need to see if we can somehow notify the other state handler
-	// that a drop call request was done and have it report it dropped after some timeout.
-	// e.g. drop request not working due to server issues, so just assume dropped
-
-	return false;
 }
 
 //****************************************************************************
@@ -907,54 +1029,18 @@ void OnSipCallStateMachine::OnStateChange(OnSipXmppStates::CallStates callState,
 	OnSipStateMachineBase::OnStateChange(callState,stateData,reason);
 }
 
-// Find the specified call in the state machine.
-// Return its current calsltate and callstatedata.
-// Returns true if found
-bool OnSipCallStateMachine::FindCallState(long callId,OnSipXmppStates::CallStates* pCallState,OnSipCallStateData* pCallStateData)
-{
-	Logger::log_debug(_T("OnSipCallStateMachine::FindCallState callId=%ld"), callId );
-	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-
-	// Get all states from the state machine
-	std::list< StateAndStateData<OnSipXmppStates::CallStates,OnSipCallStateData>> ret = GetAllStates();
-	// Iterate through them looking for matching callid
-	std::list< StateAndStateData<OnSipXmppStates::CallStates,OnSipCallStateData>>::iterator iter = ret.begin();
-	while ( iter != ret.end() )
-	{
-		// If matching unique callId found
-		if ( iter->m_stateData.m_callId == callId )
-		{
-			*pCallState = iter->m_state;
-			*pCallStateData = iter->m_stateData;
-			Logger::log_debug(_T("OnSipCallStateMachine::FindCallState callId=%ld found state=%s stateData=%s"), 
-				callId, OnSipXmppStates::CallStateToString( *pCallState ), pCallStateData->ToString().c_str() );
-			return true;
-		}
-		iter++;
-	}
-	Logger::log_warn(_T("OnSipCallStateMachine::FindCallState callId=%ld notFound"), callId );
-	return false;
-}
-
 // NOT thread-safe
 //
-// Drop a phone call.  
-//  callId = unique ID for this call
-//  unique contextId for the IQ request, it will be in the IQ reply to match the request
-bool OnSipCallStateMachine::DropCall( long callId, int contextId )
+// Drop a phone call for the specified call data
+//   returns the unique IQ contextId in the return parameter
+bool OnSipCallStateMachine::DropCall( OnSipCallStateData& callData, long* contextId  )
 {
-	Logger::log_debug( _T("OnSipCallStateMachine::DropCall callId=%ld"), callId );
+	Logger::log_debug( _T("OnSipCallStateMachine::DropCall callId=%ld"), callData.m_callId );
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
-	// See if we can find this call in the state machine
-	OnSipXmppStates::CallStates callState;
-	OnSipCallStateData callData;
-	if ( !FindCallState(callId,&callState,&callData) )
-	{
-		Logger::log_error( _T("OnSipCallStateMachine::DropCall callId=%ld call notFound"), callId );
-		return false;
-	}
-	m_pOnSipXmpp->DropCall( callData.m_sipCallId, callData.m_fromTag, callData.m_toTag, contextId );
+	// Create unique context id, return to caller
+	*contextId = m_pOnSipXmpp->getUniqueId();
+	m_pOnSipXmpp->DropCall( callData.m_sipCallId, callData.m_fromTag, callData.m_toTag, *contextId );
 	return true;
 }
 
@@ -979,6 +1065,7 @@ long OnSipCallStateMachine::MakeCallAsync( const tstring& phoneNumber )
 void OnSipCallStateMachine::DropCallAsync( long callId )
 {
 	Logger::log_debug( _T("OnSipCallStateMachine::DropCallAsync callId=%ld"), callId );
-	// Create Drop CallStateHandler that will do the drop in its PreExecute() method
-	AddStateHandler( new OnSipDropCallStateHandler(callId ) );
+	// Add event asynchrnonously to be sent to all state handlers for 
+	// the one handling the specified call to drop it
+	AddEvent( new DropRequestEvent(callId) );
 }

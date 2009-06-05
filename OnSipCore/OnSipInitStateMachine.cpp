@@ -111,7 +111,7 @@ OnSipInitStateHandler::OnSipInitStateHandler(OnSipXmpp* pOnSipXmpp)
 }
 
 //virtual 
-bool OnSipInitStateHandler::IsYourEvent(XmppEvent *pEvent)
+bool OnSipInitStateHandler::IsYourEvent(StateMachine<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>* /*pStateMachine*/,XmppEvent *pEvent)
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 

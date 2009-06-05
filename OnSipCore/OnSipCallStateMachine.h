@@ -101,13 +101,35 @@ public:
 	
 	void AddBranch(OnSipCallStateData& callData);
 
-	void AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType,bool bUpdateCallInfo=true);
+	void AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType,bool bUpdateCallerId=true);
 
 	// We need to see which call was dropped, and if the one in our
 	// main CallStateData, then move one of the branches to replace it.
 	bool CheckDroppedCall( OnSipCallStateData* callData, tstring droppedId );
 
+	// Returns a copy of the branches
+	vector<OnSipCallStateData> getBranches()
+	{	
+		vector<OnSipCallStateData> ret = m_branches; 
+		return ret;
+	}
+
 	tstring ToString();
+};
+
+// Custom non-Xmpp event type used to signal that a
+// specified call needs to be dropped.  The event is 
+// sent to handlers in the callstate machine 
+// to find the one that owns the call and to drop it
+class DropRequestEvent : public XmppEvent
+{
+public:
+	long m_callId;
+	DropRequestEvent(long callId) : XmppEvent(XmppEvtType::EVT_DROP_REQUEST,_T(""),JID(),JID(),NULL)
+	{	m_callId = callId;	}
+
+	virtual string ToString()
+	{	return Strings::stringFormat(_T("DropRequestEvent callId=%ld"), m_callId);	}
 };
 
 // Utility class to provide helper methods for the OnSip state machine
@@ -129,8 +151,9 @@ public:
 	static XmppOnDisconnectEvent* getOnDisconnectEvent(XmppEvent* pEvent);
 	static XmppAuthEvent* getAuthEvent(XmppEvent* pEvent);
 	static XmppPubSubSubscribedEvent* getPubSubSubscribedEvent(XmppEvent *pEvent);
+	static DropRequestEvent* getDropRequestEvent(XmppEvent* pEvent);
 
-	static void AssignCallStateData(OnSipCallStateData& callStateData,XmppActiveCallEvent* ace,long callId,bool bUpdateCallInfo=true);
+	static void AssignCallStateData(OnSipCallStateData& callStateData,XmppActiveCallEvent* ace,long callId,bool bUpdateCallerId=true);
 };
 
 //*************************************************************************
@@ -140,6 +163,20 @@ public:
 // All Call State handlers inherit from this
 class OnSipCallStateHandlerBase : public OnSipStateHandlerBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>
 {
+protected:
+	callBranches m_branches;
+
+	// Common helper code for handling dropped calls and DropRequestEvent
+
+	// IQ contextIds used to drop the call (or calls, possible if branches)
+	vector<long> m_droppedContextIds;
+
+	bool CheckDropRequestEvent(StateMachine<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,XmppEvent* pEvent,long callId);
+
+	// Check to see if the IQ results for out attempts to drop the call.
+	// We would try to drop our calls if we got DropRequestEvent and handled (as above)
+	bool CheckIqReplyDropRequest(XmppEvent* pEvent);
+
 public:
 	OnSipCallStateHandlerBase( OnSipXmppStates::CallStates callState, XmppEvent* pEvent) : OnSipStateHandlerBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>( callState , pEvent )
 	{ }
@@ -169,7 +206,7 @@ class OnSipOutgoingCallStateHandler : public OnSipCallStateHandlerBase
 {
 private:
 protected:
-	virtual bool IsYourEvent(XmppEvent *pEvent);
+	virtual bool IsYourEvent(StateMachine<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,XmppEvent *pEvent);
 	virtual bool IsStillExist();
 public:
 	OnSipOutgoingCallStateHandler(XmppEvent* pEvent,long callId);
@@ -182,9 +219,8 @@ public:
 class OnSipIncomingCallStateHandler : public OnSipCallStateHandlerBase
 {
 private:
-	callBranches m_branches;
 protected:
-	virtual bool IsYourEvent(XmppEvent *pEvent);
+	virtual bool IsYourEvent(StateMachine<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,XmppEvent *pEvent);
 	virtual bool IsStillExist();
 
 public:
@@ -200,10 +236,11 @@ public:
 class OnSipMakeCallStateHandler : public OnSipCallStateHandlerBase 
 {
 private:
-	callBranches m_branches;	// Track multiple calls that exist when user has multiple SIP devices registered
+
 protected:
-	virtual bool IsYourEvent(XmppEvent *pEvent);
+	virtual bool IsYourEvent(StateMachine<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,XmppEvent *pEvent);
 	virtual bool IsStillExist();
+
 	int m_contextId;		// context for initial IQ request
 	//tstring m_in_id;		// Item ID of messages related to inbound call
 	tstring m_out_id;		// Item ID of messages related to outbound call
@@ -218,31 +255,6 @@ public:
 	virtual bool PreExecute(OnSipStateMachineBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,OnSipXmpp *pOnSipXmpp);
 
 	OnSipMakeCallStateHandler (const tstring& toDial,long callId);
-};
-
-//*************************************************************************
-//*************************************************************************
-
-// Handler to drop a call.
-// This is type of "PreExecute", we drop the call in the PreExecute.
-// The StateHandler is never added to the state machine, it is
-// used just to drop the call.  Not added since we would then
-// have 2 StateHandlers tracking the same call.
-class OnSipDropCallStateHandler : public OnSipCallStateHandlerBase
-{
-private:
-protected:
-	virtual bool IsYourEvent(XmppEvent *pEvent);
-	virtual bool IsStillExist();
-
-	long m_callId;			// call to be dropped
-public:
-	// PreExecute method that will be called before
-	// StateHandler is added to the state machine to
-	// take care of the drop call
-	virtual bool PreExecute(OnSipStateMachineBase<OnSipXmppStates::CallStates,XmppEvent,OnSipCallStateData>* pStateMachine,OnSipXmpp *pOnSipXmpp);
-
-	OnSipDropCallStateHandler (long callId);
 };
 
 //*************************************************************************
@@ -282,17 +294,10 @@ public:
 
 	// NOT thread-safe
 	//
-	// Find the specified call in the state machine.
-	// Return its current calsltate and callstatedata.
-	// Returns true if found
-	bool FindCallState(long callId,OnSipXmppStates::CallStates* pCallState,OnSipCallStateData* pCallStateData);
-
-	// NOT thread-safe
-	//
-	// Drop a phone call.  
+	// Drop a phone call for the specified call data
 	//  callId = unique ID for this call
-	//  unique contextId for the IQ request, it will be in the IQ reply to match the request
-	bool DropCall( long callId,int contextId );
+	//   returns the unique IQ contextId in the return parameter
+	bool DropCall( OnSipCallStateData& callData, long *contextId );
 
 	// THREAD-SAFE
 	//

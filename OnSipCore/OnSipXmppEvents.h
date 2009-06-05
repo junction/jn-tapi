@@ -21,7 +21,8 @@ public:
 			EVT_PUBSUB_RETRACTCALL_EVENT,
 			EVT_ONCONNECT,
 			EVT_ONDISCONNECT,
-			EVT_IQ_RESULT			// Standard IQ Result
+			EVT_IQ_RESULT,			// Standard IQ Result
+			EVT_DROP_REQUEST		// Non Xmpp, but event used to enter into state machine
 		};
 
 	XmppEvtType m_type;

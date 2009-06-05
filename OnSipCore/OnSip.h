@@ -11,6 +11,8 @@
 
 #define ONSIP_ACTIVECALLS_COMMAND "commands.active-calls.xmpp.onsip.com"
 
+#define COMPANY_NAME "Junction Networks"
+
 #include "gloox.h"
 #include "client.h"
 #include "tag.h"

@@ -179,6 +179,8 @@ public:
 //*******************************************************************
 //*******************************************************************
 
+template <class Tstate,class TeventData,class TstateData> class StateMachine;
+
 // Template class for a State Handler, an object that 
 // can accept events and handle the logic from one state
 // to another.	A StateHandler will keep track of the
@@ -208,7 +210,7 @@ public:
 			m_currentState->ResetCheckThread();
 	}
 
-	virtual bool IsYourEvent(TeventData *) = 0;
+	virtual bool IsYourEvent(StateMachine<Tstate,TeventData,TstateData> *pStateMachine, TeventData *) = 0;
 	virtual bool IsStillExist() = 0;
 
 	// Poll into the state machine. Allows update StateHandler to determine
@@ -448,7 +450,7 @@ public:
 			while ( iter != m_stateHandlers.end() )
 			{
 				Logger::log_trace("StateMachine::SignalEvent this=%x checkHandler=%x",this,iter);
-				if ( (*iter)->IsYourEvent(eventData) )
+				if ( (*iter)->IsYourEvent(this,eventData) )
 				{
 					Logger::log_debug("StateMachine::SignalEvent this=%x checkHandler=%x accepted",this,iter);
 					bHandled = true;

@@ -56,7 +56,7 @@ private:
 	bool m_bEnabledCallEvents;
 
 protected:
-	virtual bool IsYourEvent(XmppEvent *pEvent);
+	virtual bool IsYourEvent(StateMachine<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>*,XmppEvent *pEvent);
 	virtual bool IsStillExist();
 	virtual bool PollStateHandler();
 
