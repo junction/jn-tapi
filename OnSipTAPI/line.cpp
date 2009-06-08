@@ -111,7 +111,8 @@ TStream& COnSipLine::read(TStream& istm)
 			LINEDEVSTATE_DISCONNECTED | 
 			LINEDEVSTATE_INSERVICE | 
 			LINEDEVSTATE_OUTOFSERVICE | 
-			LINEDEVSTATE_NUMCALLS;
+			LINEDEVSTATE_NUMCALLS  |
+			LINEDEVSTATE_OTHER;
 
 	// Specify that we want all calls closed on exit of the driver.
 	// This does not drop the calls, just IDLEs them.

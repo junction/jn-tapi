@@ -2451,7 +2451,10 @@ void CTSPIAddressInfo::RecalcAddrFeatures()
 	// Set our address features
 	DWORD dwNewFeatures = OnAddressFeaturesChanged(dwAddressFeatures & m_AddressCaps.dwAddressFeatures);
 	_TSP_DTRACE(_T("%s: Calculating new address features - 0x%lx, Final=0x%lx, ConnectedCalls=%d, Max=%d\n"), m_strAddress.c_str(), dwAddressFeatures, dwNewFeatures, m_AddressStatus.dwNumActiveCalls, m_AddressCaps.dwMaxNumActiveCalls);
-	m_AddressStatus.dwAddressFeatures = dwNewFeatures;
+
+//	m_AddressStatus.dwAddressFeatures = dwNewFeatures;
+	// Fix by Ron on 6-8-09, was not reporting changes in address featuers
+	SetAddressFeatures( dwNewFeatures );
 
 }// CTSPIAddressInfo::RecalcAddrFeatures
 

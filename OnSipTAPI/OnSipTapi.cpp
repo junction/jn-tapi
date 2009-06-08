@@ -159,13 +159,16 @@ void OnSipTapi::ClearEvents()
 	m_lstInitEvents.clear();
 }
 
-bool OnSipTapi::Connect(LoginInfo& loginInfo)
+bool OnSipTapi::Connect(LoginInfo& loginInfo,ConnectionError* ce)
 {
 	Logger::log_debug(_T("OnSipTapi::Connect enter"));
 
+	// Clear out any current events and state
+	ClearEvents();
+
 	// Async call
-	ConnectionError ce = Start(loginInfo);
-	if ( ce != ConnNoError )
+	*ce = Start(loginInfo);
+	if ( *ce != ConnNoError )
 	{
 		Logger::log_error( _T("OnSipTapi::Connect exiting, error connect=%d"), ce );
 		// TODO:  Set reason why?  Invalid Logon? etc??
@@ -189,3 +192,79 @@ void OnSipTapi::Disconnect()
 	Logger::log_debug(_T("OnSipTapi::Disconnect"));
 	Cleanup();
 }
+
+// Connect and do initialize of the IniStateMachine, e.g. full connect, authorize, and enable call events.
+// Returns false if error.
+//    loginInfo = login information
+//    hDevStop = event handle to check if to exit immediately
+//    stateType = return state type of initialize state machine, specifies whether error due to disconnected, fatal (e.g. authorize), etc.
+bool OnSipTapi::InitOnSipTapi(LoginInfo& loginInfo,HANDLE hDevStop,OnSipInitStatesType::InitStatesType* stateType)
+{
+	*stateType = OnSipInitStatesType::NOTSET;
+
+	// Try first Connect to XMPP
+	ConnectionError ce;
+	if ( !Connect(loginInfo,&ce) )
+	{
+		// See if fatal type of error, such as authorize, etc.
+		// Else, assume just normal DISCONNECT error
+		if ( ce == ConnAuthenticationFailed || ce == ConnOutOfMemory )
+			*stateType = OnSipInitStatesType::FATAL;
+		else
+			*stateType = OnSipInitStatesType::DISCONNECTED;
+
+		// Signal OpenDevice thread that we have done our initial connect
+		Logger::log_error(_T("OnSipTapi::InitOnSipTapi Connect error, exiting. ce=%d. stateType=%s"),ce, OnSipInitStatesType::InitStatesTypeToString(*stateType));
+		return false;
+	}
+
+	Logger::log_debug(_T("OnSipTapi::ConnectionThread poll for init"));
+
+	// Wait for initial connect...
+	while ( true )
+	{
+		// See if requested to exit by main thread
+		if ( WaitForSingleObject(hDevStop, 0) != WAIT_TIMEOUT )
+		{
+			*stateType = OnSipInitStatesType::FATAL;
+			Logger::log_error(_T("OnSipTapi::InitOnSipTapi Poll Init SIGNAL stop") );
+			return false;
+		}
+
+		// Poll to keep the state machine going and process XMPP events
+		if ( !Poll() )
+		{
+			Logger::log_error(_T("OnSipTapi::InitOnSipTapi Poll error exiting"));
+			*stateType = OnSipInitStatesType::DISCONNECTED;
+			return false;
+		}
+		// Shouldn't require a sleep, the Poll does this some, but have anyway
+		Sleep(50);
+
+		// Get the current state and state type
+		OnSipInitStates::InitStates curState = GetInitStateMachineState();
+		*stateType  = OnSipInitStatesType::GetInitStatesType( curState  );
+		Logger::log_debug(_T("OnSipTapi::InitOnSipTapi Poll Init state=%s stateType=%s"), 
+			OnSipInitStates::InitStatesToString(curState), OnSipInitStatesType::InitStatesTypeToString( *stateType  ) );
+
+		// See if error type of state
+		if ( *stateType == OnSipInitStatesType::DISCONNECTED || *stateType == OnSipInitStatesType::FATAL )
+		{
+			Logger::log_error(_T("OnSipTapi::InitOnSipTapi Poll init error, state=%s stateType=%s, exiting"), 
+				OnSipInitStates::InitStatesToString(curState), OnSipInitStatesType::InitStatesTypeToString( *stateType  ) );
+			return false;
+		}
+
+		// See if initialized
+		if ( *stateType == OnSipInitStatesType::OK )
+		{
+			Logger::log_debug(_T("OnSipTapi::InitOnSipTapi Poll Init OK" ));
+			break;
+		}
+	}
+
+	// Clear all events that occurred during the initialization
+	ClearEvents();
+	return true;
+}
+

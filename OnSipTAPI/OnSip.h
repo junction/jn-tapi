@@ -207,7 +207,6 @@ private:
 	list<COnSip_ConnectEvent *> _getEvents( list< OnSipInitState >& lstInitEvents );
 	// Processes the event in TAPI, passes it on to the TAPI thread pools
 	bool _processEvent( COnSipEvent* pEvent );
-	bool _initOnSipTapi(OnSipTapi* pOnSipTapi,LoginInfo& loginInfo,HANDLE hDevStop);
 
 // Class Data
 protected:
@@ -239,6 +238,9 @@ protected:
 
 	unsigned ConnectionThread();
 	void OnConnect(bool bConnect);
+	// Force the TAPI line to be closed.
+	// Signals this back to TAPI and TAPI applications.
+	void ForceClose();
 
 // Internal functions
 protected:

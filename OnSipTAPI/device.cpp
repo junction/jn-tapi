@@ -131,13 +131,20 @@ inline void COnSipDevice::OnConnect(bool bConnect)
 {
 	Logger::log_debug( _T("COnSipDevice::OnConnect %d"), bConnect );
 	
-	// Mark each line as connected/disconnected based on our connection
-	// to the PBX switch.  Note that stations use the INSERVICE bit to determine
-	// if the station is ready to be used (i.e. an agent is logged on).
-	for (unsigned int i = 0; i < GetLineCount(); i++)
-		GetLineConnectionInfo(i)->DevStatusConnected(bConnect);
+	// Pass on device status to TSP library,
+	// it will do CONNECT/DISCONNECT and INSERVICE/OUTOFSERVICE notifications.
+	SetDeviceStatus(bConnect);
 }
 
+// Force the TAPI line to be closed.
+// Signals this back to TAPI and TAPI applications.
+void COnSipDevice::ForceClose()
+{
+	CTSPILineConnection* pLine = GetLineConnectionInfo(0);
+	Logger::log_error( _T("COnSipDevice::ForceClose pLine=%p"), pLine );
+	if (pLine != NULL)
+		pLine->ForceClose();
+}
 
 /*****************************************************************************
 ** Procedure:  COnSipDevice::read
@@ -356,7 +363,9 @@ unsigned COnSipDevice::ConnectionThread()
 	LoginInfo loginInfo(userName,password,domain);
 
 	// connect and do intialization
-	if ( !_initOnSipTapi(m_OnSipTapi.get(),loginInfo,m_hevtStop) )
+	// Keep track of the current init state stype
+	OnSipInitStatesType::InitStatesType initStateType = OnSipInitStatesType::NOTSET;
+	if ( !m_OnSipTapi->InitOnSipTapi(loginInfo,m_hevtStop,&initStateType) )
 	{
 		Logger::log_error(_T("COnSipDevice::ConnectionThread init error") );
 		m_OnSipTapi->Disconnect();
@@ -376,22 +385,25 @@ unsigned COnSipDevice::ConnectionThread()
 	list<COnSip_CallEvent *> lstCallEvents;
 	list<COnSip_ConnectEvent *> lstConnectEvents;
 
-	// Keep track of the current init state stype
-	OnSipInitStatesType::InitStatesType initStateType = OnSipInitStatesType::OK;
-
 	// Loop around trying to connect and then receiving data
 	bool fConnected = true;
-	while (WaitForSingleObject(m_hevtStop, 0) == WAIT_TIMEOUT)
+	while (WaitForSingleObject(m_hevtStop, 0) == WAIT_TIMEOUT )
 	{
 		// Keep trying to connect
 		while (!fConnected)
 		{
 			Logger::log_trace(_T("COnSipDevice::ConnectionThread tryConnect"));
-			if ( !m_OnSipTapi->Connect(loginInfo) )
+			if ( !m_OnSipTapi->InitOnSipTapi(loginInfo,m_hevtStop,&initStateType) )
 			{
-				// TODO: Increase timeout to longer values if continue to get errors
-				// If authorize error, should we just close line
-				
+				// If fatal type of initialization (e.g. authorize),
+				// then force the line close, no need to keep trying
+				if ( initStateType == OnSipInitStatesType::FATAL )
+				{
+					Logger::log_error(_T("COnSipDevice::ConnectionThread tryConnect fatal error"));
+					// Force our line to close, this will then result in thread shutting down
+					ForceClose();
+				}
+
 				// Failed, sleep for 30 seconds and try again.
 				if (WaitForSingleObject(m_hevtStop, 30000) != WAIT_TIMEOUT)
 					break;
@@ -400,23 +412,22 @@ unsigned COnSipDevice::ConnectionThread()
 			{
 				Logger::log_debug(_T("COnSipDevice::ConnectionThread connected"));
 				fConnected = true;
+				OnConnect(true);
 			}
 		}
 
 		if ( fConnected )
 		{
-			// TODO: What do do if error from polling?  Disconnect, re-connect??
-
 			if ( !m_OnSipTapi->Poll() )
 			{
 				Logger::log_error( _T("COnSipDevice::ConnectionThread poll error") );
 				fConnected = false;
 				OnConnect(false);
-				// TODO!! Need to look at the possible errors here and see if we need to do a LINE_CLOSE
-				// Failed, sleep for 10 seconds and try again.
+				// Wait a little bit just to check to see if we are disconnecting because of shutdown.
 				if (WaitForSingleObject(m_hevtStop, 10000) != WAIT_TIMEOUT)
 					break;
 				Logger::log_error( _T("COnSipDevice::ConnectionThread poll error waitdone") );
+				continue;
 			}
 
 			bool bGotHit=false;
@@ -500,66 +511,6 @@ unsigned COnSipDevice::ConnectionThread()
 	return 0;
 
 }// COnSipDevice::ConnectionThread
-
-bool COnSipDevice::_initOnSipTapi(OnSipTapi* pOnSipTapi,LoginInfo& loginInfo,HANDLE hDevStop)
-{
-	// Try first Connect to XMPP
-	if ( !pOnSipTapi->Connect(loginInfo) )
-	{
-		// Signal OpenDevice thread that we have done our initial connect
-		Logger::log_error(_T("COnSipDevice::_initOnSipTapi Connect error exiting thread"));
-		// Go ahead and exit the thread, not needed
-		return false;
-	}
-
-	Logger::log_debug(_T("COnSipDevice::ConnectionThread poll for init"));
-
-	// Wait for initial connect...
-	while ( true )
-	{
-		// See if requested to exit by main thread
-		if ( WaitForSingleObject(hDevStop, 0) != WAIT_TIMEOUT )
-		{
-			Logger::log_error(_T("COnSipDevice::_initOnSipTapi Poll Init SIGNAL stop") );
-			return false;
-		}
-
-		// Poll to keep the state machine going and process XMPP events
-		if ( !pOnSipTapi->Poll() )
-		{
-			Logger::log_error(_T("COnSipDevice::_initOnSipTapi Poll error exiting thread"));
-			return false;
-		}
-		// Shouldn't require a sleep, the Poll does this some, but have anyway
-		Sleep(50);
-
-		// Get the current state and state type
-		OnSipInitStates::InitStates curState = m_OnSipTapi->GetInitStateMachineState();
-		OnSipInitStatesType::InitStatesType curStateType  = OnSipInitStatesType::GetInitStatesType( curState  );
-		Logger::log_debug(_T("COnSipDevice::_initOnSipTapi Poll Init state=%s stateType=%s"), 
-			OnSipInitStates::InitStatesToString(curState), OnSipInitStatesType::InitStatesTypeToString( curStateType ) );
-
-		// See if error type of state
-		if ( curStateType == OnSipInitStatesType::DISCONNECTED || curStateType == OnSipInitStatesType::FATAL )
-		{
-			Logger::log_error(_T("COnSipDevice::_initOnSipTapi Poll init error, state=%s stateType=%s, exiting thread"), 
-				OnSipInitStates::InitStatesToString(curState), OnSipInitStatesType::InitStatesTypeToString( curStateType ) );
-			return false;
-		}
-
-		// See if initialized
-		if ( curStateType == OnSipInitStatesType::OK )
-		{
-			Logger::log_debug(_T("COnSipDevice::_initOnSipTapi Poll Init OK" ));
-			break;
-		}
-	}
-
-	// Clear all events that occurred during the initialization
-	pOnSipTapi->ClearEvents();
-
-	return true;
-}
 
 // Processes the event in TAPI, passes it on to the TAPI thread pools
 bool COnSipDevice::_processEvent( COnSipEvent* pEvent )

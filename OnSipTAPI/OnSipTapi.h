@@ -60,6 +60,7 @@ private:
 	CriticalSection m_cs;
 	std::list< OnSipTapiCall > m_lstCallEvents;
 	std::list< OnSipInitState > m_lstInitEvents;
+	bool Connect(LoginInfo& loginInfo,ConnectionError* ce);
 
 protected:
 	// Virtual notify from OnSipInitStateMachine of state changes
@@ -70,9 +71,10 @@ protected:
 
 public:
 	OnSipTapi();
-	bool Connect(LoginInfo& loginInfo);
 	void Disconnect();
 	bool Poll();
+
+	bool InitOnSipTapi(LoginInfo& loginInfo,HANDLE hDevStop,OnSipInitStatesType::InitStatesType* stateType);
 
 	// Make a phone call to the specified number, returns the unique callId for the call
 	long MakeCall(const tstring& number)

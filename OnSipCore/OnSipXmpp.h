@@ -41,7 +41,7 @@ protected:
 	// Virtual notify from OnSipInitStateMachine of state changes
 	virtual void InitStateChange(OnSipInitStates::InitStates state,OnSipInitStateData /*stateData*/,StateChangeReason::eOnStateChangeReason reason) 
 	{	
-		Logger::log_debug(_T("OnSipXmpp::InitStateChange state=%d reason=%d"), state, reason );	
+		Logger::log_debug(_T("OnSipXmpp::InitStateChange state=%d/%s reason=%d"), state, OnSipInitStates::InitStatesToString(state), reason );	
 		// Keep track of the last InitStateMachine state
 		m_lastInitState = state;
 		_checkThread.CheckSameThread();	// ensure single thread operation
@@ -50,7 +50,7 @@ protected:
 	// Virtual notify from OnSipCallStateMachine of state changes
 	virtual void CallStateChange(OnSipXmppStates::CallStates state,OnSipCallStateData stateData,StateChangeReason::eOnStateChangeReason reason)
 	{	
-		Logger::log_debug(_T("OnSipXmpp::CallStateChange state=%d stateData=%s reason=%d "), state, stateData.ToString().c_str(), reason );	
+		Logger::log_debug(_T("OnSipXmpp::CallStateChange state=%d/%s stateData=%s reason=%d "), state, OnSipXmppStates::CallStateToString(state), stateData.ToString().c_str(), reason );	
 		_checkThread.CheckSameThread();	// ensure single thread operation
 	}
 
