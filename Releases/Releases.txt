@@ -40,3 +40,16 @@ TSP release 6-5-09 - fixes
      go ahead and drop the TAPI call after timeout if physical
      call did not drop (may be server issue)
    4) fixed some caller-id issues
+
+TSP release 6-8-09 - fixes
+   1) fixed significant issues with init state machine, handle case
+      now with internet disconnected and then re-connected.  Report
+      back the proper tapi events (e.g. CONNECT/DISCONNECT, IN/OUTSERVICE).
+      Also handle case where re-authorization values change, or something
+      similar that may be a fatal error.  In this case, do a TAPI
+      Force line close.
+   2) Fixed issue with TAPI DIAL capability showing in some states
+   3) Fixed issue with caller-id being reported incorrectly with internal extensions
+      that had SIP addresses that contained one or more numbers.
+   4) Encrypt the password in the registry
+
