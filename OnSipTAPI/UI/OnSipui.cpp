@@ -236,8 +236,7 @@ TStream& CUIDevice::read(TStream& istm)
 
 	// Read values directly from the registry
 	m_userName = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_USERNAME, _T("") );
-	CString pwd = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_PASSWORD, _T("") );
-	m_password = Strings::decryptString( pwd.GetBuffer(), KEY_VALUE );
+	m_password = Strings::decryptString( GetUISP()->ReadProfileString(m_dwPermProviderID, REG_PASSWORD, _T("") ).GetBuffer(), KEY_VALUE );
 	m_domain =  GetUISP()->ReadProfileString(m_dwPermProviderID, REG_DOMAIN, _T("") );
 	m_phoneNumber = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_PHONENUMBER, _T("") );
 

@@ -95,14 +95,18 @@ private:
 		//See if has "@"
 		if ( !Strings::contains(toFromUri, _T("@") ) )
 			return _T("");
-		// Get contents inbetween
+		// Get contents inbetween "sip:" and "@"
 		tstring::size_type npos = toFromUri.find( _T("@") );
 		tstring ret = toFromUri.substr( 4, npos-4 );
 		// Strip our all non-numeric
-		ret = Strings::stripNonNumeric(ret);
+		string number = Strings::stripNonNumeric(ret);
 		// See if all numeric
-		Logger::log_debug( _T("COnSip_CallEvent::_extractNumberFromSIP str=%s npos=%d ret=%s"), toFromUri.c_str(), npos, ret.c_str() );
-		return ret;
+		// Only return if extracted string was all numeric,
+		// otherwise, we could just be returning the numeric values that exist within a SIP address
+		Logger::log_debug( _T("COnSip_CallEvent::_extractNumberFromSIP str=%s npos=%d ret=%s number=%s"), toFromUri.c_str(), npos, ret.c_str(), number.c_str() );
+		if ( number.length() == ret.length() )
+			return number;
+		return _T("");
 	}
 
 public:

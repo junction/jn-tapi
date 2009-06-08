@@ -17,7 +17,7 @@ EXPORTS
    TSPI_lineClose                      
    TSPI_lineCloseCall                  
    TSPI_lineConditionalMediaDetection  
-   TSPI_lineDial
+;   TSPI_lineDial
    TSPI_lineDrop  
    TSPI_lineGetAddressCaps             
    TSPI_lineGetAddressID               
