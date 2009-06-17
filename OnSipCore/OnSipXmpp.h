@@ -59,7 +59,9 @@ public:
 	// non-thread-safe functions 
 	// providing OnSip specific XMPP communication
 	void Authorize(int contextId);
-	string EnableCallEvents();
+	string SubscribeCallEvents();
+	string UnsubscribeCallEvents(string subid);
+
 	// Ping to server to keep it alive
 	void Ping()
 	{	OnSipXmppBase::Ping();	}

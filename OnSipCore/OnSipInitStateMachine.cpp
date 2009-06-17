@@ -23,8 +23,8 @@ TCHAR* OnSipInitStates::InitStatesToString(InitStates state)
 			return _T("EnablingCallEvents");
 		case OK:
 			return _T("OK");
-		case ReAuthorizing:
-			return _T("ReAuthorizing");
+		case ReSubscribe:
+			return _T("ReSubscribe");
 		case EnabledCallError:
 			return _T("EnabledCallError");
 		case Disconnected:
@@ -69,14 +69,13 @@ OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSip
 		case OnSipInitStates::Authorizing:
 		case OnSipInitStates::EnablingCallEvents:
 		case OnSipInitStates::Authorized:
-		case OnSipInitStates::ReAuthorizing:
-			return OnSipInitStatesType::INPROGRESS;
 
 		case OnSipInitStates::LoginError:
 		case OnSipInitStates::AuthorizedError:
 		case OnSipInitStates::EnabledCallError:
 			return OnSipInitStatesType::FATAL;
 
+		case OnSipInitStates::ReSubscribe:
 		case OnSipInitStates::OK:
 			return OnSipInitStatesType::OK;
 
@@ -101,7 +100,7 @@ OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSip
 
 OnSipInitStateHandler::OnSipInitStateHandler(OnSipXmpp* pOnSipXmpp) 
 		: OnSipStateHandlerBase<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>( OnSipInitStates::PreLogin, NULL ),
-		m_authTO( AUTHTIMEOUT ), m_ping(PINGTIMEOUT)
+		m_authTO( SUBSCRIBE_TIMEOUT ), m_ping(PINGTIMEOUT)
 {
 	Logger::log_debug("OnSipInitStateHandler::OnSipInitStateHandler this=%x onSipXmpp=%x", this, pOnSipXmpp );
 	m_pOnSipXmpp = pOnSipXmpp;
@@ -153,30 +152,53 @@ bool OnSipInitStateHandler::IsYourEvent(StateMachine<OnSipInitStates::InitStates
 	}
 
 	// If authorizing
-	if ( ( IsState(OnSipInitStates::Authorizing) || IsState(OnSipInitStates::ReAuthorizing) ) && ((evIqResult!= NULL && pEvent->m_context == _contextId) || evAuthEvent != NULL) )
+	if ( IsState(OnSipInitStates::Authorizing) && ((evIqResult!= NULL && pEvent->m_context == _contextId) || evAuthEvent != NULL) )
 	{
 		Logger::log_debug(_T("OnSipInitStateHandler::IsYourEvent curState=%s authorizing err=%d"),  OnSipInitStates::InitStatesToString(getCurrentState()), pEvent->IsError() );
 		// If success
 		if ( !pEvent->IsError() )
 		{
-			// Set time to re-authorize again
-			m_authTO.SetMsecs( AUTHTIMEOUT );
 			assignNewState( OnSipInitStates::EnablingCallEvents, NULL );
 			// Enable the call events, save the XMPP id value
-			m_enableCallEventsId = m_pOnSipXmpp->EnableCallEvents();
+			m_enableCallEventsId = m_pOnSipXmpp->SubscribeCallEvents();
 		}
 		// If error
 		else
 		{
 			Logger::log_error(_T("OnSipInitStateHandler::IsYourEvent authorizing error=%d"), pEvent->ToString().c_str() );
-			// Try to re-authorize again soon
-			m_authTO.SetMsecs( AUTHTIMEOUT_QUICK_RETRY );
 			assignNewState( OnSipInitStates::AuthorizedError, NULL );
 		}
 		// Delete the event since not keeping
 		delete pEvent;
 		return true;
 	}
+
+	// If re-subscribe for call events
+	if ( IsState(OnSipInitStates::ReSubscribe) &&  (evPubSubSubscribed != NULL) )
+	{
+		Logger::log_debug(_T("OnSipInitStateHandler::IsYourEvent curState=%s resubscribe err=%d"),  OnSipInitStates::InitStatesToString(getCurrentState()), pEvent->IsError() );
+		// If success
+		if ( !pEvent->IsError() )
+		{
+			// Set time to re-authorize again
+			m_authTO.SetMsecs( SUBSCRIBE_TIMEOUT );
+			// Keep track of the subscribed subid, will need for unsubscribe
+			m_subscribed_subid = evPubSubSubscribed->m_subid;
+			assignNewState( OnSipInitStates::OK, NULL );
+		}
+		// If error
+		else
+		{
+			Logger::log_error(_T("OnSipInitStateHandler::IsYourEvent resubscribe error=%d"), pEvent->ToString().c_str() );
+			// Try to re-subscribe again soon
+			m_authTO.SetMsecs( SUBSCRIBE_QUICK_RETRY );
+			assignNewState( OnSipInitStates::OK, NULL );
+		}
+		// Delete the event since not keeping
+		delete pEvent;
+		return true;
+	}
+
 
 	//	TODO: Should possibly check subscriptionResult for enabling call events.  The id == m_enableCallEventsId for iq subscription result.
 	//  Currently the pubsub does not get sent as an event, it is caught by the resultHandler::handleSubscriptionResult.
@@ -191,14 +213,16 @@ bool OnSipInitStateHandler::IsYourEvent(StateMachine<OnSipInitStates::InitStates
 	// If enabling call events
 	if ( IsState(OnSipInitStates::EnablingCallEvents) && evPubSubSubscribed != NULL )
 	{
-		Logger::log_debug("OnSipInitStateHandler::IsYourEvent EnablingCallEvents err=%d", pEvent->IsError() );
+		Logger::log_debug("OnSipInitStateHandler::IsYourEvent EnablingCallEvents subid=%s err=%d", evPubSubSubscribed->m_subid.c_str(), pEvent->IsError() );
 		// If success
 		if ( !pEvent->IsError() )
 		{
 			assignNewState( OnSipInitStates::OK, NULL );
-			// Set the timeout for re-authorization
-			m_authTO.SetMsecs( AUTHTIMEOUT );
+			// Set the timeout for re-subscribe
+			m_authTO.SetMsecs( SUBSCRIBE_TIMEOUT );
 			m_bEnabledCallEvents = true;
+			// Keep track of the subscribed subid, will need for unsubscribe
+			m_subscribed_subid = evPubSubSubscribed->m_subid;
 		}
 		// If error
 		else
@@ -247,15 +271,13 @@ bool OnSipInitStateHandler::PollStateHandler()
 	// If stuck in a state too long, then some type of error??
 
 	// If time to re-authorize
-	if ( IsState(OnSipInitStates::OK) && m_authTO.IsExpired() )
+	if ( IsState(OnSipInitStates::OK) || IsState(OnSipInitStates::AuthorizedError) && m_authTO.IsExpired() )
 	{
 		Logger::log_debug(_T("OnSipInitStateHandler::PollStateHandler authTimeout %ld curState=%d/%s"),m_authTO.Msecs(),getCurrentState(),OnSipInitStates::InitStatesToString(getCurrentState()) );
-
-		// Start the re-authorize
-		_contextId = m_pOnSipXmpp->getUniqueId();
-		m_pOnSipXmpp->Authorize( _contextId );
+		// Start the resubscribe
+		m_pOnSipXmpp->SubscribeCallEvents();
 		m_authTO.Reset();
-		assignNewState( OnSipInitStates::ReAuthorizing, NULL );
+		assignNewState( OnSipInitStates::ReSubscribe, NULL );
 		return true;
 	}
 
@@ -281,7 +303,7 @@ bool OnSipInitStateHandler::PollStateHandler()
 	if ( CheckStateTimeout( OnSipInitStates::EnablingCallEvents, GENERAL_COMMUNICATION_TIMEOUT ) )
 		return true;
 
-	if ( CheckStateTimeout( OnSipInitStates::ReAuthorizing, GENERAL_COMMUNICATION_TIMEOUT ) )
+	if ( CheckStateTimeout( OnSipInitStates::ReSubscribe, GENERAL_COMMUNICATION_TIMEOUT ) )
 		return true;
 
 	return false;

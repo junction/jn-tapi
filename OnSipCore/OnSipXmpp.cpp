@@ -129,17 +129,33 @@ void OnSipXmpp::Authorize(int contextId)
 }
 
 // Enable call events on OnSIP PBX
-// Pass unique contextId to be associated with this request,
-// the Iq Result will have the same contextId
-string OnSipXmpp::EnableCallEvents()
+// returns the Id used for event
+string OnSipXmpp::SubscribeCallEvents()
 {
-	Logger::log_debug("OnSipXmpp::EnableCallEvents contextId");
+	Logger::log_debug("OnSipXmpp::SubscribeCallEvents");
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
-	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com"	);
+	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
 	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
+
 	string id = m_pubSub->subscribe( serviceJid, node, this, m_gloox->jid().full(), PubSub::SubscriptionItems, 0 );
-	Logger::log_debug("OnSipXmpp::EnableCallEvents sending id=%s", id.c_str() );
+
+	Logger::log_debug("OnSipXmpp::SubscribeCallEvents sending id=%s", id.c_str() );
+	return id;
+}
+
+// Unscribe call events on OnSIP PBX, pass the subid
+// used in the resulting subscribe success
+// returns the Id used for event
+string OnSipXmpp::UnsubscribeCallEvents(string subid)
+{
+	Logger::log_debug("OnSipXmpp::UnsubscribeCallEvents subid=%s", subid.c_str() );
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
+	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
+	string id = m_pubSub->unsubscribe( serviceJid, node, subid, this );
+	Logger::log_debug("OnSipXmpp::UnsubscribeCallEvents sending id=%s", id.c_str() );
 	return id;
 }
 

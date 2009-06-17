@@ -98,6 +98,7 @@ public:
 	string m_node;
 	string m_jid;
 	bool m_bSubscribed;
+	string m_subid;
 
 	XmppPubSubSubscribedEvent(const string& id, const JID& to,const JID& from,const Tag *tag,const Error* error=NULL,int context=0) : XmppEvent( XmppEvent::EVT_PUBSUB_SUBSCRIBE, id, to, from, tag, error, context)
 	{ }

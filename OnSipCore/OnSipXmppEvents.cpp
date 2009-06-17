@@ -184,6 +184,7 @@ XmppPubSubSubscribedEvent* XmppPubSubSubscribedEvent::checkEvent(const Message& 
 	XmppPubSubSubscribedEvent* evt = new XmppPubSubSubscribedEvent( msg.id(), msg.to(), msg.from(), pss->tag(), msg.error() );
 	evt->m_subscription = pss->subscription();
 	evt->m_node = pss->node();
+	evt->m_subid = pss->tag()->findAttribute("subid");
 	evt->m_bSubscribed = evt->m_node == "subscribed";
 	evt->m_jid = pss->jid();
 	return evt;

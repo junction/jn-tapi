@@ -12,7 +12,7 @@ class OnSipInitStates
 {
 public:
 	// Note: if new states added, modify InitStatesToString and GetInitStatesType method!!
-	enum InitStates { NotSet, PreLogin, LoginError, Authorizing, Authorized, AuthorizedError, EnablingCallEvents, OK, EnabledCallError, Disconnected, ReAuthorizing };
+	enum InitStates { NotSet, PreLogin, LoginError, Authorizing, Authorized, AuthorizedError, EnablingCallEvents, OK, EnabledCallError, Disconnected, ReSubscribe };
 
 	static TCHAR* InitStatesToString(InitStates state);
 
@@ -40,7 +40,8 @@ public:
 // Authorization timeouts
 #define AUTHTIMEOUT_QUICK_RETRY		(30 * MSECS_IN_SEC)
 #define AUTHTIMEOUT_RETRY			(15 * MSECS_IN_MIN)
-#define AUTHTIMEOUT					( 1 * MSECS_IN_HOUR)
+#define SUBSCRIBE_QUICK_RETRY		(30 * MSECS_IN_SEC)
+#define SUBSCRIBE_TIMEOUT			(50 * MSECS_IN_MIN)
 #define PINGTIMEOUT					( 5 * MSECS_IN_MIN)
 
 
@@ -54,6 +55,7 @@ private:
 	TimeOut m_authTO;
 	TimeOut m_ping;
 	bool m_bEnabledCallEvents;
+	string m_subscribed_subid;	// subid 
 
 protected:
 	virtual bool IsYourEvent(StateMachine<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>*,XmppEvent *pEvent);
