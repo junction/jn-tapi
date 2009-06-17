@@ -8,7 +8,7 @@
 
 
 // StanzaExtension to recognize the Message/event/subscribed
-// XMPP event.  This is nnew type of pubSub subscribe authorized
+// XMPP event.	This is nnew type of pubSub subscribe authorized
 // model, which currently is not supported in gloox.
 // Created our own extension to recognize this event,
 // used when subscribing to events such as active-call events.

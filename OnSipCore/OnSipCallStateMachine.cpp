@@ -38,6 +38,14 @@ DropRequestEvent* OnSipCallStateHelper::getDropRequestEvent(XmppEvent* pEvent)
 	return dynamic_cast<DropRequestEvent*>(pEvent);
 }
 
+//static 
+ShutdownRequestEvent* OnSipCallStateHelper::getShutdownRequestEvent(XmppEvent* pEvent)
+{
+	if ( pEvent->m_type != XmppEvent::EVT_SHUTDOWN_REQUEST )
+		return NULL;
+	return dynamic_cast<ShutdownRequestEvent*>(pEvent);
+}
+
 //static
 XmppRetractCallEvent* OnSipCallStateHelper::getRetractCallEvent(XmppEvent* pEvent)
 {

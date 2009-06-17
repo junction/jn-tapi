@@ -60,7 +60,7 @@ public:
 	// providing OnSip specific XMPP communication
 	void Authorize(int contextId);
 	string SubscribeCallEvents();
-	string UnsubscribeCallEvents(string subid);
+	long UnsubscribeCallEvents(string subid);
 
 	// Ping to server to keep it alive
 	void Ping()
@@ -100,6 +100,16 @@ public:
 	// Virtual onConnectLoop is periodically called
 	ConnectionError PollXMPP(DWORD dwMsecs);
 
+	// Start the shutdown process,
+	// signal the OnSipInitStateMachine to start unsubscribing, etc.
+	// This method is asynchronous.
+	// The state machine should be polled or monitored to see if shutdown
+	void AsyncShutdown();
+
+	// Returns true if the shutdown has completed.
+	// e.g. the InitStateMachine has done the proper shutdown, unsubscribing
+	bool IsShutdownComplete();
+
 	// Should be called after XMPP engine is done,
 	// after Start() has been called and done calling PollXMPP
 	void Cleanup();
@@ -118,6 +128,8 @@ public:
 	// This is asynchronous and thread-safe.
 	// Drop the specified call
 	void DropCall(long callId);
+
+
 
 	// Return the last notified (current) state of the InitStateMachine
 	OnSipInitStates::InitStates GetInitStateMachineState()

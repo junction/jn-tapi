@@ -71,7 +71,9 @@ protected:
 
 public:
 	OnSipTapi();
-	void Disconnect();
+	// bShutdown = if true, then try proper shutdown by having
+	//   OnSipInitStateMachine do shutdown, unsubscribe, etc.
+	void Disconnect(bool bShutdown);
 	bool Poll();
 
 	bool InitOnSipTapi(LoginInfo& loginInfo,HANDLE hDevStop,OnSipInitStatesType::InitStatesType* stateType);

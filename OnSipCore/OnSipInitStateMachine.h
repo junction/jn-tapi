@@ -12,7 +12,7 @@ class OnSipInitStates
 {
 public:
 	// Note: if new states added, modify InitStatesToString and GetInitStatesType method!!
-	enum InitStates { NotSet, PreLogin, LoginError, Authorizing, Authorized, AuthorizedError, EnablingCallEvents, OK, EnabledCallError, Disconnected, ReSubscribe };
+	enum InitStates { NotSet, PreLogin, LoginError, Authorizing, Authorized, AuthorizedError, EnablingCallEvents, OK, EnabledCallError, Disconnected, ReSubscribe, ShuttingDown, ShutDown };
 
 	static TCHAR* InitStatesToString(InitStates state);
 
@@ -23,7 +23,7 @@ public:
 class OnSipInitStatesType
 {
 public:
-	enum InitStatesType { NOTSET, INPROGRESS, OK, FATAL, DISCONNECTED };
+	enum InitStatesType { NOTSET, INPROGRESS, OK, FATAL, DISCONNECTED, SHUTDOWN };
 
 	static TCHAR* InitStatesTypeToString(OnSipInitStatesType::InitStatesType state);
 
@@ -36,6 +36,19 @@ class OnSipInitStateData
 public:
 	// No State Data at this type
 };
+
+// Custom non-Xmpp event type used to signal that 
+// OnSipInitStateMachine should start shutting down
+class ShutdownRequestEvent : public XmppEvent
+{
+public:
+	ShutdownRequestEvent() : XmppEvent(XmppEvtType::EVT_SHUTDOWN_REQUEST,_T(""),JID(),JID(),NULL)
+	{	}
+
+	virtual string ToString()
+	{	return _T("ShutdownRequestEvent");	}
+};
+
 
 // Authorization timeouts
 #define AUTHTIMEOUT_QUICK_RETRY		(30 * MSECS_IN_SEC)
@@ -55,7 +68,8 @@ private:
 	TimeOut m_authTO;
 	TimeOut m_ping;
 	bool m_bEnabledCallEvents;
-	string m_subscribed_subid;	// subid 
+	string m_subscribed_subid;	// subid for subscribed, used for unsubscribe
+	long m_unsubscribe_contextId;
 
 protected:
 	virtual bool IsYourEvent(StateMachine<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>*,XmppEvent *pEvent);

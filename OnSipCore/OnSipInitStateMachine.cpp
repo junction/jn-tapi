@@ -21,6 +21,10 @@ TCHAR* OnSipInitStates::InitStatesToString(InitStates state)
 			return _T("AuthorizedError");
 		case EnablingCallEvents:
 			return _T("EnablingCallEvents");
+		case ShuttingDown:
+			return _T("ShuttingDown");
+		case ShutDown:
+			return _T("ShutDown");
 		case OK:
 			return _T("OK");
 		case ReSubscribe:
@@ -50,6 +54,8 @@ TCHAR* OnSipInitStatesType::InitStatesTypeToString(OnSipInitStatesType::InitStat
 			return _T("OK");
 		case OnSipInitStatesType::INPROGRESS:
 			return _T("INPROGRESS");
+		case OnSipInitStatesType::SHUTDOWN:
+			return _T("SHUTDOWN");
 		default:
 			Logger::log_error( _T("UNKNOWN InitStatesType %d"), state );
 			return _T("UNKNOWN InitStatesType");
@@ -69,6 +75,7 @@ OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSip
 		case OnSipInitStates::Authorizing:
 		case OnSipInitStates::EnablingCallEvents:
 		case OnSipInitStates::Authorized:
+			return OnSipInitStatesType::INPROGRESS;
 
 		case OnSipInitStates::LoginError:
 		case OnSipInitStates::AuthorizedError:
@@ -76,11 +83,15 @@ OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSip
 			return OnSipInitStatesType::FATAL;
 
 		case OnSipInitStates::ReSubscribe:
+		case OnSipInitStates::ShuttingDown:
 		case OnSipInitStates::OK:
 			return OnSipInitStatesType::OK;
 
 		case OnSipInitStates::Disconnected:
 			return OnSipInitStatesType::DISCONNECTED;
+
+		case OnSipInitStates::ShutDown:
+			return OnSipInitStatesType::SHUTDOWN;
 
 		// Shouldn't occur!!
 		default:
@@ -92,7 +103,7 @@ OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSip
 //***************************************************************************
 //***************************************************************************
 
-#define GENERAL_COMMUNICATION_TIMEOUT		( 10 * MSECS_IN_SEC )
+#define GENERAL_COMMUNICATION_TIMEOUT		( 15 * MSECS_IN_SEC )
 
 //***************************************************************************
 //***************************************************************************
@@ -107,6 +118,7 @@ OnSipInitStateHandler::OnSipInitStateHandler(OnSipXmpp* pOnSipXmpp)
 	_contextId = 0;
 	m_pOnSipXmpp = pOnSipXmpp;
 	m_bEnabledCallEvents = false;
+	m_unsubscribe_contextId = 0;
 }
 
 //virtual 
@@ -122,6 +134,7 @@ bool OnSipInitStateHandler::IsYourEvent(StateMachine<OnSipInitStates::InitStates
 	XmppAuthEvent* evAuthEvent = OnSipCallStateHelper::getAuthEvent(pEvent);
 	XmppPubSubSubscribedEvent* evPubSubSubscribed = OnSipCallStateHelper::getPubSubSubscribedEvent(pEvent);
 	XmppIqResultEvent* evIqResult = OnSipCallStateHelper::getXmppIqResultEvent(pEvent);
+	ShutdownRequestEvent* evShutdown = OnSipCallStateHelper::getShutdownRequestEvent(pEvent);
 
 	Logger::log_debug("OnSipInitStateHandler::IsYourEvent cur=%d ctx=%d evCtx=%d evConnect=%p evDisconnect=%p evAuth=%p evPubSub=%p evIqRes=%p", getCurrentState(), _contextId, pEvent->m_context, evConnect, evDisconnect, evAuthEvent, evPubSubSubscribed, evIqResult );
 
@@ -247,6 +260,32 @@ bool OnSipInitStateHandler::IsYourEvent(StateMachine<OnSipInitStates::InitStates
 		return true;
 	}
 
+	// If shutdown request
+	if ( evShutdown != NULL )
+	{
+		Logger::log_debug("OnSipInitStateHandler::IsYourEvent shutdown subid=%s", m_subscribed_subid.c_str() );
+
+		// TODO: Need to ask server for all subscribes and do all
+
+		// Do unsubscribe request
+		m_unsubscribe_contextId = m_pOnSipXmpp->UnsubscribeCallEvents(m_subscribed_subid);
+		// Set our state, and delete event since not keeping it
+		assignNewState( OnSipInitStates::ShuttingDown, NULL );
+		delete pEvent;
+		return true;
+	}
+
+	// If shutting down and waiting for the unsubscribe IQ result
+	if ( IsState(OnSipInitStates::ShuttingDown) && evIqResult != NULL &&  evIqResult->m_context == m_unsubscribe_contextId )
+	{
+		Logger::log_debug("OnSipInitStateHandler::IsYourEvent shutdown result err=%d", pEvent->IsError() );
+		// Not checking error, not really much we can do
+		// Set our state, and delete event since not keeping it
+		assignNewState( OnSipInitStates::ShutDown, NULL );
+		delete pEvent;
+		return true;
+	}
+
 	Logger::log_debug("OnSipInitStateHandler::IsYourEvent unhandled=%x/%d",pEvent, pEvent->m_type );
 	return false;
 }
@@ -255,7 +294,11 @@ bool OnSipInitStateHandler::IsYourEvent(StateMachine<OnSipInitStates::InitStates
 bool OnSipInitStateHandler::IsStillExist()
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-	// Always exist??
+	if ( IsState( OnSipInitStates::ShutDown ) )
+	{
+		Logger::log_debug("OnSipInitStateHandler::IsStillExist shutdown" );
+		return false;
+	}
 	return true;
 }
 
@@ -271,7 +314,7 @@ bool OnSipInitStateHandler::PollStateHandler()
 	// If stuck in a state too long, then some type of error??
 
 	// If time to re-authorize
-	if ( IsState(OnSipInitStates::OK) || IsState(OnSipInitStates::AuthorizedError) && m_authTO.IsExpired() )
+	if ( IsState(OnSipInitStates::OK) && m_authTO.IsExpired() )
 	{
 		Logger::log_debug(_T("OnSipInitStateHandler::PollStateHandler authTimeout %ld curState=%d/%s"),m_authTO.Msecs(),getCurrentState(),OnSipInitStates::InitStatesToString(getCurrentState()) );
 		// Start the resubscribe
@@ -304,6 +347,9 @@ bool OnSipInitStateHandler::PollStateHandler()
 		return true;
 
 	if ( CheckStateTimeout( OnSipInitStates::ReSubscribe, GENERAL_COMMUNICATION_TIMEOUT ) )
+		return true;
+
+	if ( CheckStateTimeout( OnSipInitStates::ShuttingDown, GENERAL_COMMUNICATION_TIMEOUT ) )
 		return true;
 
 	return false;

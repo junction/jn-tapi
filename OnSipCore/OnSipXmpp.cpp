@@ -18,6 +18,8 @@
 
 #include "onsipXmppEvents.h"
 
+#include "OnSipInitStateMachine.h"
+
 // BIG TO DO ITEMS...
 
 //  4) Use Gizmo phone to register 2 phone clients on the computer.
@@ -146,8 +148,8 @@ string OnSipXmpp::SubscribeCallEvents()
 
 // Unscribe call events on OnSIP PBX, pass the subid
 // used in the resulting subscribe success
-// returns the Id used for event
-string OnSipXmpp::UnsubscribeCallEvents(string subid)
+// returns the context id for the Iq event
+long OnSipXmpp::UnsubscribeCallEvents(string subid)
 {
 	Logger::log_debug("OnSipXmpp::UnsubscribeCallEvents subid=%s", subid.c_str() );
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
@@ -155,8 +157,16 @@ string OnSipXmpp::UnsubscribeCallEvents(string subid)
 	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
 	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
 	string id = m_pubSub->unsubscribe( serviceJid, node, subid, this );
-	Logger::log_debug("OnSipXmpp::UnsubscribeCallEvents sending id=%s", id.c_str() );
-	return id;
+	// Not supposed to use this method, it is depracted.
+	// But could not get gloox to call back on the pubsub events or iq 
+	// events without doing this.  May be due to PubSub is using newer
+	// subscribe/unsubscribe model than gloox is updated for.
+	// e.g. had to create custom extension (OnSipStanzaExtensions.cpp)
+	// for subscribe to work.
+	long contextId = getUniqueId();
+	m_gloox->trackID(this, id, contextId  );
+	Logger::log_debug("OnSipXmpp::UnsubscribeCallEvents sending id=%s, contextId=%ld", id.c_str(), contextId );
+	return contextId;
 }
 
 // Call number on PBX
@@ -453,6 +463,37 @@ ConnectionError OnSipXmpp::Start(LoginInfo& loginInfo)
 ConnectionError OnSipXmpp::PollXMPP(DWORD dwMsecs)
 {
 	return OnSipXmppBase::AsyncPolling(dwMsecs);
+}
+
+// Start the shutdown process,
+// signal the OnSipInitStateMachine to start unsubscribing, etc.
+// This method is asynchronous.
+// The state machine should be polled or monitored to see if shutdown
+void OnSipXmpp::AsyncShutdown()
+{
+	Logger::log_debug(_T("OnSipXmpp::AsyncShutdown"));
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+	m_initStateMachine->AddEvent( new ShutdownRequestEvent() );
+}
+
+// Returns true if the shutdown has completed.
+// e.g. the InitStateMachine has done the proper shutdown, unsubscribing
+bool OnSipXmpp::IsShutdownComplete()
+{
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+	if ( m_initStateMachine.get() == NULL )
+	{
+		// Shouldn't occur..
+		Logger::log_error( _T("OnSipXmpp::IsShutdownComplete NULL ptr") );
+		return true;
+	}
+	// Get all states.  List should be empty when shutdown,
+	// since the InitStateMachine will exit its handler
+	list<StateAndStateData<OnSipInitStates::InitStates,OnSipInitStateData>> es = m_initStateMachine->GetAllStates();
+	if ( es.size() > 0 )
+		return false;
+	Logger::log_debug( _T("OnSipXmpp::IsShutdownComplete is complete") );
+	return true;
 }
 
 // Should be called after XMPP engine is done,

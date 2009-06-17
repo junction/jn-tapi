@@ -132,6 +132,8 @@ public:
 	{	return Strings::stringFormat(_T("DropRequestEvent callId=%ld"), m_callId);	}
 };
 
+class ShutdownRequestEvent;
+
 // Utility class to provide helper methods for the OnSip state machine
 // Provides all static methods
 class OnSipCallStateHelper
@@ -152,6 +154,7 @@ public:
 	static XmppAuthEvent* getAuthEvent(XmppEvent* pEvent);
 	static XmppPubSubSubscribedEvent* getPubSubSubscribedEvent(XmppEvent *pEvent);
 	static DropRequestEvent* getDropRequestEvent(XmppEvent* pEvent);
+	static ShutdownRequestEvent* getShutdownRequestEvent(XmppEvent* pEvent);
 
 	static void AssignCallStateData(OnSipCallStateData& callStateData,XmppActiveCallEvent* ace,long callId,bool bUpdateCallerId=true);
 };

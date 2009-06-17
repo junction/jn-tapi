@@ -109,6 +109,21 @@ DWORD OnSipThread::Run()
 		ce = m_xmpp->PollXMPP(1000);
 	}
 
+	// If signaled to stop, then signal async shutdown
+	if ( MyThread::IsSignalStop() )
+	{
+		m_xmpp->AsyncShutdown();
+		Logger::log_error( _T("OnSipThread::Run waiting for shutdown...") );
+		TimeOut timeout(5000);
+		while ( ce == ConnNoError && !m_xmpp->IsShutdownComplete() && !timeout.IsExpired() )
+		{
+			Sleep(50);
+			ce = m_xmpp->PollXMPP(1000);
+		}
+		if ( timeout.IsExpired() || ce != ConnNoError )
+			Logger::log_error( _T("OnSipThread::Run shutdown wait error. timeout=%d ce=%d"), timeout.IsExpired(), ce );
+	}
+
 	m_xmpp->Cleanup();
 
 	// Destroy the main XMPP object

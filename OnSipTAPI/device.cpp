@@ -368,7 +368,7 @@ unsigned COnSipDevice::ConnectionThread()
 	if ( !m_OnSipTapi->InitOnSipTapi(loginInfo,m_hevtStop,&initStateType) )
 	{
 		Logger::log_error(_T("COnSipDevice::ConnectionThread init error") );
-		m_OnSipTapi->Disconnect();
+		m_OnSipTapi->Disconnect(false);
 		CriticalSectionScope css(&m_cs);
 		m_OnSipTapi.reset( NULL );
 		return false;
@@ -488,7 +488,7 @@ unsigned COnSipDevice::ConnectionThread()
 					if ( initStateType == OnSipInitStatesType::DISCONNECTED)
 					{
 						Logger::log_debug( _T("COnSipevice::ConnectionThread initStateChange disconnected") );
-						m_OnSipTapi->Disconnect();
+						m_OnSipTapi->Disconnect(false);
 						fConnected = false;
 					}
 				}
@@ -498,7 +498,7 @@ unsigned COnSipDevice::ConnectionThread()
 
 	Logger::log_debug(_T("COnSipDevice::ConnectionThread exiting..."));
 
-	m_OnSipTapi->Disconnect();
+	m_OnSipTapi->Disconnect(fConnected);
 
 	// Delete the OnSipTapi object
 	{

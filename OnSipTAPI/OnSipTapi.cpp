@@ -187,9 +187,25 @@ bool OnSipTapi::Poll()
 	return false;
 }
 
-void OnSipTapi::Disconnect()
+// bShutdown = if true, then try proper shutdown by having
+//   OnSipInitStateMachine do shutdown, unsubscribe, etc.
+void OnSipTapi::Disconnect(bool bShutdown)
 {
-	Logger::log_debug(_T("OnSipTapi::Disconnect"));
+	Logger::log_debug(_T("OnSipTapi::Disconnect bShutdown=%d",bShutdown));
+	if ( bShutdown )
+	{
+		AsyncShutdown();
+		TimeOut tmout(5000);
+		while ( Poll() && !tmout.IsExpired() )
+		{
+			Sleep(50);
+			if ( IsShutdownComplete() )
+			{
+				Logger::log_debug(_T("OnSipTapi::Disconnect shutdown complete") );
+				break;
+			}
+		}
+	}
 	Cleanup();
 }
 
