@@ -579,7 +579,9 @@ namespace gloox
                                           ResultHandler* handler,
                                           const JID& jid,
                                           SubscriptionObject type,
-                                          int depth )
+                                          int depth,
+										  const std::string& expire
+										  )
     {
       if( !m_parent || !handler || !service || node.empty() )
         return EmptyString;
@@ -605,6 +607,13 @@ namespace gloox
           else
            field->setValue( util::int2string( depth ) );
         }
+
+		if ( !expire.empty() )
+		{
+			DataFormField* field = df->addField( DataFormField::TypeNone, "pubsub#expire" );
+			field->setValue( expire );
+		}
+
         ps->setJID( jid );
         ps->setOptions( node, df );
       }

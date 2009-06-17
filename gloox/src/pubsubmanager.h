@@ -107,7 +107,7 @@ namespace gloox
         const std::string subscribe( const JID& service, const std::string& node,
                                      ResultHandler* handler, const JID& jid = JID(),
                                      SubscriptionObject type = SubscriptionNodes,
-                                     int depth = 1 );
+									 int depth = 1, const std::string& expire="" );
 
         /**
          * Unsubscribe from a node.

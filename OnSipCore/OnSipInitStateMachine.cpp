@@ -173,7 +173,7 @@ bool OnSipInitStateHandler::IsYourEvent(StateMachine<OnSipInitStates::InitStates
 		{
 			assignNewState( OnSipInitStates::EnablingCallEvents, NULL );
 			// Enable the call events, save the XMPP id value
-			m_enableCallEventsId = m_pOnSipXmpp->SubscribeCallEvents();
+			m_enableCallEventsId = m_pOnSipXmpp->SubscribeCallEvents( evAuthEvent->expireDate );
 		}
 		// If error
 		else
@@ -318,7 +318,8 @@ bool OnSipInitStateHandler::PollStateHandler()
 	{
 		Logger::log_debug(_T("OnSipInitStateHandler::PollStateHandler authTimeout %ld curState=%d/%s"),m_authTO.Msecs(),getCurrentState(),OnSipInitStates::InitStatesToString(getCurrentState()) );
 		// Start the resubscribe
-		m_pOnSipXmpp->SubscribeCallEvents();
+		// TODO!!!!  What time do I pass for the expire time
+		m_pOnSipXmpp->SubscribeCallEvents("");
 		m_authTO.Reset();
 		assignNewState( OnSipInitStates::ReSubscribe, NULL );
 		return true;

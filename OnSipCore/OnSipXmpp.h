@@ -59,7 +59,11 @@ public:
 	// non-thread-safe functions 
 	// providing OnSip specific XMPP communication
 	void Authorize(int contextId);
-	string SubscribeCallEvents();
+	// Enable call events on OnSIP PBX
+	// returns the Id used for event
+	//  expireTime in XMPP format, e.g. 2006-03-31T23:59Z
+	//  can pass empty string to not have field passed in subscribe request
+	string SubscribeCallEvents(const string& expireTime);
 	long UnsubscribeCallEvents(string subid);
 
 	// Ping to server to keep it alive

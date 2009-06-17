@@ -132,15 +132,17 @@ void OnSipXmpp::Authorize(int contextId)
 
 // Enable call events on OnSIP PBX
 // returns the Id used for event
-string OnSipXmpp::SubscribeCallEvents()
+//  expireTime in XMPP format, e.g. 2006-03-31T23:59Z
+//  can pass empty string to not have field passed in subscribe request
+string OnSipXmpp::SubscribeCallEvents(const string& expireTime)
 {
-	Logger::log_debug("OnSipXmpp::SubscribeCallEvents");
+	Logger::log_debug("OnSipXmpp::SubscribeCallEvents expireTime='%s'", expireTime.c_str() );
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
 	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
 	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
 
-	string id = m_pubSub->subscribe( serviceJid, node, this, m_gloox->jid().full(), PubSub::SubscriptionItems, 0 );
+	string id = m_pubSub->subscribe( serviceJid, node, this, m_gloox->jid().full(), PubSub::SubscriptionItems, 0, expireTime  );
 
 	Logger::log_debug("OnSipXmpp::SubscribeCallEvents sending id=%s", id.c_str() );
 	return id;
