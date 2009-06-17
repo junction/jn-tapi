@@ -137,8 +137,8 @@ string OnSipXmpp::EnableCallEvents()
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
 	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com"	);
-	string node = Strings::stringFormat("/me/%s",m_login.jid().full().c_str() );
-	string id = m_pubSub->subscribe( serviceJid, node, this, m_login.jid(), PubSub::SubscriptionItems, 0 );
+	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
+	string id = m_pubSub->subscribe( serviceJid, node, this, m_gloox->jid().full(), PubSub::SubscriptionItems, 0 );
 	Logger::log_debug("OnSipXmpp::EnableCallEvents sending id=%s", id.c_str() );
 	return id;
 }
