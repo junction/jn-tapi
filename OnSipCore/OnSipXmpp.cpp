@@ -183,6 +183,12 @@ tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tst
 		toNumber = number.substr(5,number.size()-5);
 		Logger::log_debug( _T("OnSipXmpp::CallNumber removed Tsip from number=%s"), toNumber.c_str() );
 	}
+	// Do same check for SIP TLS format, "sips:"
+	else if ( Strings::startsWith( Strings::tolower(number), _T("tsips:") ) )
+	{
+		toNumber = number.substr(6,number.size()-6);
+		Logger::log_debug( _T("OnSipXmpp::CallNumber removed Tsips from number=%s"), toNumber.c_str() );
+	}
 
 	tstring fromNumber = Strings::stringFormat( _T("sip:%s"), m_login.SIPAddress().c_str() );
 
@@ -194,8 +200,8 @@ tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tst
 		fromNumber = Strings::stringFormat( _T("%s;%s"), fromNumber.c_str(), customTag.c_str() );
 	}
 
-	// Ensure number is prefixed with "sip:" 
-	if ( !Strings::startsWith( Strings::tolower(toNumber), _T("sip:") ) )
+	// Ensure number is prefixed with "sip:" or "sips:"
+	if ( !Strings::startsWith( Strings::tolower(toNumber), _T("sip:") ) && !Strings::startsWith( Strings::tolower(toNumber), _T("sips:") ) )
 		toNumber = Strings::stringFormat( _T("sip:%s"), toNumber.c_str() );
 
 	// If specified return values for the to/from fields
