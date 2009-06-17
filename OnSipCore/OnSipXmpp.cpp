@@ -171,19 +171,20 @@ tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tst
 				tempNumber += *iter;
 			iter++;
 		}
-		toNumber = Strings::stringFormat(_T("sip:%s@%s"), tempNumber.c_str(), m_login.m_domain.c_str() );
+		toNumber = Strings::stringFormat(_T("%s@%s"), tempNumber.c_str(), m_login.m_domain.c_str() );
 		Logger::log_debug("OnSipXmpp::CallNumber converted phone number=%s to %s", number.c_str(), toNumber.c_str() );
 	}
 	// if begins with "Tsip:", then it was a sip dial request, 
 	// but the application preceded the number with a "T" to signify
 	// to dial as tone.  Strip the "T" and dial only the sip number.
+	// This occurs when using the Windows Phone Dialer
 	else if ( Strings::startsWith( Strings::tolower(number), _T("tsip:") ) )
 	{
-		toNumber = number.substr(1,number.size()-1);
-		Logger::log_debug( _T("OnSipXmpp::CallNumber removed T from sip number=%s"), toNumber.c_str() );
+		toNumber = number.substr(5,number.size()-5);
+		Logger::log_debug( _T("OnSipXmpp::CallNumber removed Tsip from number=%s"), toNumber.c_str() );
 	}
 
-	tstring fromNumber = Strings::stringFormat(_T("sip:%s"), m_login.SIPAddress().c_str() );
+	tstring fromNumber = Strings::stringFormat( _T("sip:%s"), m_login.SIPAddress().c_str() );
 
 	// If customTag is specified, then append to TO and FROM fields,
 	//  e.g. "1234567890@abc.com;tag=value"
@@ -192,6 +193,10 @@ tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tst
 		toNumber = Strings::stringFormat( _T("%s;%s"), toNumber.c_str(), customTag.c_str() );
 		fromNumber = Strings::stringFormat( _T("%s;%s"), fromNumber.c_str(), customTag.c_str() );
 	}
+
+	// Ensure number is prefixed with "sip:" 
+	if ( !Strings::startsWith( Strings::tolower(toNumber), _T("sip:") ) )
+		toNumber = Strings::stringFormat( _T("sip:%s"), toNumber.c_str() );
 
 	// If specified return values for the to/from fields
 	if ( toField != NULL )

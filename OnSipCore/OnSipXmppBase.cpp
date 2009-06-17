@@ -60,6 +60,8 @@ ConnectionError OnSipXmppBase::Start(LoginInfo& loginInfo,bool bSync)
 	m_login = loginInfo;
 	m_jid = m_login.jid();
 
+	Logger::log_debug( _T("OnSipXmppBase::Start jid bare='%s' full='%s'"), m_jid.bare().c_str(), m_jid.full().c_str() );
+
 	m_gloox.reset( new Client( m_jid, m_login.m_password ) );
 
 	m_gloox->registerConnectionListener( this );

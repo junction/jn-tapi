@@ -40,7 +40,7 @@ public:
 // Authorization timeouts
 #define AUTHTIMEOUT_QUICK_RETRY		(30 * MSECS_IN_SEC)
 #define AUTHTIMEOUT_RETRY			(15 * MSECS_IN_MIN)
-#define AUTHTIMEOUT					( 2 * MSECS_IN_HOUR)
+#define AUTHTIMEOUT					( 1 * MSECS_IN_HOUR)
 #define PINGTIMEOUT					( 5 * MSECS_IN_MIN)
 
 
