@@ -317,9 +317,14 @@ bool OnSipInitStateHandler::PollStateHandler()
 	if ( IsState(OnSipInitStates::OK) && m_authTO.IsExpired() )
 	{
 		Logger::log_debug(_T("OnSipInitStateHandler::PollStateHandler authTimeout %ld curState=%d/%s"),m_authTO.Msecs(),getCurrentState(),OnSipInitStates::InitStatesToString(getCurrentState()) );
+		// Get current time and add 1 hour
+		time_t t;
+		time(&t);
+		t += 3600;
+		// Convert to UTC time format
+		tstring expireTime = DateTimeOperations::getUTCTimeString(t);
 		// Start the resubscribe
-		// TODO!!!!  What time do I pass for the expire time
-		m_pOnSipXmpp->SubscribeCallEvents("");
+		m_pOnSipXmpp->SubscribeCallEvents(expireTime);
 		m_authTO.Reset();
 		assignNewState( OnSipInitStates::ReSubscribe, NULL );
 		return true;

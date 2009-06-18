@@ -51,6 +51,25 @@ tstring DateTimeOperations::getTimeString(time_t& t)
 	return tstring(buf);
 }
 
+// Convert time_t to system time in struct tm
+struct tm DateTimeOperations::GetUTCTime(time_t& t)
+{
+	// Convert to system time
+	struct tm tm;
+	gmtime_s(&tm,&t);
+	return tm;
+}
+
+tstring DateTimeOperations::getUTCTimeString(time_t& t)
+{
+	// Convert to UTC time
+	struct tm tm;
+	tm = GetUTCTime(t);
+
+	// Convert to string
+	return Strings::stringFormat("%i-%02i-%02iT%02i:%02i:%02iZ", tm.tm_year + 1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+}
+
 //*************************************************************
 //*************************************************************
 

@@ -608,6 +608,7 @@ namespace gloox
            field->setValue( util::int2string( depth ) );
         }
 
+		// Added by Ron on 6/18/09, passed along changes to Jakob via email.
 		if ( !expire.empty() )
 		{
 			DataFormField* field = df->addField( DataFormField::TypeNone, "pubsub#expire" );

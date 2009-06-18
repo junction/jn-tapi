@@ -7,6 +7,7 @@
 #include <sstream>
 #include "OnSipThread.h"
 #include <stdlib.h>
+#include <time.h>
 
 int _tmain(int argc, _TCHAR* argv[])
 {

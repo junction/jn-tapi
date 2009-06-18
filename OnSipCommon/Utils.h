@@ -23,6 +23,12 @@ public:
 
 	// Return the formatted string for the specified time
 	static tstring getTimeString(time_t& t);
+
+	// Convert time_t to system time in struct tm
+	static struct tm GetUTCTime(time_t& t);
+
+	static tstring getUTCTimeString(time_t& t);
+
 };
 
 // Class that can be used to determine the
