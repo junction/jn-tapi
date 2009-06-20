@@ -6,7 +6,7 @@
 #include "onsipinitstatemachine.h"
 #include "utils.h"
 
-class OnSipXmpp : protected OnSipXmppBase, OnSipInitStateMachineNotifyBase, OnSipCallStateMachineNotifyBase
+class OnSipXmpp : public OnSipXmppBase, protected OnSipInitStateMachineNotifyBase, OnSipCallStateMachineNotifyBase
 {
 private:
 	std::auto_ptr<OnSipCallStateMachine> m_callStateMachine;
@@ -58,13 +58,16 @@ public:
 
 	// non-thread-safe functions 
 	// providing OnSip specific XMPP communication
-	void Authorize(int contextId);
+	void Authorize(int contextId,IqHandler* iqHandler=NULL);
 	// Enable call events on OnSIP PBX
 	// returns the Id used for event
 	//  expireTime in XMPP format, e.g. 2006-03-31T23:59Z
 	//  can pass empty string to not have field passed in subscribe request
-	string SubscribeCallEvents(const string& expireTime);
-	long UnsubscribeCallEvents(string subid);
+	string SubscribeCallEvents(const string& expireTime,ResultHandler* resultHandler=NULL);
+	long UnsubscribeCallEvents(const string& subid,ResultHandler* resultHandler=NULL,IqHandler* iqHandler=NULL);
+	long UnsubscribeCallEvents(const string& nodeid, const string& subid,ResultHandler* resultHandler,IqHandler* iqHandler);
+	// Trigger request from server for it to return the list of all subscriptions
+	void getSubscriptions(ResultHandler *resultHandler);
 
 	// Ping to server to keep it alive
 	void Ping()

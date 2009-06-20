@@ -4,6 +4,7 @@
 #include "StateMachine.h"
 #include "OnSipCallStateMachine.h"
 #include "onsipstatemachinebase.h"
+#include "OnSipWorkers.h"
 
 class OnSipXmpp;
 
@@ -12,7 +13,7 @@ class OnSipInitStates
 {
 public:
 	// Note: if new states added, modify InitStatesToString and GetInitStatesType method!!
-	enum InitStates { NotSet, PreLogin, LoginError, Authorizing, Authorized, AuthorizedError, EnablingCallEvents, OK, EnabledCallError, Disconnected, ReSubscribe, ShuttingDown, ShutDown };
+	enum InitStates { NotSet, PreLogin, LoginError, Authorizing, Authorized, AuthorizedError, EnablingCallEvents, OK, EnabledCallError, Disconnected, ShuttingDown, ShutDown };
 
 	static TCHAR* InitStatesToString(InitStates state);
 
@@ -57,7 +58,6 @@ public:
 #define SUBSCRIBE_TIMEOUT			(50 * MSECS_IN_MIN)
 #define PINGTIMEOUT					( 5 * MSECS_IN_MIN)
 
-
 // User outgoing call using physical phone device
 class OnSipInitStateHandler : public OnSipStateHandlerBase<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>
 {
@@ -70,6 +70,11 @@ private:
 	bool m_bEnabledCallEvents;
 	string m_subscribed_subid;	// subid for subscribed, used for unsubscribe
 	long m_unsubscribe_contextId;
+	std::auto_ptr<ReAuthorizeSubscribeWorker> _reauthorizer;
+
+	// Handle the re-authorization, reset the authorization time when complete.
+	// Returns false if some type of error
+	bool _handleReAuthorize();
 
 protected:
 	virtual bool IsYourEvent(StateMachine<OnSipInitStates::InitStates,XmppEvent,OnSipInitStateData>*,XmppEvent *pEvent);

@@ -25,7 +25,7 @@ bool OnSipCallStateHelper::IsSameContext(XmppEvent* pEvent1,XmppEvent* pEvent2)
 //static 
 XmppActiveCallEvent* OnSipCallStateHelper::getActiveCallEvent(XmppEvent* pEvent)
 {
-	if ( pEvent->m_type != XmppEvent::EVT_PUBSUB_ACTIVECALL_EVENT )
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_PUBSUB_ACTIVECALL_EVENT )
 		return NULL;
 	return dynamic_cast<XmppActiveCallEvent *>(pEvent);
 }
@@ -33,7 +33,7 @@ XmppActiveCallEvent* OnSipCallStateHelper::getActiveCallEvent(XmppEvent* pEvent)
 //static 
 DropRequestEvent* OnSipCallStateHelper::getDropRequestEvent(XmppEvent* pEvent)
 {
-	if ( pEvent->m_type != XmppEvent::EVT_DROP_REQUEST )
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_DROP_REQUEST )
 		return NULL;
 	return dynamic_cast<DropRequestEvent*>(pEvent);
 }
@@ -41,7 +41,7 @@ DropRequestEvent* OnSipCallStateHelper::getDropRequestEvent(XmppEvent* pEvent)
 //static 
 ShutdownRequestEvent* OnSipCallStateHelper::getShutdownRequestEvent(XmppEvent* pEvent)
 {
-	if ( pEvent->m_type != XmppEvent::EVT_SHUTDOWN_REQUEST )
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_SHUTDOWN_REQUEST )
 		return NULL;
 	return dynamic_cast<ShutdownRequestEvent*>(pEvent);
 }
@@ -49,7 +49,7 @@ ShutdownRequestEvent* OnSipCallStateHelper::getShutdownRequestEvent(XmppEvent* p
 //static
 XmppRetractCallEvent* OnSipCallStateHelper::getRetractCallEvent(XmppEvent* pEvent)
 {
-	if ( pEvent->m_type != XmppEvent::EVT_PUBSUB_RETRACTCALL_EVENT )
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_PUBSUB_RETRACTCALL_EVENT )
 		return NULL;
 	return dynamic_cast<XmppRetractCallEvent *>(pEvent);
 }
@@ -57,7 +57,7 @@ XmppRetractCallEvent* OnSipCallStateHelper::getRetractCallEvent(XmppEvent* pEven
 //static
 XmppIqResultEvent* OnSipCallStateHelper::getXmppIqResultEvent(XmppEvent* pEvent)
 {
-	if ( pEvent->m_type != XmppEvent::EVT_IQ_RESULT )
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_IQ_RESULT )
 		return NULL;
 	return dynamic_cast<XmppIqResultEvent *>(pEvent);
 }
@@ -65,7 +65,7 @@ XmppIqResultEvent* OnSipCallStateHelper::getXmppIqResultEvent(XmppEvent* pEvent)
 //static
 XmppOnConnectEvent* OnSipCallStateHelper::getOnConnectEvent(XmppEvent* pEvent)
 {
-	if ( pEvent->m_type != XmppEvent::EVT_ONCONNECT )
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_ONCONNECT )
 		return NULL;
 	return dynamic_cast<XmppOnConnectEvent *>(pEvent);
 }
@@ -73,7 +73,7 @@ XmppOnConnectEvent* OnSipCallStateHelper::getOnConnectEvent(XmppEvent* pEvent)
 //static
 XmppOnDisconnectEvent* OnSipCallStateHelper::getOnDisconnectEvent(XmppEvent* pEvent)
 {
-	if ( pEvent->m_type != XmppEvent::EVT_ONDISCONNECT )
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_ONDISCONNECT )
 		return NULL;
 	return dynamic_cast<XmppOnDisconnectEvent *>(pEvent);
 }
@@ -81,7 +81,7 @@ XmppOnDisconnectEvent* OnSipCallStateHelper::getOnDisconnectEvent(XmppEvent* pEv
 //static
 XmppAuthEvent* OnSipCallStateHelper::getAuthEvent(XmppEvent* pEvent)
 {
-	if ( pEvent->m_type != XmppEvent::EVT_PUBSUB_AUTH )
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_PUBSUB_AUTH )
 		return NULL;
 	return dynamic_cast<XmppAuthEvent *>(pEvent);
 }
@@ -89,7 +89,7 @@ XmppAuthEvent* OnSipCallStateHelper::getAuthEvent(XmppEvent* pEvent)
 //static
 XmppPubSubSubscribedEvent* OnSipCallStateHelper::getPubSubSubscribedEvent(XmppEvent *pEvent)
 {
-	if ( pEvent->m_type != XmppEvent::EVT_PUBSUB_SUBSCRIBE )
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_PUBSUB_SUBSCRIBE )
 		return NULL;
 	return dynamic_cast<XmppPubSubSubscribedEvent *>(pEvent);
 }

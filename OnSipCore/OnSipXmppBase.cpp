@@ -132,6 +132,17 @@ ConnectionError OnSipXmppBase::Start(LoginInfo& loginInfo,bool bSync)
 	return ce;
 }
 
+Client* OnSipXmppBase::getGloox()
+{
+	Client* pClient = m_gloox.get();
+	if ( pClient == NULL )
+	{
+		Logger::log_error("OnSipXmpp::getGloox NULL gloox");
+		return NULL;
+	}
+	return pClient;
+}
+
 // If Start() was called non-Sync, then this method should
 // be called in loop extensively to keep the XMPP engine going.
 // It will return ConnNoError if all ok.

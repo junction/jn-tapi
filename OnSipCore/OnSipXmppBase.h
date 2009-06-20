@@ -58,6 +58,8 @@ public:
 
 	virtual ~OnSipXmppBase() {}
 
+	Client* getGloox();
+
 	// Start the Xmpp connection.  This function is synchronous
 	// and stays in the method until all connection is complete.
 	// Virtual onConnectLoop is periodically called

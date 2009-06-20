@@ -143,7 +143,7 @@
 	<References>
 		<ProjectReference
 			ReferencedProjectIdentifier="{F50EF1F9-FAA4-4A54-9D80-08AC64A673F9}"
-			RelativePathToProject="..\gloox\gloox.vcproj"
+			RelativePathToProject=".\gloox\gloox.vcproj"
 		/>
 	</References>
 	<Files>
@@ -170,6 +170,10 @@
 			</File>
 			<File
 				RelativePath=".\OnSipThread.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OnSipWorkers.cpp"
 				>
 			</File>
 			<File
@@ -260,6 +264,10 @@
 			</File>
 			<File
 				RelativePath=".\OnSipThread.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OnSipWorkers.h"
 				>
 			</File>
 			<File

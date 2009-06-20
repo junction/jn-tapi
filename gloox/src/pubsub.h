@@ -237,7 +237,8 @@ namespace gloox
       std::string subid;
     };
 
-    typedef std::map< std::string, SubscriptionInfo > SubscriptionMap;
+	typedef std::list<SubscriptionInfo> SubscriptionList;
+    typedef std::map< std::string, SubscriptionList > SubscriptionMap;
     typedef std::map< std::string, AffiliationType  > AffiliationMap;
     typedef std::list<Item*> ItemList;
 

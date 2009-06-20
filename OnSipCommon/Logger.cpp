@@ -79,8 +79,30 @@ void Logger::_output(const int log_level, const TCHAR * msg)
 void Logger::_output(int level,va_list & argList, const TCHAR * szFormat)
 {
 	TCHAR buffer[LOGGING_MAX_CHARS_LIMIT];
-	const int ret = _vsntprintf_s(buffer, LOGGING_MAX_CHARS_LIMIT , _TRUNCATE, szFormat, argList);
-	_output(level, (const TCHAR *) buffer);
+	TCHAR* allocBuffer = NULL;
+	unsigned allocSize = LOGGING_MAX_CHARS_LIMIT;
+	TCHAR* fmtBuffer = NULL;
+
+	while ( true )
+	{
+		fmtBuffer = (allocBuffer!=NULL) ? allocBuffer : buffer;
+
+		// Do the format and output
+		const int ret = _vsntprintf_s( fmtBuffer , allocSize , _TRUNCATE, szFormat, argList);
+		if ( ret >= 0 || ret > 64000 )
+			break;
+		// Allocate bigger buffer for output
+		if ( allocBuffer != NULL )
+			delete[] allocBuffer;
+		allocSize += 2048;
+		allocBuffer = new TCHAR[allocSize];
+	}
+
+	_output(level, (const TCHAR *) fmtBuffer );
+
+	// Free allocated memory
+	if ( allocBuffer != NULL )
+		delete[] allocBuffer;
 }
 
 void Logger::log_app(const TCHAR *format,...)
