@@ -83,7 +83,6 @@ OnSipInitStatesType::InitStatesType OnSipInitStatesType::GetInitStatesType(OnSip
 		case OnSipInitStates::EnabledCallError:
 			return OnSipInitStatesType::FATAL;
 
-//		case OnSipInitStates::ReSubscribe:
 		case OnSipInitStates::ShuttingDown:
 		case OnSipInitStates::OK:
 			return OnSipInitStatesType::OK;
@@ -271,6 +270,7 @@ bool OnSipInitStateHandler::IsStillExist()
 	if ( IsState( OnSipInitStates::ShutDown ) )
 	{
 		Logger::log_debug("OnSipInitStateHandler::IsStillExist shutdown" );
+		_reauthorizer.reset(NULL);
 		return false;
 	}
 	return true;

@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OnSipCore", "..\OnSipCore\O
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gloox", "..\gloox\gloox.vcproj", "{F50EF1F9-FAA4-4A54-9D80-08AC64A673F9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OnSipInstall", "..\OnSipInstall\OnSipInstallDLL\OnSipInstall.vcproj", "{44B934E8-A4FF-421F-9E6D-54FD9B4B6FA7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Unicode|Win32 = Debug Unicode|Win32
@@ -69,6 +71,14 @@ Global
 		{F50EF1F9-FAA4-4A54-9D80-08AC64A673F9}.Release Unicode|Win32.Build.0 = Release|Win32
 		{F50EF1F9-FAA4-4A54-9D80-08AC64A673F9}.Release|Win32.ActiveCfg = Release|Win32
 		{F50EF1F9-FAA4-4A54-9D80-08AC64A673F9}.Release|Win32.Build.0 = Release|Win32
+		{44B934E8-A4FF-421F-9E6D-54FD9B4B6FA7}.Debug Unicode|Win32.ActiveCfg = Debug|Win32
+		{44B934E8-A4FF-421F-9E6D-54FD9B4B6FA7}.Debug Unicode|Win32.Build.0 = Debug|Win32
+		{44B934E8-A4FF-421F-9E6D-54FD9B4B6FA7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{44B934E8-A4FF-421F-9E6D-54FD9B4B6FA7}.Debug|Win32.Build.0 = Debug|Win32
+		{44B934E8-A4FF-421F-9E6D-54FD9B4B6FA7}.Release Unicode|Win32.ActiveCfg = Release|Win32
+		{44B934E8-A4FF-421F-9E6D-54FD9B4B6FA7}.Release Unicode|Win32.Build.0 = Release|Win32
+		{44B934E8-A4FF-421F-9E6D-54FD9B4B6FA7}.Release|Win32.ActiveCfg = Release|Win32
+		{44B934E8-A4FF-421F-9E6D-54FD9B4B6FA7}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

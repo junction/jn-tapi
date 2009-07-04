@@ -1,0 +1,7 @@
+LIBRARY	"OnSipInstall"
+
+EXPORTS
+	IsProviderInstalled PRIVATE
+	InstallProvider PRIVATE
+	UnInstallProvider  PRIVATE
+	UnInstallProvider2  PRIVATE
