@@ -42,6 +42,8 @@ protected:
 	LoginInfo m_login;
 	std::auto_ptr<Client> m_gloox;
 	std::auto_ptr<PubSub::Manager> m_pubSub;
+	bool m_bConnectEvent;
+	bool m_bDisconnectEvent;
 
 	virtual void handleLog( LogLevel level, LogArea area, const std::string& message );
 	virtual void onConnect();
@@ -53,7 +55,7 @@ protected:
 	virtual bool onConnectLoop() { return true; }
 
 public:
-	OnSipXmppBase() : _tmrConnectLoop(250)		// Call onConnectLoop every 250 ms.  configureable??
+	OnSipXmppBase() : m_bConnectEvent (false), m_bDisconnectEvent(false), _tmrConnectLoop(250)		// Call onConnectLoop every 250 ms.  configureable??
 	{ }
 
 	virtual ~OnSipXmppBase() {}
@@ -67,6 +69,18 @@ public:
 	ConnectionError AsyncPolling(DWORD dwMsecs);
 	void AsyncCleanup();
 	void Ping();
+	// Return a display error string for the specified ConnectionError enum
+	//static
+	static tstring GetConnectionErrorString(ConnectionError ce);
+
+	// Return true if we got the Connected event
+	bool GotConnectEvent()
+	{	return m_bConnectEvent; }
+
+	// Return true if we got the DisConnected event
+	bool GotDisconnectEvent()
+	{	return m_bDisconnectEvent; }
+
 };
 
 #endif

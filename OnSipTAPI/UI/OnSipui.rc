@@ -64,24 +64,26 @@ END
 // Dialog
 //
 
-IDD_CONFIG_DIALOG DIALOGEX 0, 0, 226, 145
+IDD_CONFIG_DIALOG DIALOGEX 0, 0, 226, 132
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION
 EXSTYLE WS_EX_APPWINDOW
-CAPTION "OnSIP Hosted PBX Configuration"
+CAPTION "Junction Networks Configuration"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,133,120,39,14
-    PUSHBUTTON      "Cancel",IDCANCEL,175,120,39,14
-    EDITTEXT        IDC_EDIT_PHONENUMBER,87,50,105,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_USERNAME,87,66,105,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_PASSWORD,87,82,105,14,ES_PASSWORD | ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_DOMAIN,87,98,105,14,ES_AUTOHSCROLL
-    RTEXT           "Phone Number:",IDC_STATIC,11,52,70,14
-    RTEXT           "User Name:",IDC_STATIC,11,68,70,14
-    RTEXT           "Password:",IDC_STATIC,11,84,70,14
-    RTEXT           "OnSip Domain",IDC_STATIC,11,100,70,14
-    CTEXT           "Junction Networks OnSIP Hosted PBX TAPI Configuration",IDC_STATIC,23,13,186,12
-    CTEXT           "Enter in Phone Number and Logon Information",IDC_STATIC,22,26,186,12
+    DEFPUSHBUTTON   "OK",IDOK,133,110,39,14
+    PUSHBUTTON      "Cancel",IDCANCEL,175,110,39,14
+    EDITTEXT        IDC_EDIT_PHONENUMBER,87,43,105,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_USERNAME,87,59,105,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_PASSWORD,87,75,105,14,ES_PASSWORD | ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_DOMAIN,87,91,105,14,ES_AUTOHSCROLL
+    RTEXT           "Phone Number:",IDC_STATIC,11,45,70,14
+    RTEXT           "User Name:",IDC_STATIC,11,61,70,14
+    RTEXT           "Password:",IDC_STATIC,11,77,70,14
+    RTEXT           "OnSip Domain",IDC_STATIC,11,93,70,14
+    CTEXT           "OnSIP Hosted PBX TAPI Configuration",IDC_TITLE,7,8,212,12
+    CTEXT           "Enter in Phone Number and Logon Information",IDC_INFO,22,26,186,12
+    PUSHBUTTON      "Test",IDC_TEST,12,110,39,14
+    LTEXT           "Testing...",IDC_TESTING,57,113,55,11,NOT WS_VISIBLE
 END
 
 
@@ -136,12 +138,21 @@ BEGIN
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 219
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 138
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 124
     END
 END
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON                ICON                    "icon1.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

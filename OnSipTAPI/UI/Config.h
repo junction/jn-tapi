@@ -66,6 +66,24 @@ public:
 
 	void SetValues(const tstring& phoneNumber,const tstring& userName,const tstring& passWord,const tstring& domain);
 	void GetValues(tstring& phoneNumber,tstring& userName,tstring& passWord,tstring& domain);
+public:
+	afx_msg void OnBnClickedTest();
+public:
+	CStatic m_lblTesting;
+public:
+	CButton m_OK;
+public:
+	CButton m_Cancel;
+public:
+	CButton m_Testing;
+public:
+	CStatic m_lblTitle;
+public:
+	CStatic m_lblInfo;
+public:
+	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
+public:
+	bool m_bWaitCursor;
 };
 
 //{{AFX_INSERT_LOCATION}}

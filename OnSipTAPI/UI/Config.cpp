@@ -18,6 +18,8 @@
 #include "stdafx.h"
 #include "OnSipUI.h"
 #include "config.h"
+#include "OnSipXmppBase.h"
+#include "OnSipXmpp.h"
 
 /*-------------------------------------------------------------------------------*/
 // MFC Message map
@@ -26,6 +28,8 @@ BEGIN_MESSAGE_MAP(CConfigDlg, CDialog)
 	//{{AFX_MSG_MAP(CConfigDlg)
 	//}}AFX_MSG_MAP
 	ON_BN_CLICKED(IDOK, &CConfigDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_TEST, &CConfigDlg::OnBnClickedTest)
+	ON_WM_SETCURSOR()
 END_MESSAGE_MAP()
 
 /*****************************************************************************
@@ -39,6 +43,7 @@ END_MESSAGE_MAP()
 **
 *****************************************************************************/
 CConfigDlg::CConfigDlg(CWnd* pParent /*=NULL*/) : CDialog(CConfigDlg::IDD, pParent)
+, m_bWaitCursor(false)
 {
 	//{{AFX_DATA_INIT(CConfigDlg)
 		// NOTE: the ClassWizard will add member initialization here
@@ -90,6 +95,12 @@ void CConfigDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text( pDX, IDC_EDIT_PASSWORD, m_passWord );
 	DDX_Text( pDX, IDC_EDIT_DOMAIN, m_domain );
 
+	DDX_Control(pDX, IDC_TESTING, m_lblTesting);
+	DDX_Control(pDX, IDOK, m_OK);
+	DDX_Control(pDX, IDCANCEL, m_Cancel);
+	DDX_Control(pDX, IDC_TEST, m_Testing);
+	DDX_Control(pDX, IDC_TITLE, m_lblTitle);
+	DDX_Control(pDX, IDC_INFO, m_lblInfo);
 }// CConfigDlg::DoDataExchange
 
 /*****************************************************************************
@@ -106,6 +117,21 @@ BOOL CConfigDlg::OnInitDialog()
 {
 	// Connect up the controls to the objects.
 	CDialog::OnInitDialog();
+
+	// Make title text BOLD
+	CFont* font = m_lblTitle.GetFont();
+	LOGFONT lfont;
+	font->GetLogFont(&lfont);
+	lfont.lfWeight = FW_BOLD;
+	CFont newFont;
+	newFont.CreateFontIndirect(&lfont);
+	m_lblTitle.SetFont(&newFont);
+
+	// Set our icon
+	HICON ic = AfxGetApp()->LoadIcon(IDI_ICON);
+	this->SetIcon( ic , FALSE);
+	this->SetIcon( ic, TRUE);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }// CConfigDlg::OnInitDialog
 
@@ -113,4 +139,157 @@ BOOL CConfigDlg::OnInitDialog()
 void CConfigDlg::OnBnClickedOk()
 {
 	OnOK();
+}
+
+void DoEvents()
+{
+	MSG dispatch;
+	while (::PeekMessage( &dispatch, NULL, 0, 0, PM_NOREMOVE))
+	{
+		if (!AfxGetThread()->PumpMessage());
+	}
+}
+
+// Test button click
+void CConfigDlg::OnBnClickedTest()
+{
+	Logger::log_debug( _T("CConfigDlg::OnBnClickedTest") );
+
+	// Get GUI settings into vars
+	UpdateData();
+
+	// Get dialog input values
+	string userName = Strings::trim( m_userName.GetBuffer() );
+	string password = Strings::trim( m_passWord.GetBuffer() );
+	string domain = Strings::trim( m_domain.GetBuffer() );
+
+	// If any of the values are empty
+	if ( userName.empty() || password.empty() || domain.empty() )
+	{
+		MessageBox( "User Name, Password, and Domain must be specified", "Error", MB_OK );
+		return;
+	}
+
+	// Show the "Testing..." label
+	m_lblTesting.ShowWindow(SW_SHOWNA);
+	m_OK.EnableWindow(FALSE);
+	m_Cancel.EnableWindow(FALSE);
+	m_Testing.EnableWindow(FALSE);
+
+	// Show busy cursor
+	m_bWaitCursor = true;
+	DoEvents();
+
+	bool bSuccess = false;
+
+	// Connect to server
+	OnSipXmpp onsip;
+	LoginInfo login( m_userName.GetBuffer(), m_passWord.GetBuffer(), m_domain.GetBuffer() );
+	ConnectionError ce = onsip.Start(login);
+	Logger::log_debug(_T("CConfigDlg::OnBnClickedTest onsip::Starrt ce=%d"), ce );
+
+	// If unable to make initial connection to server
+	if ( ce != ConnNoError )
+	{
+		tstring err = OnSipXmppBase::GetConnectionErrorString(ce);
+		err = Strings::stringFormat(_T("Test failed, connection error\r\n%s"), err.c_str() );
+		MessageBox( err.c_str(), "Error", MB_OK );
+
+		// Cursor normal, hide Testing label
+		m_bWaitCursor = false;
+		m_lblTesting.ShowWindow(SW_HIDE);
+	}
+	// connected to server, try to authorize
+	else
+	{
+		Logger::log_debug(_T("CConfigDlg::OnBnClickedTest waitconnect") );
+
+		TimeOut tmout(15000);
+
+		// Wait til we are connected, or until we go disconnected, or until timeout
+		while ( !onsip.GotConnectEvent() && !onsip.GotDisconnectEvent() &&  !tmout.IsExpired() )
+		{
+			onsip.PollXMPP(100);
+			DoEvents();
+		}
+
+		Logger::log_debug(_T("CConfigDlg::OnBnClickedTest waitconnect isConnected=%d isDisconnect=%d tmout=%d"), onsip.GotConnectEvent(), onsip.GotDisconnectEvent(), tmout.IsExpired() );
+		bool bAuthorizeError=false;
+
+		// If timed out or got disconnect event
+		if ( tmout.IsExpired() || onsip.GotDisconnectEvent() )
+		{
+			Logger::log_error(_T("CConfigDlg::OnBnClickedTest waitconnect error isDisconnect=%d tmout=%d"), onsip.GotDisconnectEvent(), tmout.IsExpired() );
+			// If it was a Disconnect event, then set the ConnectionError
+			if ( onsip.GotDisconnectEvent() )
+				ce = ConnNotConnected;
+		}
+
+		// If didn't timeout and didnt' get disconnect event, then start authorize
+		else
+		{
+			Logger::log_debug(_T("CConfigDlg::OnBnClickedTest startauthorize") );
+
+			// Attempt to authorize
+			AuthorizeWorker authorizeWorker( &onsip );
+			authorizeWorker.Execute();
+			tmout.SetMsecs(30000);
+			while ( !authorizeWorker.IsComplete() && ce == ConnNoError && !tmout.IsExpired() )
+			{
+				ce = onsip.PollXMPP(100);
+				DoEvents();
+			}
+			bAuthorizeError = authorizeWorker.IsError();
+			Logger::log_debug(_T("CConfigDlg::OnBnClickedTest authorize done. ce=%d isComplete=%d isError=%d tmout=%d"), 
+				ce, authorizeWorker.IsComplete(), authorizeWorker.IsError(), tmout.IsExpired() );
+		}
+		// Cursor normal, hide Testing label
+		m_bWaitCursor = false;
+		m_lblTesting.ShowWindow(SW_HIDE);
+
+		// If there was a connection error
+		if ( ce != ConnNoError )
+		{
+			Logger::log_error(_T("CConfigDlg::OnBnClickedTest authorize done. ce=%d "), ce );
+			tstring err = OnSipXmppBase::GetConnectionErrorString(ce);
+			err = Strings::stringFormat(_T("Test failed - unable to authorize\r\n%s"), err.c_str() );
+			MessageBox( err.c_str(), "Error", MB_OK );
+		}
+		// if timeout error
+		else if ( tmout.IsExpired() )
+		{
+			Logger::log_error(_T("CConfigDlg::OnBnClickedTest authorize done. timeout"));
+			MessageBox( _T("Test failed - timed out on trying to access server"), _T("Error"), MB_OK );
+		}
+		// if unable to authorize
+		else if ( bAuthorizeError )
+		{
+			Logger::log_error(_T("CConfigDlg::OnBnClickedTest authorize error"));
+			MessageBox( "Test failed - unable to authorize, check settings", "Error", MB_OK );
+		}
+		// else successful
+		else
+		{
+			Logger::log_debug(_T("CConfigDlg::OnBnClickedTest success"));
+			MessageBox( _T("Test was successful"), _T("Success"), MB_OK );
+		}
+	}
+	onsip.Cleanup();
+
+	// Signal to turn off wait cursor
+	m_OK.EnableWindow();
+	m_Cancel.EnableWindow();
+	m_Testing.EnableWindow();
+}
+
+BOOL CConfigDlg::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
+{
+	// TODO: Add your message handler code here and/or call default
+	if ( m_bWaitCursor )
+	{
+		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+		return TRUE;
+	}
+
+	return CDialog::OnSetCursor(pWnd, nHitTest, message);
 }

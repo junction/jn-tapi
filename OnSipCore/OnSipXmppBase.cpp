@@ -190,6 +190,60 @@ void OnSipXmppBase::Ping()
 		m_gloox->whitespacePing();
 }
 
+// Return a display error string for the specified ConnectionError enum
+//static
+tstring OnSipXmppBase::GetConnectionErrorString(ConnectionError ce)
+{
+	tstring err;
+
+	switch ( ce )
+	{
+		case ConnNoError:
+			break;
+		case ConnStreamError:
+		case ConnStreamVersionError:
+		case ConnStreamClosed:
+			err = Strings::stringFormat(_T("Stream error occurred. %d"), ce );
+			break;
+		case ConnProxyAuthRequired:
+		case ConnProxyAuthFailed:
+		case ConnProxyNoSupportedAuth:
+			err = Strings::stringFormat(_T("Proxy error occurred. %d"), (int) ce );
+			break;
+		case ConnIoError:
+		case ConnParseError:
+			err = Strings::stringFormat(_T("I/O error occurred. %d"), (int) ce );
+			break;
+		case ConnConnectionRefused:
+			err = Strings::stringFormat(_T("Connection was refused. %d"), (int) ce );
+			break;
+		case ConnDnsError:
+			err = Strings::stringFormat(_T("DNS error. %d"), (int) ce );
+			break;
+		case ConnOutOfMemory:
+			err = Strings::stringFormat(_T("Memory error. %d"), (int) ce );
+			break;
+		case ConnNoSupportedAuth:
+		case ConnTlsFailed:
+		case ConnTlsNotAvailable:
+		case ConnCompressionFailed:
+		case ConnUserDisconnected:
+			err = Strings::stringFormat(_T("Internal error. %d"), (int) ce );
+			break;
+		case ConnAuthenticationFailed:
+			err = Strings::stringFormat(_T("Authentication failed. %d"), (int) ce );
+			break;
+		case ConnNotConnected:
+			err = Strings::stringFormat(_T("Could not connect to server. %d"), (int) ce );
+			break;
+		default:
+			err = Strings::stringFormat(_T("Unknown error. %d"), (int) ce );
+			break;
+	}
+	Logger::log_debug(_T("OnSipXmppBase::GetConnectionErrorString ce=%d err=%s"),(int)ce, err.c_str());
+	return err;
+}
+
 /**
 * Reimplement this function if you want to receive the chunks of the conversation
 * between gloox and server.
@@ -231,8 +285,7 @@ void OnSipXmppBase::onConnect()
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 	Logger::log_debug("OnSipXmppBase::onConnect" );
-//	int contextId = UniqueId::getUniqueId();
-//	Authorize(contextId);
+	m_bConnectEvent = true;
 }
 
 //virtual 
@@ -240,8 +293,7 @@ void OnSipXmppBase::onDisconnect( ConnectionError e )
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 	Logger::log_debug("OnSipXmppBase::OnDisconnect: %d", e );
-//	if( e == ConnAuthenticationFailed )
-//		printf( "auth failed. reason: %d\n", j->authError() );
+	m_bDisconnectEvent = true;
 }
 
 //virtual 
