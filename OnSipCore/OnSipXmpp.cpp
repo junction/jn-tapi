@@ -168,7 +168,9 @@ long OnSipXmpp::UnsubscribeCallEvents(const string& nodeid, const string& subid,
 
 	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
 	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
-	string id = m_pubSub->unsubscribe( serviceJid, node, subid, (resultHandler == NULL) ? this : resultHandler, m_gloox->jid().bareJID() );
+
+	string id = m_pubSub->unsubscribe( serviceJid, node, subid, (resultHandler == NULL) ? this : resultHandler, m_gloox->jid() );
+
 	// Not supposed to use this method, it is depracted.
 	// But could not get gloox to call back on the pubsub events or iq 
 	// events without doing this.  May be due to PubSub is using newer

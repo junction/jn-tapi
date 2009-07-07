@@ -147,6 +147,14 @@ bool OnSipInitStateHandler::IsYourEvent(StateMachine<OnSipInitStates::InitStates
 		{
 			// Get next unique ID for Authorize event
 			_contextId = m_pOnSipXmpp->getUniqueId();
+
+		
+			// Ask for current subscriptions.
+			// Subscriptions aren't used for anything, just having in for now so
+			// that we can monitor them during beta phase.
+			// Need to make sure that we are closing down all subscriptions via TAPI.
+			m_pOnSipXmpp->getSubscriptions( NULL );
+
 			// Start the authorize event and set current state
 			m_pOnSipXmpp->Authorize( _contextId );
 			assignNewState( OnSipInitStates::Authorizing, NULL );
