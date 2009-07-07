@@ -149,7 +149,7 @@ TStream& COnSipLine::read(TStream& istm)
 *****************************************************************************/
 void COnSipLine::InitializeStation()
 {
-	LPLINEDEVCAPS lpCaps = GetLineDevCaps();
+//	LPLINEDEVCAPS lpCaps = GetLineDevCaps();
 
 	// TODO: Adjust the ADDRESSCAPS based on this being a station
 	for (int iAddress = 0; iAddress < GetAddressCount(); iAddress++)

@@ -178,7 +178,7 @@ LONG CTspUIApp::providerConfig(DWORD dwProviderID, CWnd* pwndOwner)
 **               control panel applet.
 **
 *****************************************************************************/
-LONG CTspUIApp::lineConfigDialog(DWORD dwDeviceID, CWnd* pwndOwner, CString& /*strDeviceClass*/) 
+LONG CTspUIApp::lineConfigDialog(DWORD dwDeviceID, CWnd* /*pwndOwner*/, CString& /*strDeviceClass*/) 
 {
 	// Convert the device id into a permanent device id to ensure that we
 	// have the correct line device.  Normally the dwDeviceID is simply an

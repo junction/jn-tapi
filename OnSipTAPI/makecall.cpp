@@ -150,9 +150,9 @@ bool COnSipLine::OnMakeCall(RTMakeCall* pRequest, LPCVOID lpBuff)
 bool COnSipLine::OnDial(RTDial* pRequest, LPCVOID lpBuff)
 {
 	// Cast the input opaque pointer back to an event block
-	const COnSipEvent* pEvent = static_cast<const COnSipEvent*>(lpBuff);
+//	const COnSipEvent* pEvent = static_cast<const COnSipEvent*>(lpBuff);
 	CTSPICallAppearance* pCall = pRequest->GetCallInfo();
-	DIALINFO* pAddress = (pRequest->GetCount() > 0) ? pRequest->GetDialableNumber(0) : NULL;
+//	DIALINFO* pAddress = (pRequest->GetCount() > 0) ? pRequest->GetDialableNumber(0) : NULL;
 	
 	// If we are in the initial state (i.e. this request has not been processed
 	// before by any other thread). Then move the packet to the waiting state so 

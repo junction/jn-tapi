@@ -98,7 +98,7 @@ void COnSipServiceProvider::TraceOut(TString& strBuff)
 // This is the main function which converts a dialable number from TAPI into the
 // displayed canonical format.  It utilizes the below two routines.
 //virtual 
-TString COnSipServiceProvider::ConvertDialableToCanonical (LPCTSTR pszNumber, DWORD dwCountry, bool fInbound)
+TString COnSipServiceProvider::ConvertDialableToCanonical (LPCTSTR pszNumber, DWORD /*dwCountry*/, bool /*fInbound*/)
 {
 	// Return back unmodified
 	if ( pszNumber == NULL )

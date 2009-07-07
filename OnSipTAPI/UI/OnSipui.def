@@ -1,5 +1,4 @@
 LIBRARY      "OnSipUI"
-DESCRIPTION  'ONSIPUI Windows Dynamic Link Library'
 
 EXPORTS
 	TUISPI_providerConfig

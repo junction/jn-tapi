@@ -191,7 +191,7 @@ bool OnSipTapi::Poll()
 //   OnSipInitStateMachine do shutdown, unsubscribe, etc.
 void OnSipTapi::Disconnect(bool bShutdown)
 {
-	Logger::log_debug(_T("OnSipTapi::Disconnect bShutdown=%d",bShutdown));
+	Logger::log_debug(_T("OnSipTapi::Disconnect bShutdown=%d"),bShutdown);
 	if ( bShutdown )
 	{
 		AsyncShutdown();

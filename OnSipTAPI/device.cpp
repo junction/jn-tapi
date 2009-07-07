@@ -224,7 +224,7 @@ bool COnSipDevice::DRV_DropCall(const COnSipLine * pLine, CTSPICallAppearance* p
 	return true;
 }
 
-long COnSipDevice::DRV_MakeCall(const COnSipLine* pLine, const TString& strDigits, DWORD dwCountryCode)
+long COnSipDevice::DRV_MakeCall(const COnSipLine* /*pLine*/, const TString& strDigits, DWORD dwCountryCode)
 {
 	Logger::log_debug( _T("COnSipDevice::DRV_MakeCall digits=%s dwCC=%ld"), strDigits.c_str(), dwCountryCode );
 

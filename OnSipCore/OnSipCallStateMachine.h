@@ -125,7 +125,7 @@ class DropRequestEvent : public XmppEvent
 {
 public:
 	long m_callId;
-	DropRequestEvent(long callId) : XmppEvent(XmppEvtType::EVT_DROP_REQUEST,_T(""),JID(),JID(),NULL)
+	DropRequestEvent(long callId) : XmppEvent(EVT_DROP_REQUEST,_T(""),JID(),JID(),NULL)
 	{	m_callId = callId;	}
 
 	virtual string ToString()

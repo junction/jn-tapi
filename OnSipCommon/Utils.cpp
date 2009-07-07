@@ -268,7 +268,7 @@ string Strings::decryptString(const string& strInput,const string& decryptKey)
 {
 	// Convert the base64 into bytes
 	char output[1024];
-	int len=sizeof(output);
+	int len=(int)sizeof(output);
 	BOOL ret = Base64Decode( strInput.data(), strInput.size(), (BYTE *)output, &len );
 	_ASSERT(ret);
 
@@ -290,7 +290,7 @@ string Strings::encryptString(const string& strInput,const string& encryptKey)
 
 	// Convert the string to base64
 	char output[1024];
-	int len=sizeof(output);
+	int len=(int)sizeof(output);
 	BOOL ret = Base64Encode( (const BYTE*) strRet.data(), strRet.size(), output, &len, ATL_BASE64_FLAG_NOPAD | ATL_BASE64_FLAG_NOCRLF );
 	_ASSERT(ret);
 

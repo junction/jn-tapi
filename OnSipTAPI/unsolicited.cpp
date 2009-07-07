@@ -59,7 +59,6 @@ bool COnSipLine::UnsolicitedConnectedEvent(const COnSip_ConnectEvent *pConnectEv
 	Logger::log_debug(_T("COnSipLine::UnsolicitedConnectedEvent line=%p"), this );
 
 	// Get the connection state and state type
-	OnSipInitStates::InitStates state = pConnectEvent->GetInitState();
 	TCHAR *szState = pConnectEvent->GetInitStateAsString();
 	OnSipInitStatesType::InitStatesType stateType = pConnectEvent->GetInitStateType();
 	TCHAR *szStateType = pConnectEvent->GetInitStateTypeAsString();

@@ -43,7 +43,7 @@ public:
 class ShutdownRequestEvent : public XmppEvent
 {
 public:
-	ShutdownRequestEvent() : XmppEvent(XmppEvtType::EVT_SHUTDOWN_REQUEST,_T(""),JID(),JID(),NULL)
+	ShutdownRequestEvent() : XmppEvent(EVT_SHUTDOWN_REQUEST,_T(""),JID(),JID(),NULL)
 	{	}
 
 	virtual string ToString()
