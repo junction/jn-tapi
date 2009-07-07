@@ -57,3 +57,11 @@ TSP release 6-19-09 - fixes
    1) changed re-authorize interval from 2 hours to 1 hour
    2) changed handling of calling sip numbers, some improvement
       in handling the phone number, does not have to begin with sip:
+
+TSP release 7-7-09 - fixes
+   1) do re-authorization and re-subscription every 50 minutes
+   2) unsubscribe works now on tapi line shutdown
+   3) first version of Installer using Inno Setup
+   4) Added "Test" button to Config dialog
+   5) Added documentation
+
