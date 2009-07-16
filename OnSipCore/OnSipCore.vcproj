@@ -143,7 +143,7 @@
 	<References>
 		<ProjectReference
 			ReferencedProjectIdentifier="{F50EF1F9-FAA4-4A54-9D80-08AC64A673F9}"
-			RelativePathToProject=".\gloox\gloox.vcproj"
+			RelativePathToProject="..\gloox\gloox.vcproj"
 		/>
 	</References>
 	<Files>
@@ -152,6 +152,14 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
+			<File
+				RelativePath="..\OnSipCommon\FileIo.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\OnSipCommon\FileIo.h"
+				>
+			</File>
 			<File
 				RelativePath="..\OnSipCommon\Logger.cpp"
 				>

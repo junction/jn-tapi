@@ -21,6 +21,8 @@
 #include <spbstrm.h>
 #include "logger.h"
 #include "OnSipInitStateMachine.h"
+#include "shlobj.h"
+#include "fileio.h"
 
 	// Hide constructor so class cannot be created directly
 COnSipEvent::COnSipEvent(OnSipEventType evtType)
@@ -241,6 +243,16 @@ long COnSipDevice::DRV_MakeCall(const COnSipLine* /*pLine*/, const TString& strD
 //virtual 
 bool COnSipDevice::OpenDevice (CTSPIConnection* pConn)
 {
+	// TEST RSLBAD TODO remove, test to see if we can write to a file from TAPI access
+	FileIO f;
+	TCHAR szPath[MAX_PATH];
+	SHGetFolderPath( NULL, CSIDL_COMMON_APPDATA, NULL, 0, szPath );
+	tstring path = Strings::stringFormat(_T("%s\\TEST.LOG"), szPath );
+	bool bOpen = f.Open( path.c_str() );
+	f.Write("this is a test\r\n");
+	f.Close();
+	Logger::log_debug("COnSipDevice::OpenDevice filetest path=%s bOpen=%d", path.c_str(), bOpen );
+
 	// Cast the connection to a line
 	CTSPILineConnection* pLine = dynamic_cast<CTSPILineConnection*>(pConn);
 
