@@ -58,10 +58,20 @@ TSP release 6-19-09 - fixes
    2) changed handling of calling sip numbers, some improvement
       in handling the phone number, does not have to begin with sip:
 
-TSP release 7-7-09 - fixes
+TSP release 7-7-09 - fixes  v1.01 Installer
    1) do re-authorization and re-subscription every 50 minutes
    2) unsubscribe works now on tapi line shutdown
    3) first version of Installer using Inno Setup
    4) Added "Test" button to Config dialog
    5) Added documentation
+
+TSP release 7-16-09 - fixes  v1.02 Installer
+   1) fixed Test button so that it did not start the OnSipIniStateMachine,
+        and thus do full subscribe, etc.
+   2) added test to write to TEST.LOG in All Users\Application directory
+   3) problem was reported with Outlook and going from Dialing to OnHook.
+      Initially saw this problem, but log file was not complete and was missing
+      some data.  Then, tried to repeat and was unable to.  It worked ok.
+      So no changes in this area.
+
 
