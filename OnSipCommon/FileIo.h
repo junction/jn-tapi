@@ -1,6 +1,3 @@
-#include "stdafx.h"
-#include "Logger.h"
-
 #ifndef FILEIO_H
 #define FILEIO_H
 
