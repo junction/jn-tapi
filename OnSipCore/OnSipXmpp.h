@@ -15,9 +15,6 @@ private:
 	// Helper method to signal all state machines of the event
 	void _signalEvent(XmppEvent *pEvent);
 
-	// Unique ID generator, THREAD-SAFE
-	UniqueId_ts _ids;
-
 	// Keep track of the last state from the InitStateMachine
 	OnSipInitStates::InitStates m_lastInitState;
 
@@ -58,16 +55,16 @@ public:
 
 	// non-thread-safe functions 
 	// providing OnSip specific XMPP communication
-	void Authorize(int contextId,IqHandler* iqHandler=NULL);
+	void Authorize(int contextId);
 	// Enable call events on OnSIP PBX
 	// returns the Id used for event
 	//  expireTime in XMPP format, e.g. 2006-03-31T23:59Z
 	//  can pass empty string to not have field passed in subscribe request
-	string SubscribeCallEvents(const string& expireTime,ResultHandler* resultHandler=NULL);
-	long UnsubscribeCallEvents(const string& subid,ResultHandler* resultHandler=NULL,IqHandler* iqHandler=NULL);
-	long UnsubscribeCallEvents(const string& nodeid, const string& subid,ResultHandler* resultHandler,IqHandler* iqHandler);
+	string SubscribeCallEvents(const string& expireTime);
+	long UnsubscribeCallEvents(const string& subid);
+	long UnsubscribeCallEvents(const string& nodeid, const string& subid);
 	// Trigger request from server for it to return the list of all subscriptions
-	void getSubscriptions(ResultHandler *resultHandler);
+	void getSubscriptions();
 
 	// Ping to server to keep it alive
 	void Ping()
@@ -89,10 +86,6 @@ public:
 	// the Iq Result will have the same contextId.
 	// Returns the XMPP id used for the request
 	tstring DropCall(tstring sipCallid,tstring fromTag,tstring toTag, long contextId);
-
-	// THREAD-SAFE
-	// Get next unique ID for contextId and other various purposes
-	long getUniqueId() { return _ids.getNextId(); }
 
 	// Start the Xmpp connection.  This function is asynchronous,
 	// PollXMPP() should be called in tight loop,
@@ -135,8 +128,6 @@ public:
 	// This is asynchronous and thread-safe.
 	// Drop the specified call
 	void DropCall(long callId);
-
-
 
 	// Return the last notified (current) state of the InitStateMachine
 	OnSipInitStates::InitStates GetInitStateMachineState()

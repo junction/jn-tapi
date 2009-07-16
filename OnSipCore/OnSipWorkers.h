@@ -9,10 +9,10 @@
 class OnSipWorker
 {
 protected:
-	OnSipXmpp* _onSipXmpp;
+	OnSipXmppBase* _onSipXmpp;
 	TimeElapsed timer;		// Keep track of how long been around
 
-	OnSipWorker( OnSipXmpp* onSipXmpp )
+	OnSipWorker( OnSipXmppBase* onSipXmpp )
 	{	
 		_onSipXmpp = onSipXmpp;	
 		timer.Reset();
@@ -103,7 +103,7 @@ private:
 	string _expireDate;
 
 public:
-	AuthorizeWorker( OnSipXmpp* onSipXmpp ) : OnSipWorker( onSipXmpp ) 
+	AuthorizeWorker( OnSipXmppBase* onSipXmpp ) : OnSipWorker( onSipXmpp ) 
 	{	_bComplete = false; _bError = false;	}
 
 	void Execute();
@@ -136,7 +136,7 @@ private:
 	void _unregister();
 
 public:
-	EnableCallEventsWorker( OnSipXmpp* onSipXmpp ) : OnSipWorker( onSipXmpp ) 
+	EnableCallEventsWorker( OnSipXmppBase* onSipXmpp ) : OnSipWorker( onSipXmpp ) 
 	{	_bComplete = false; _bError = false; _bRegister=false;	}
 
 	virtual ~EnableCallEventsWorker()
@@ -175,7 +175,7 @@ private:
 	STATE _state;
 
 public:
-	ReAuthorizeSubscribeWorker( OnSipXmpp* onSipXmpp ) : OnSipWorker( onSipXmpp ) 
+	ReAuthorizeSubscribeWorker( OnSipXmppBase* onSipXmpp ) : OnSipWorker( onSipXmpp ) 
 	{	_bComplete = false; _bError = false; _state = None; }
 
 //	void Execute(const string& oldSubId);

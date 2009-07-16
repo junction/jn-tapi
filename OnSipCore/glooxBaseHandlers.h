@@ -12,6 +12,7 @@
 #include "iqhandler.h"
 #include "connectionlistener.h"
 #include "pubsubresulthandler.h"
+#include "messagehandler.h"
 #include "error.h"
 #include "pubsub.h"
 
@@ -32,6 +33,13 @@ public:
 	virtual void onSessionCreateError( const Error* /*error*/ ) { Logger::log_debug("ConnectionListenerBase::onSessionCreateError"); }
 	virtual bool onTLSConnect( const CertInfo& /*info*/ ) { Logger::log_warn("ConnectionListenerBase::onTLSConnect"); return false; }
 	virtual void onStreamEvent( StreamEvent /*event*/ ) { Logger::log_debug("ConnectionListenerBase::onStreamEvent");  }
+};
+
+class MessageHandlerBase : public MessageHandler
+{
+public:
+	virtual void handleMessage( const Message& msg, MessageSession* session = 0 )
+	{	Logger::log_debug("MessageHandlerBase::handleMessage");  }
 };
 
 class PubSubResultHandlerBase : public PubSub::ResultHandler

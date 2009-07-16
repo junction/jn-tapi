@@ -122,7 +122,7 @@ void EnableCallEventsWorker::Execute(const string& expireTime)
 	// Register the message handler
 	_bRegister = true;
 	_onSipXmpp->getGloox()->registerMessageHandler(this);
-	_onSipXmpp->SubscribeCallEvents(expireTime);
+	_onSipXmpp->SubscribeCallEvents(expireTime, this );
 }
 
 //virtual 

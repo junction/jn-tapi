@@ -183,9 +183,9 @@ void CConfigDlg::OnBnClickedTest()
 	bool bSuccess = false;
 
 	// Connect to server
-	OnSipXmpp onsip;
+	OnSipXmppBase onsip;
 	LoginInfo login( m_userName.GetBuffer(), m_passWord.GetBuffer(), m_domain.GetBuffer() );
-	ConnectionError ce = onsip.Start(login);
+	ConnectionError ce = onsip.Start(login,false);
 	Logger::log_debug(_T("CConfigDlg::OnBnClickedTest onsip::Starrt ce=%d"), ce );
 
 	// If unable to make initial connection to server
@@ -209,7 +209,7 @@ void CConfigDlg::OnBnClickedTest()
 		// Wait til we are connected, or until we go disconnected, or until timeout
 		while ( !onsip.GotConnectEvent() && !onsip.GotDisconnectEvent() &&  !tmout.IsExpired() )
 		{
-			onsip.PollXMPP(100);
+			onsip.AsyncPolling(100);
 			DoEvents();
 		}
 
@@ -236,7 +236,7 @@ void CConfigDlg::OnBnClickedTest()
 			tmout.SetMsecs(30000);
 			while ( !authorizeWorker.IsComplete() && ce == ConnNoError && !tmout.IsExpired() )
 			{
-				ce = onsip.PollXMPP(100);
+				ce = onsip.AsyncPolling(100);
 				DoEvents();
 			}
 			bAuthorizeError = authorizeWorker.IsError();
@@ -274,7 +274,7 @@ void CConfigDlg::OnBnClickedTest()
 			MessageBox( _T("Test was successful"), _T("Success"), MB_OK );
 		}
 	}
-	onsip.Cleanup();
+	onsip.AsyncCleanup();
 
 	// Signal to turn off wait cursor
 	m_OK.EnableWindow();

@@ -20,68 +20,6 @@
 
 #include "OnSipInitStateMachine.h"
 
-// BIG TO DO ITEMS...
-
-//  4) Use Gizmo phone to register 2 phone clients on the computer.
-//      a) XMPP will get 2 incoming requested events for incoming calls and possibly other events.
-//      b) The SIP callid is the same for the multiple reqeusts, but the branches will be different.
-//      c) Once a call is answered, one of the branches will be retracted, the other will be confirmed.
-//      d) Need to track the branches for the multiple requests and do not reports all events for these, need
-//          to track the active one and not report the retracted one unless they all go retracted
-
-//   Should the server do an update on callstate every so often so that we know that the call still lives.
-
-//  Test button in the TAPI Config Dialog
-
-// Need to handle timeouts in the OnSipInitMachine state handlers in case it is
-//  in a wrong state too long (besides error).  It may need to re-start the authorize
-
-// Branches..
-//  If multiple calls, does DROP need to drop them all!
-//  Update IncomingCallHandler to check for error, commented out for now
-
-// On a drop call request, if the drop call request does not work, then we
-// need to notify the state handler handling this request to go ahead and drop
-// the call.  Assume that there is some issue with the server not responding
-// and the call really is dropped.
-// Currently, we create new handler to drop the call, and it really is never
-// added to the state macine.  Need to notify current state handler somehow.
-
-// Turn off debug in release mode, enable by registry key
-
-// Detect busy call.  If able to, add BUSY to LINEADDRESSCAPS.dwBusyModes and dwCallStates
-
-//  Get rid of caller-id for incoming calls, currently is showing sip numbers.  And for PSTN calls, is showing your own sip address.
-//   DONE - verify
-
-// During re-authorization, we may report back OnConnect(false) due to going through the different 
-//states or the re-auth.
-
-// Double check all IsYourEvent and make sure events are being deleted if returning back TRUE
-
-//  Decrypt the password for logon
-
-//  Are there some cases where to-tag or from-tag are not specified in the active call events.
-//  If so, will there be a case that we need to hang up this call.  The terminate method
-// requries a valid value for both.  I did have an error, but didn't spend much time on it.
-//     MakeCall - initial inbound call,  MakeCall - initial outbound call
-
-//  Take over Init() method in Line.cpp  TAPI dependent source
-// e.g. void CDSLine::Init (CTSPIDevice* pDev, DWORD dwLineDeviceID, DWORD dwPos, DWORD /*dwItemData*/)
-//      see above in dssp\tsp\line.cpp, set capabilities etc.
-//     This could also be done in the Line::read() method, see  jtsp\tsp\line.cpp,  set capabilities, etc.
-
-//  TAPI dwAddressSize/Offset - change to "OnSIP [PHONENUMBER]"
-
-// TODO
-//  3) In IsYourEvent and handlers, need to check for error event!!
-//  4) In any state where a response is expected, need to poll and make sure not stuck.
-//      e.g. did authorized or enable call events, and never got a response
-//  5) For EnableCallEvents PubSub, first get back an "iq" pending, then followed by message.
-//       Need to check the subscription result and make sure not an error.  Response does not come to iq, 
-//       it goes resultsHandler::handleSubscriptionResult.  
-//  8) verify the TLS on connect
-
 OnSipXmpp::OnSipXmpp()
 {
 	Logger::log_debug(_T("OnSipXmpp::OnSipXmpp"));
@@ -107,91 +45,50 @@ OnSipXmpp::~OnSipXmpp()
 // Authorize with OnSip PBX
 // Pass unique contextId to be associated with this request,
 // the Iq Result will have the same contextId
-void OnSipXmpp::Authorize(int contextId,IqHandler* iqHandler)
+void OnSipXmpp::Authorize(int contextId)
 {
-	Logger::log_debug("OnSipXmpp::Authorize contextId %d iqh=%p",contextId, iqHandler );
+	Logger::log_debug("OnSipXmpp::Authorize contextId %d",contextId);
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-
-	// Create DataForm
-	DataForm* settings = new DataForm( gloox::TypeSubmit );
-	// Add sip address field
-	DataFormField* dff = new DataFormField( "sip-address", m_login.SIPAddress() );
-	settings->addField(dff);
-	// Add password field
-	dff = new DataFormField( "password", m_login.m_password, EmptyString, DataFormField::TypeTextPrivate );
-	settings->addField(dff);
-	// Add command
-	JID toJid( "commands.auth.xmpp.onsip.com" );
-	IQ iq( IQ::Set, toJid, m_gloox->getID() );
-	Adhoc::Command *cmd = new Adhoc::Command( "authorize-plain", EmptyString, Adhoc::Command::Executing, settings );
-	iq.addExtension( cmd );
-
-	Logger::log_debug("OnSipXmpp::Authorize sending");
-	m_gloox->send( iq, (iqHandler==NULL) ? this : iqHandler , contextId );
+	OnSipXmppBase::Authorize(contextId,this);
 }
-
 
 // Enable call events on OnSIP PBX
 // returns the Id used for event
 //  expireTime in XMPP format, e.g. 2006-03-31T23:59Z
 //  can pass empty string to not have field passed in subscribe request
-string OnSipXmpp::SubscribeCallEvents(const string& expireTime,ResultHandler* resultHandler)
+string OnSipXmpp::SubscribeCallEvents(const string& expireTime)
 {
-	Logger::log_debug("OnSipXmpp::SubscribeCallEvents expireTime='%s' rh=%p", expireTime.c_str(), resultHandler );
+	Logger::log_debug("OnSipXmpp::SubscribeCallEvents expireTime='%s", expireTime.c_str() );
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-
-	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
-	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
-
-	string id = m_pubSub->subscribe( serviceJid, node, (resultHandler!=NULL) ? resultHandler : this, m_gloox->jid().full(), PubSub::SubscriptionItems, 0, expireTime  );
-
-	Logger::log_debug("OnSipXmpp::SubscribeCallEvents sending id=%s", id.c_str() );
-	return id;
+	return OnSipXmppBase::SubscribeCallEvents(expireTime,this);
 }
 
 // Unscribe call events on OnSIP PBX, pass the subid
 // used in the resulting subscribe success
 // returns the context id for the Iq event
-long OnSipXmpp::UnsubscribeCallEvents(const string& subid,ResultHandler* resultHandler,IqHandler* iqHandler)
+long OnSipXmpp::UnsubscribeCallEvents(const string& nodeid, const string& subid)
 {
-	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
-	return UnsubscribeCallEvents(node,subid,resultHandler,iqHandler);
+	Logger::log_debug("OnSipXmpp::UnsubscribeCallEvents nodeid=%s subid=%s", nodeid.c_str(), subid.c_str() );
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+	return OnSipXmppBase::UnsubscribeCallEvents(nodeid,subid,this,this);
 }
 
 // Unscribe call events on OnSIP PBX, pass the subid
 // used in the resulting subscribe success
 // returns the context id for the Iq event
-long OnSipXmpp::UnsubscribeCallEvents(const string& nodeid, const string& subid,ResultHandler* resultHandler,IqHandler* iqHandler)
+long OnSipXmpp::UnsubscribeCallEvents(const string& subid)
 {
-	Logger::log_debug("OnSipXmpp::UnsubscribeCallEvents nodeid=%s subid=%s rh=%p iq=%p", nodeid.c_str(), subid.c_str(), resultHandler, iqHandler );
+	Logger::log_debug("OnSipXmpp::UnsubscribeCallEvents subid=%s", subid.c_str() );
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-
-	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
-	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
-
-	string id = m_pubSub->unsubscribe( serviceJid, node, subid, (resultHandler == NULL) ? this : resultHandler, m_gloox->jid() );
-
-	// Not supposed to use this method, it is depracted.
-	// But could not get gloox to call back on the pubsub events or iq 
-	// events without doing this.  May be due to PubSub is using newer
-	// subscribe/unsubscribe model than gloox is updated for.
-	// e.g. had to create custom extension (OnSipStanzaExtensions.cpp)
-	// for subscribe to work.
-	long contextId = getUniqueId();
-	m_gloox->trackID( (iqHandler==NULL) ? this : iqHandler, id, contextId  );
-	Logger::log_debug("OnSipXmpp::UnsubscribeCallEvents sending id=%s, contextId=%ld", id.c_str(), contextId );
-	return contextId;
+	return OnSipXmppBase::UnsubscribeCallEvents(subid,this,this);
 }
 
 // Trigger request from server for it to return the list of all subscriptions
-void OnSipXmpp::getSubscriptions(ResultHandler *resultHandler)
+void OnSipXmpp::getSubscriptions()
 {
 	Logger::log_debug("OnSipXmpp::getSubscriptions");
-	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
-
-	// Get the current subscriptions
-	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
-	m_pubSub->getSubscriptions( serviceJid, (resultHandler==NULL) ? this : resultHandler );
+	_checkThread.CheckSameThread();
+	OnSipXmppBase::getSubscriptions(this);
 }
 
 // Call number on PBX

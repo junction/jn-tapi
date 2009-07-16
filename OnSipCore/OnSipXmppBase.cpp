@@ -168,6 +168,99 @@ ConnectionError OnSipXmppBase::AsyncPolling(DWORD dwMsecs)
 	return ce;
 }
 
+// Authorize with OnSip PBX
+// Pass unique contextId to be associated with this request,
+// the Iq Result will have the same contextId
+void OnSipXmppBase::Authorize(int contextId,IqHandler* iqHandler)
+{
+	Logger::log_debug("OnSipXmppBase::Authorize contextId %d iqh=%p",contextId, iqHandler );
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	// Create DataForm
+	DataForm* settings = new DataForm( gloox::TypeSubmit );
+	// Add sip address field
+	DataFormField* dff = new DataFormField( "sip-address", m_login.SIPAddress() );
+	settings->addField(dff);
+	// Add password field
+	dff = new DataFormField( "password", m_login.m_password, EmptyString, DataFormField::TypeTextPrivate );
+	settings->addField(dff);
+	// Add command
+	JID toJid( "commands.auth.xmpp.onsip.com" );
+	IQ iq( IQ::Set, toJid, m_gloox->getID() );
+	Adhoc::Command *cmd = new Adhoc::Command( "authorize-plain", EmptyString, Adhoc::Command::Executing, settings );
+	iq.addExtension( cmd );
+
+	Logger::log_debug("OnSipXmppBase::Authorize sending");
+	_ASSERT( iqHandler != NULL );
+	m_gloox->send( iq, iqHandler, contextId );
+}
+
+// Enable call events on OnSIP PBX
+// returns the Id used for event
+//  expireTime in XMPP format, e.g. 2006-03-31T23:59Z
+//  can pass empty string to not have field passed in subscribe request
+string OnSipXmppBase::SubscribeCallEvents(const string& expireTime,ResultHandler* resultHandler)
+{
+	Logger::log_debug("OnSipXmppBase::SubscribeCallEvents expireTime='%s' rh=%p", expireTime.c_str(), resultHandler );
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
+	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
+
+	_ASSERT( resultHandler != NULL );
+	string id = m_pubSub->subscribe( serviceJid, node, resultHandler, m_gloox->jid().full(), PubSub::SubscriptionItems, 0, expireTime  );
+
+	Logger::log_debug("OnSipXmppBase::SubscribeCallEvents sending id=%s", id.c_str() );
+	return id;
+}
+
+// Unscribe call events on OnSIP PBX, pass the subid
+// used in the resulting subscribe success
+// returns the context id for the Iq event
+long OnSipXmppBase::UnsubscribeCallEvents(const string& subid,ResultHandler* resultHandler,IqHandler* iqHandler)
+{
+	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
+	return UnsubscribeCallEvents(node,subid,resultHandler,iqHandler);
+}
+
+// Unscribe call events on OnSIP PBX, pass the subid
+// used in the resulting subscribe success
+// returns the context id for the Iq event
+long OnSipXmppBase::UnsubscribeCallEvents(const string& nodeid, const string& subid,ResultHandler* resultHandler,IqHandler* iqHandler)
+{
+	Logger::log_debug("OnSipXmppBase::UnsubscribeCallEvents nodeid=%s subid=%s rh=%p iq=%p", nodeid.c_str(), subid.c_str(), resultHandler, iqHandler );
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+
+	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
+	string node = Strings::stringFormat("/%s/%s", m_login.m_domain.c_str(), m_login.m_name.c_str() );
+
+	_ASSERT( resultHandler != NULL );
+	string id = m_pubSub->unsubscribe( serviceJid, node, subid, resultHandler, m_gloox->jid() );
+
+	// Not supposed to use this method, it is depracted.
+	// But could not get gloox to call back on the pubsub events or iq 
+	// events without doing this.  May be due to PubSub is using newer
+	// subscribe/unsubscribe model than gloox is updated for.
+	// e.g. had to create custom extension (OnSipStanzaExtensions.cpp)
+	// for subscribe to work.
+	long contextId = getUniqueId();
+	_ASSERT( iqHandler != NULL );
+	m_gloox->trackID( iqHandler, id, contextId  );
+	Logger::log_debug("OnSipXmppBase::UnsubscribeCallEvents sending id=%s, contextId=%ld", id.c_str(), contextId );
+	return contextId;
+}
+
+// Trigger request from server for it to return the list of all subscriptions
+void OnSipXmppBase::getSubscriptions(ResultHandler *resultHandler)
+{
+	Logger::log_debug("OnSipXmppBase::getSubscriptions");
+	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
+	// Get the current subscriptions
+	JID serviceJid( "pubsub.active-calls.xmpp.onsip.com" );
+	_ASSERT( resultHandler != NULL );
+	m_pubSub->getSubscriptions( serviceJid, resultHandler );
+}
+
 // If Start() was called non-Sync, then this method should
 // be called after AsyncPolling and ready to exit XMPP engine
 void OnSipXmppBase::AsyncCleanup()

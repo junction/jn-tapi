@@ -9,13 +9,13 @@
 
 #define LOGGING_MAX_CHARS_LIMIT  2048
 
-#if DEBUG
+//#if DEBUG
 int Logger::_consoleLevel  = LEVEL_DEBUG;
 int Logger::_win32Level  = LEVEL_DEBUG;
-#else
-int Logger::_consoleLevel  = LEVEL_ERROR;
-int Logger::_win32Level  = LEVEL_ERROR;
-#endif
+//#else
+//int Logger::_consoleLevel  = LEVEL_ERROR;
+//int Logger::_win32Level  = LEVEL_ERROR;
+//#endif
 
 bool Logger::_checkLevel(int level)
 {	return ( _consoleLevel >= level || _win32Level >= level );	}
