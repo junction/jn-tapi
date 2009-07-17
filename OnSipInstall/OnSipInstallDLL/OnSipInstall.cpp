@@ -8,7 +8,7 @@
 #include <string>
 #include "Utils.h"
 
-#define TSPNAME "OnSip.tsp"
+#define TSPNAME "OnSIP.tsp"
 
 #undef DLLEXPORT
 #define DLLEXPORT extern "C" 

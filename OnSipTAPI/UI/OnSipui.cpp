@@ -77,7 +77,7 @@ LONG CTspUIApp::providerInstall(DWORD dwPermanentProviderID, CWnd* pwndOwner)
 	// Verify that our TSP is not already installed; in most implementations
 	// you should only allow for one device per TSP.
 	DWORD dwMyPPid = 0;
-	LONG lResult = IsProviderInstalled(_T("OnSip.tsp"), &dwMyPPid);
+	LONG lResult = IsProviderInstalled(_T("OnSIP.tsp"), &dwMyPPid);
 	if (lResult == 0) // Returns LINEERR_NOMULTIPLEINSTANCE if already installed
 	{
 		// Create the device object which represents this provider. 
@@ -99,10 +99,10 @@ LONG CTspUIApp::providerInstall(DWORD dwPermanentProviderID, CWnd* pwndOwner)
 			ASSERT (pDevice != NULL);
 			CUIDevice* pOurDevice = static_cast<CUIDevice*>(pDevice);
 
-			dlg.SetValues(pOurDevice->m_phoneNumber,pOurDevice->m_userName,pOurDevice->m_password,pOurDevice->m_domain);
+			dlg.SetValues(pOurDevice->m_phoneNumber,pOurDevice->m_sipAddress,pOurDevice->m_password);
 			if (dlg.DoModal() == IDOK)
 			{
-				dlg.GetValues(pOurDevice->m_phoneNumber,pOurDevice->m_userName,pOurDevice->m_password,pOurDevice->m_domain);
+				dlg.GetValues(pOurDevice->m_phoneNumber,pOurDevice->m_sipAddress,pOurDevice->m_password);
 				// create a line and phone so the generated provider will have
 				// devices. The first parameter is a unique identifier for the device
 				// which is used to locate the device in the provider code.
@@ -152,10 +152,10 @@ LONG CTspUIApp::providerConfig(DWORD dwProviderID, CWnd* pwndOwner)
 
 	Logger::log_debug("CTspUIApp::providerConfig pOurDevice=%p",pOurDevice);
 
-	dlg.SetValues(pOurDevice->m_phoneNumber,pOurDevice->m_userName,pOurDevice->m_password,pOurDevice->m_domain);
+	dlg.SetValues(pOurDevice->m_phoneNumber,pOurDevice->m_sipAddress,pOurDevice->m_password);
 	if (dlg.DoModal() == IDOK)
 	{
-		dlg.GetValues(pOurDevice->m_phoneNumber,pOurDevice->m_userName,pOurDevice->m_password,pOurDevice->m_domain);
+		dlg.GetValues(pOurDevice->m_phoneNumber,pOurDevice->m_sipAddress,pOurDevice->m_password);
 		// Save off all our registry data. This is a built-in function of 
 		// the TSP++ UI library and dumps all created objects into the registry.
 		SaveObjects();
@@ -235,9 +235,8 @@ TStream& CUIDevice::read(TStream& istm)
 	CTSPUIDevice::read(istm);
 
 	// Read values directly from the registry
-	m_userName = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_USERNAME, _T("") );
+	m_sipAddress = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_SIPADDRESS, _T("") );
 	m_password = Strings::decryptString( GetUISP()->ReadProfileString(m_dwPermProviderID, REG_PASSWORD, _T("") ).GetBuffer(), KEY_VALUE );
-	m_domain =  GetUISP()->ReadProfileString(m_dwPermProviderID, REG_DOMAIN, _T("") );
 	m_phoneNumber = GetUISP()->ReadProfileString(m_dwPermProviderID, REG_PHONENUMBER, _T("") );
 
 	return istm;
@@ -262,9 +261,8 @@ TStream& CUIDevice::write(TStream& ostm) const
 	CTSPUIDevice::write(ostm);
 
 	// Write values directly to the registry
-	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_USERNAME, m_userName.c_str() );
+	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_SIPADDRESS, m_sipAddress.c_str() );
 	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_PASSWORD,  Strings::encryptString( m_password, KEY_VALUE ).c_str() );
-	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_DOMAIN, m_domain.c_str() );
 	GetUISP()->WriteProfileString(m_dwPermProviderID, REG_PHONENUMBER, m_phoneNumber.c_str() );
 
 	return ostm;

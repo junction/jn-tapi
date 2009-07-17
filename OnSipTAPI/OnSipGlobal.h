@@ -16,9 +16,8 @@
 
 // Registry Value Names
 
-#define REG_USERNAME	_T("Username")
+#define REG_SIPADDRESS	_T("SipAddress")
 #define REG_PASSWORD	_T("Password")
-#define REG_DOMAIN		_T("Domain")
 #define REG_PHONENUMBER	_T("PhoneNumber")
 
 // If this value is changed, it must match the value in OnSipUI.h EXACTLY

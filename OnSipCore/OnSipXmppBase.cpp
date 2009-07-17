@@ -75,7 +75,7 @@ ConnectionError OnSipXmppBase::Start(LoginInfo& loginInfo,bool bSync)
 	//m_gloox->registerIqHandler( this, 0 );
 
 	//	  j->registerTagHandler( this, "iq", EmptyString );
-	m_gloox->disco()->setVersion( "OnSip", GLOOX_VERSION, "Windows" );
+	m_gloox->disco()->setVersion( "OnSIP", GLOOX_VERSION, "Windows" );
 	//	  j->disco()->setIdentity( "client", "bot" );
 	//	  j->disco()->addFeature( XMLNS_CHAT_STATES );
 	m_gloox->disableRoster();

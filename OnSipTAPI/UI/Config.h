@@ -47,14 +47,12 @@ public:
 // Implementation
 protected:
 	CEdit m_txtPhoneNumber;
-	CEdit m_txtUserName;
+	CEdit m_txtSipAddress;
 	CEdit m_txtPassword;
-	CEdit m_txtDomain;
 
 	CString m_phoneNumber;
-	CString m_userName;
+	CString m_sipAddress;
 	CString m_passWord;
-	CString m_domain;
 
 	// Generated message map functions
 	//{{AFX_MSG(CConfigDlg)
@@ -64,8 +62,8 @@ protected:
 public:
 	afx_msg void OnBnClickedOk();
 
-	void SetValues(const tstring& phoneNumber,const tstring& userName,const tstring& passWord,const tstring& domain);
-	void GetValues(tstring& phoneNumber,tstring& userName,tstring& passWord,tstring& domain);
+	void SetValues(const tstring& phoneNumber,const tstring& sipAddress,const tstring& passWord);
+	void GetValues(tstring& phoneNumber,tstring& sipAddress,tstring& passWord);
 public:
 	afx_msg void OnBnClickedTest();
 public:

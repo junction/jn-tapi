@@ -31,6 +31,12 @@ public:
 
 };
 
+class Utils
+{
+public:
+	static bool ParseSIP(const tstring& sipAddress,tstring* userName,tstring* domain);
+};
+
 // Class that can be used to determine the
 // amount of time that has elapsed in msecs
 class TimeElapsed
@@ -92,6 +98,7 @@ private:
 
 public:
 	static tstring stringFormat(const TCHAR* format, ...);
+	static tstring_vector split(const tstring& str, const tstring& delimiters);
 
 	// string converts from mulibyte to widechar, and back
 	static string convert(const wstring& src);

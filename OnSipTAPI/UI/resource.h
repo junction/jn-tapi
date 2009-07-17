@@ -3,13 +3,11 @@
 // Used by OnSipui.rc
 //
 #define IDD_CONFIG_DIALOG               101
-#define IDI_ICON1                       102
 #define IDI_ICON                        102
 #define IDC_EDIT_PHONENUMBER            1000
-#define IDC_EDIT_USERNAME               1001
+#define IDC_EDIT_SIPADDRESS             1001
 #define IDC_EDIT_PASSWORD               1002
 #define IDC_EDIT4                       1003
-#define IDC_EDIT_DOMAIN                 1003
 #define IDC_TEST                        1004
 #define IDC_TESTING                     1005
 #define IDC_TITLE                       1006

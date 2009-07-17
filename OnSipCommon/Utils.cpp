@@ -73,6 +73,56 @@ tstring DateTimeOperations::getUTCTimeString(time_t& t)
 //*************************************************************
 //*************************************************************
 
+//static the sip address (e.g.  "sip:name@domain.com" into the 
+//  name and domain parts.  The prefix "sip:" is optional.
+//  Returns false if sipaddress is not in correct format.
+bool Utils::ParseSIP(const tstring& sipAddress,tstring* userName,tstring* domain)
+{
+	tstring sipaddr = Strings::trim(sipAddress);
+	if ( sipaddr.empty() )
+		return false;
+	// Remove "sip:" prefix
+	if ( Strings::startsWith( Strings::tolower(sipaddr), _T("sip:") ) )
+		sipaddr = sipaddr.substr(4);
+	// Ensure has "@"
+	if ( !Strings::contains(sipaddr,_T("@")) )
+		return false;
+	// Break up values by "@"
+	tstring_vector vals = Strings::split(sipaddr,"@");
+	if ( vals.size() != 2 )
+		return false;
+	*userName = vals[0];
+	*domain = vals[1];
+	// If domain does not contain a ".", then an error
+	if ( !Strings::contains(*domain,_T(".")) )
+		return false;
+	return true;
+}
+
+//*************************************************************
+//*************************************************************
+
+tstring_vector Strings::split(const tstring& str, const tstring& delimiters)
+{
+	tstring_vector tokens;
+
+	// Skip delimiters at beginning.
+	string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+	// Find first "non-delimiter".
+	string::size_type pos     = str.find_first_of(delimiters, lastPos);
+
+	while (string::npos != pos || string::npos != lastPos)
+	{
+		// Found a token, add it to the vector.
+		tokens.push_back(str.substr(lastPos, pos - lastPos));
+		// Skip delimiters.  Note the "not_of"
+		lastPos = str.find_first_not_of(delimiters, pos);
+		// Find next "non-delimiter"
+		pos = str.find_first_of(delimiters, lastPos);
+	}
+	return tokens;
+}
+
 tstring Strings::trim_right (const tstring & s, const tstring & t)
 { 
 	tstring d (s); 

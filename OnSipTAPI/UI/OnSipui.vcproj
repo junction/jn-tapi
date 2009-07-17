@@ -178,7 +178,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="WSock32.lib ws2_32.lib crypt32.lib rpcrt4.lib wininet.lib dnsapi.lib Secur32.lib"
-				OutputFile="..\..\Release/OnSipui.dll"
+				OutputFile="..\..\Release/OnSIPui.dll"
 				Version="4.0"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -278,7 +278,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="WSock32.lib ws2_32.lib crypt32.lib rpcrt4.lib wininet.lib dnsapi.lib Secur32.lib"
-				OutputFile="..\..\Debug/OnSipui.dll"
+				OutputFile="..\..\Debug/OnSIPui.dll"
 				Version="4.0"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"

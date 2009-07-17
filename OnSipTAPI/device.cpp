@@ -366,11 +366,14 @@ unsigned COnSipDevice::ConnectionThread()
 	}
 
 	// Read the Logon info from the registry
-	tstring userName = GetSP()->ReadProfileString(m_dwProviderId, REG_USERNAME, _T("") );
+	tstring sipAddress = GetSP()->ReadProfileString(m_dwProviderId, REG_SIPADDRESS, _T("") );
 	tstring password = Strings::decryptString( GetSP()->ReadProfileString(m_dwProviderId, REG_PASSWORD, _T("") ), KEY_VALUE );
-	tstring domain =  GetSP()->ReadProfileString(m_dwProviderId, REG_DOMAIN, _T("") );
 
-	Logger::log_debug(_T("COnSipDevice::ConnectionThread userName=%s pwd=%d domain=%s"), userName.c_str(), password.length(), domain.c_str() );
+	Logger::log_debug(_T("COnSipDevice::ConnectionThread sipAddress=%s pwd=%d"), sipAddress.c_str(), password.length() );
+
+	// Break up the sipaddress into username and domain parts
+	tstring userName; tstring domain;
+	Utils::ParseSIP(sipAddress,&userName,&domain);
 
 	LoginInfo loginInfo(userName,password,domain);
 

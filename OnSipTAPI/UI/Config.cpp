@@ -51,21 +51,19 @@ CConfigDlg::CConfigDlg(CWnd* pParent /*=NULL*/) : CDialog(CConfigDlg::IDD, pPare
 
 }// CConfigDlg::CConfigDlg
 
-void CConfigDlg::SetValues(const tstring& phoneNumber,const tstring& userName,const tstring& passWord,const tstring& domain)
+void CConfigDlg::SetValues(const tstring& phoneNumber,const tstring& sipAddress,const tstring& passWord)
 {
 	// Get the device variables and assign to the dialog 
 	m_passWord = passWord.c_str();
-	m_domain = domain.c_str();
 	m_phoneNumber = phoneNumber.c_str();
-	m_userName = userName.c_str();
+	m_sipAddress = sipAddress.c_str();
 }
 
-void CConfigDlg::GetValues(tstring& phoneNumber,tstring& userName,tstring& passWord,tstring& domain)
+void CConfigDlg::GetValues(tstring& phoneNumber,tstring& sipAddress,tstring& passWord)
 {
 	passWord = m_passWord;
-	domain = m_domain;
 	phoneNumber = m_phoneNumber;
-	userName = m_userName;
+	sipAddress = m_sipAddress;
 }
 
 /*****************************************************************************
@@ -86,14 +84,12 @@ void CConfigDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	DDX_Control(pDX, IDC_EDIT_PHONENUMBER, m_txtPhoneNumber);
-	DDX_Control(pDX, IDC_EDIT_USERNAME, m_txtUserName);
+	DDX_Control(pDX, IDC_EDIT_SIPADDRESS, m_txtSipAddress);
 	DDX_Control(pDX, IDC_EDIT_PASSWORD, m_txtPassword);
-	DDX_Control(pDX, IDC_EDIT_DOMAIN, m_txtDomain);
 
 	DDX_Text( pDX, IDC_EDIT_PHONENUMBER, m_phoneNumber );
-	DDX_Text( pDX, IDC_EDIT_USERNAME, m_userName );
+	DDX_Text( pDX, IDC_EDIT_SIPADDRESS, m_sipAddress );
 	DDX_Text( pDX, IDC_EDIT_PASSWORD, m_passWord );
-	DDX_Text( pDX, IDC_EDIT_DOMAIN, m_domain );
 
 	DDX_Control(pDX, IDC_TESTING, m_lblTesting);
 	DDX_Control(pDX, IDOK, m_OK);
@@ -159,14 +155,21 @@ void CConfigDlg::OnBnClickedTest()
 	UpdateData();
 
 	// Get dialog input values
-	string userName = Strings::trim( m_userName.GetBuffer() );
+	string sipAddress = Strings::trim( m_sipAddress.GetBuffer() );
 	string password = Strings::trim( m_passWord.GetBuffer() );
-	string domain = Strings::trim( m_domain.GetBuffer() );
 
 	// If any of the values are empty
-	if ( userName.empty() || password.empty() || domain.empty() )
+	if ( sipAddress.empty() || password.empty() )
 	{
-		MessageBox( "User Name, Password, and Domain must be specified", "Error", MB_OK );
+		MessageBox( "SIP Address and Password must be specified", "Error", MB_OK );
+		return;
+	}
+
+	// Parse the sip address into the name and domain parts
+	tstring username; tstring domain;
+	if ( !Utils::ParseSIP(sipAddress,&username,&domain) )
+	{
+		MessageBox( "SIP Address is not in the proper format.\r\ne.g. sip:username@domain.com", "Error", MB_OK );
 		return;
 	}
 
@@ -184,7 +187,7 @@ void CConfigDlg::OnBnClickedTest()
 
 	// Connect to server
 	OnSipXmppBase onsip;
-	LoginInfo login( m_userName.GetBuffer(), m_passWord.GetBuffer(), m_domain.GetBuffer() );
+	LoginInfo login( username, m_passWord.GetBuffer(), domain );
 	ConnectionError ce = onsip.Start(login,false);
 	Logger::log_debug(_T("CConfigDlg::OnBnClickedTest onsip::Starrt ce=%d"), ce );
 

@@ -79,9 +79,8 @@ protected:
 	CUIDevice();
 	DECLARE_DYNCREATE(CUIDevice)
 
-	tstring m_userName;
+	tstring m_sipAddress;
 	tstring m_password;
-	tstring m_domain;
 	tstring m_phoneNumber;
 
 // Serialization support
