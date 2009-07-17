@@ -74,4 +74,8 @@ TSP release 7-16-09 - fixes  v1.02 Installer
       some data.  Then, tried to repeat and was unable to.  It worked ok.
       So no changes in this area.
 
+TSP release 7-17-09 - fixes  v1.03 Installer
+   1) changed TSP config to have sip address instead of username, domain
+   2) changed document references from "OnSip" to "OnSIP"
+   3) changed document references from "OnSip" to "OnSIP"
 
