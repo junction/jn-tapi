@@ -113,6 +113,7 @@ TStream& COnSipLine::read(TStream& istm)
 			LINEDEVSTATE_OUTOFSERVICE | 
 			LINEDEVSTATE_NUMCALLS  |
 			LINEDEVSTATE_OTHER;
+	lpLineCaps->dwMediaModes = LINEMEDIAMODE_INTERACTIVEVOICE;
 
 	// Specify that we want all calls closed on exit of the driver.
 	// This does not drop the calls, just IDLEs them.

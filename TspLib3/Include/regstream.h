@@ -234,7 +234,14 @@ inline bool TRegstream::_regOpenCreateKey(HKEY* lphKey, TString* lpsKey, bool fC
 		
 		HKEY hNewKey;
 		DWORD dwDisposition;
-		if ((::RegOpenKeyEx(hKey, strCurrent.c_str(), 0L, KEY_ALL_ACCESS, &hNewKey) != ERROR_SUCCESS && !fCreate) ||
+
+		// Try to open with all rights
+		LONG ret = ::RegOpenKeyEx(hKey, strCurrent.c_str(), 0L, KEY_ALL_ACCESS, &hNewKey);
+		// If error access denied, then possibly running under LUA account or Vista.
+		// Try to open as just read, assumed to be read only access
+		if ( ret == 5 )
+			ret = ::RegOpenKeyEx(hKey, strCurrent.c_str(), 0L, KEY_READ, &hNewKey);
+		if ( (ret != ERROR_SUCCESS && !fCreate) ||
 			(fCreate && ::RegCreateKeyEx(hKey, strCurrent.c_str(), 0L, _T(""), 
 				REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hNewKey, &dwDisposition) != ERROR_SUCCESS))
 		{
