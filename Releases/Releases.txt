@@ -79,3 +79,9 @@ TSP release 7-17-09 - fixes  v1.03 Installer
    2) changed document references from "OnSip" to "OnSIP"
    3) changed document references from "OnSip" to "OnSIP"
 
+TSP release 7-18-09 - fixes  v1.04 installer
+   fixed Vista issues
+     1) needed to set mediamodes to LINEMEDIAMODE_INTERACTIVEVOICE
+     2) Fixed registry stream issue.  It was trying to open up the registry
+     with ALL ACCESS even for reading.  This would fail for Vista and for
+     a LUA user on XP.
