@@ -1,6 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
+#include "..\onsipcore\version.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -53,8 +54,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION TSP_VERSION
+ PRODUCTVERSION PRODUCT_VERSION
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -71,12 +72,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Junction Networks"
             VALUE "FileDescription", "OnSIP TAPI Service Provider"
-            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "FileVersion", STR_TSP_VERSION 
             VALUE "InternalName", "OnSIP"
             VALUE "LegalCopyright", "Copyright © 2009 Junction Networks"
             VALUE "OriginalFilename", "ONSIP.TSP"
             VALUE "ProductName", "OnSIP TAPI Driver"
-            VALUE "ProductVersion", "0.7.0.0"
+            VALUE "ProductVersion", STR_PRODUCT_VERSION
         END
     END
     BLOCK "VarFileInfo"

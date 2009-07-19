@@ -82,6 +82,8 @@ public:
 	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
 public:
 	bool m_bWaitCursor;
+public:
+	CStatic m_version;
 };
 
 //{{AFX_INSERT_LOCATION}}

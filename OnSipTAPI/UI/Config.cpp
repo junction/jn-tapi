@@ -20,6 +20,7 @@
 #include "config.h"
 #include "OnSipXmppBase.h"
 #include "OnSipXmpp.h"
+#include "version.h"
 
 /*-------------------------------------------------------------------------------*/
 // MFC Message map
@@ -97,6 +98,7 @@ void CConfigDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_TEST, m_Testing);
 	DDX_Control(pDX, IDC_TITLE, m_lblTitle);
 	DDX_Control(pDX, IDC_INFO, m_lblInfo);
+	DDX_Control(pDX, IDC_VERSION, m_version);
 }// CConfigDlg::DoDataExchange
 
 /*****************************************************************************
@@ -127,6 +129,8 @@ BOOL CConfigDlg::OnInitDialog()
 	HICON ic = AfxGetApp()->LoadIcon(IDI_ICON);
 	this->SetIcon( ic , FALSE);
 	this->SetIcon( ic, TRUE);
+
+	m_version.SetWindowText(DISPLAY_VERSION);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }// CConfigDlg::OnInitDialog

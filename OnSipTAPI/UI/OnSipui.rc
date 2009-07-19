@@ -64,24 +64,26 @@ END
 // Dialog
 //
 
-IDD_CONFIG_DIALOG DIALOGEX 0, 0, 226, 115
+IDD_CONFIG_DIALOG DIALOGEX 0, 0, 226, 113
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION
 EXSTYLE WS_EX_APPWINDOW
-CAPTION "Junction Networks Configuration"
+CAPTION "OnSIP Configuration"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,133,93,39,14
-    PUSHBUTTON      "Cancel",IDCANCEL,175,93,39,14
-    EDITTEXT        IDC_EDIT_PHONENUMBER,76,43,128,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_SIPADDRESS,76,59,128,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_PASSWORD,76,75,128,14,ES_PASSWORD | ES_AUTOHSCROLL
-    RTEXT           "Phone Number:",IDC_STATIC,15,45,56,14
-    RTEXT           "SIP Address:",IDC_STATIC,15,61,56,14
-    RTEXT           "Password:",IDC_STATIC,15,77,56,14
-    CTEXT           "OnSIP Hosted PBX TAPI Configuration",IDC_TITLE,7,8,212,12
-    CTEXT           "Enter in Phone Number and Logon Information",IDC_INFO,22,26,186,12
-    PUSHBUTTON      "Test",IDC_TEST,12,93,39,14
-    LTEXT           "Testing...",IDC_TESTING,57,96,55,11,NOT WS_VISIBLE
+    DEFPUSHBUTTON   "OK",IDOK,137,95,39,14
+    PUSHBUTTON      "Cancel",IDCANCEL,179,95,39,14
+    EDITTEXT        IDC_EDIT_PHONENUMBER,76,45,128,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_SIPADDRESS,76,61,128,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_PASSWORD,76,77,128,14,ES_PASSWORD | ES_AUTOHSCROLL
+    RTEXT           "Phone Number:",IDC_STATIC,15,47,56,14
+    RTEXT           "SIP Address:",IDC_STATIC,15,63,56,14
+    RTEXT           "Password:",IDC_STATIC,15,79,56,14
+    CTEXT           "OnSIP Hosted PBX TAPI Configuration",IDC_TITLE,7,16,212,12
+    CTEXT           "Enter in Phone Number and Logon Information",IDC_INFO,22,29,186,12
+    PUSHBUTTON      "Test",IDC_TEST,6,95,39,14
+    LTEXT           "Testing...",IDC_TESTING,50,97,55,14,NOT WS_VISIBLE
+    LTEXT           "Junction Networks, Copyright 2009",IDC_STATIC,7,0,111,8
+    RTEXT           "version",IDC_VERSION,193,0,24,8
 END
 
 
@@ -91,8 +93,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,0,5,0
+ PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -109,12 +111,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Junction Networks"
             VALUE "FileDescription", "ONSIP TAPI Service Provider User interface"
-            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "FileVersion", "1, 0, 5, 0"
             VALUE "InternalName", "OnSIPUI"
             VALUE "LegalCopyright", "Copyright © 2009 Junction Networks"
             VALUE "OriginalFilename", "ONSIPUI.DLL"
             VALUE "ProductName", "OnSIP TAPI Driver"
-            VALUE "ProductVersion", "0.7.0.0"
+            VALUE "ProductVersion", "1, 0, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
@@ -136,8 +138,8 @@ BEGIN
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 219
-        TOPMARGIN, 3
-        BOTTOMMARGIN, 107
+        TOPMARGIN, 8
+        BOTTOMMARGIN, 109
     END
 END
 #endif    // APSTUDIO_INVOKED
