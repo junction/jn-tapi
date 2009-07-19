@@ -9,15 +9,15 @@
 
 #define LOGGING_MAX_CHARS_LIMIT  2048
 
-//#if DEBUG
-int Logger::_consoleLevel  = LEVEL_DEBUG;
-int Logger::_win32Level  = LEVEL_DEBUG;
-//#else
-//int Logger::_consoleLevel  = LEVEL_ERROR;
-//int Logger::_win32Level  = LEVEL_ERROR;
-//#endif
+#if DEBUG
+unsigned Logger::_consoleLevel  = LEVEL_DEBUG;
+unsigned Logger::_win32Level  = LEVEL_DEBUG;
+#else
+unsigned Logger::_consoleLevel  = LEVEL_ERROR;
+unsigned Logger::_win32Level  = LEVEL_ERROR;
+#endif
 
-bool Logger::_checkLevel(int level)
+bool Logger::_checkLevel(unsigned level)
 {	return ( _consoleLevel >= level || _win32Level >= level );	}
 
 // Set level for both console and win32
@@ -29,16 +29,16 @@ void Logger::SetLevel(LogLevel level)
 
 // Set level for console
 void Logger::SetConsoleLevel(LogLevel level)
-{	_consoleLevel = (int) level;	}
+{	_consoleLevel = (unsigned) level;	}
 
 // Set level for Win32
 void Logger::SetWin32Level(LogLevel level)
-{	_win32Level = (int) level;	}
+{	_win32Level = (unsigned) level;	}
 
 bool Logger::IsLevel(LogLevel level)
-{	return _checkLevel((int)level); }
+{	return _checkLevel((unsigned)level); }
 
-void Logger::_outputMsg(int log_level,const TCHAR *str)
+void Logger::_outputMsg(unsigned log_level,const TCHAR *str)
 {
 	if ( _consoleLevel >= log_level )
 		_tprintf(str);
@@ -46,7 +46,7 @@ void Logger::_outputMsg(int log_level,const TCHAR *str)
 		OutputDebugString(str);
 }
 
-void Logger::_output(const int log_level, const TCHAR * msg)
+void Logger::_output(const unsigned log_level, const TCHAR * msg)
 {
 	const TCHAR *prefix = NULL;
 
@@ -76,7 +76,7 @@ void Logger::_output(const int log_level, const TCHAR * msg)
 	_outputMsg( log_level, Strings::stringFormat(_T("%s [TID=%ld] %s %s\n"), curTime.c_str(), GetCurrentThreadId(), prefix, msg ).c_str() );
 }
 
-void Logger::_output(int level,va_list & argList, const TCHAR * szFormat)
+void Logger::_output(unsigned level,va_list & argList, const TCHAR * szFormat)
 {
 	TCHAR buffer[LOGGING_MAX_CHARS_LIMIT];
 	TCHAR* allocBuffer = NULL;
@@ -164,3 +164,4 @@ void Logger::log_error(const TCHAR *format,...)
 		va_end(argList);
 	}
 }
+

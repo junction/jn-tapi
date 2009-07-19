@@ -43,6 +43,26 @@ public:
 	CDebugLoggerBase() : m_dwTraceLevel(0xffffffff) {/* */}
 	virtual ~CDebugLoggerBase() {/* */}
 
+/*
+	static void traceit(const TCHAR* format, ...)
+	{
+		va_list v;
+		va_start(v,format);
+		// Get required length of characters, add 1 for NULL
+		int len = _vsctprintf(format,v) + 1;
+		// Allocate the string buffer
+		TCHAR* str = new TCHAR[len];
+		_vstprintf_s(str,len,format,v);
+		va_end(v);
+		// Convert to string
+		std::string ret(str);
+		ret += "\r\n";
+		// Free memory and return formatted tstring
+		delete[] str;
+		OutputDebugString(ret.c_str());
+	}
+*/
+
 // Abstract methods
 public:
 	virtual void TraceOut(LPCTSTR pszBuffer) const = 0;
@@ -75,7 +95,7 @@ public:
 	virtual void TraceOut(LPCTSTR pszBuffer) const
 	{
 		// Spit it out to the debug facility
-		OutputDebugString(pszBuffer);
+//		OutputDebugString(pszBuffer);
 		// Then log it through the TSP class
 		GetSP()->TraceOut(TString(pszBuffer));
 	}

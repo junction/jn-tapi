@@ -18,6 +18,7 @@
 #include "stdafx.h"
 #include "OnSip.h"
 #include <atlbase.h>
+#include "OnSipSettings.h"
 
 /*-------------------------------------------------------------------------------*/
 // CONSTANTS AND GLOBALS
@@ -61,17 +62,11 @@ COnSipServiceProvider::COnSipServiceProvider() :
 
 		NULL);						// Phone override
 
-#ifdef _DEBUG
-	// Turn on tracing level for debug builds -- see SPLIB.H for
-	// additional tracing flags.
-	SetTraceLevel(TRC_API |			// TSPI_xxx entrypoints (requires JTTSPTRC.dll)
-				  TRC_DUMP |		// TSPI buffers (requires JTTSPTRC.dll)
-				  TRC_MIN |			// Basic tracing inside library
-				  TRC_WARNINGS |	// Warnings from TSP++
-				  TRC_STATS |		// Statistics on calls/addresses/lines
-				  TRC_OBJECTS |		// Object creation/destruction
-				  TRC_THREADS);		// Thread creation/destruction
-#endif
+	// Set the general app debug level
+	Logger::SetWin32Level( OnSipSettings::GetDebugLevel() );
+	Logger::log_debug("COnSipServiceProvider::COnSipServiceProvider  tspDebugLevel=%lx", OnSipSettings::GetTSPDebugLevel() );
+	// Set the TSP debug level
+	SetTraceLevel( OnSipSettings::GetTSPDebugLevel() );
 
 }// COnSipServiceProvider::COnSipServiceProvider
 
@@ -87,10 +82,11 @@ COnSipServiceProvider::COnSipServiceProvider() :
 **
 *****************************************************************************/
 //virtual
-void COnSipServiceProvider::TraceOut(TString& strBuff)
+void COnSipServiceProvider::TraceOut(const TString& strBuff)
 {
-	Logger::log_debug( strBuff.c_str() );
-}// COnSipServiceProvider::TraceOut
+	tstring str = Strings::trim( strBuff.c_str() );
+	Logger::log_debug( "TSP:%s", str.c_str() );
+}
 
 
 // Override the version from CServiceProvider since it does not appear to work very well.

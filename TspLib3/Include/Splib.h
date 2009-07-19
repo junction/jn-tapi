@@ -172,19 +172,25 @@ void tsplib_AssertFailedLine(LPCSTR lpszFileName, int nLine, LPCSTR pszExpressio
 #else // #ifndef DEBUG
 #define DEBUG_NEW new
 
+
 #if _MSC_VER >= 1300
 #define _TSP_ASSERT(f) __noop
 #define _TSP_ASSERTE(f) __noop
-#define _TSP_DTRACE __noop
-#define _TSP_DTRACEX __noop
+//#define _TSP_DTRACE __noop
+//#define _TSP_DTRACEX __noop
+#define _TSP_DTRACE ::tsplib_TspTrace2
+#define _TSP_DTRACEX ::tsplib_TspTrace
 #define _TSP_VERIFY(f) ((void)(f))
 #else
 #define _TSP_ASSERT(f) ((void)0)
 #define _TSP_ASSERTE(f) ((void)0)
-#define _TSP_DTRACE ((void)0)
-#define _TSP_DTRACEX ((void)0)
+//#define _TSP_DTRACE ((void)0)
+//#define _TSP_DTRACEX ((void)0)
+#define _TSP_DTRACE ::tsplib_TspTrace2
+#define _TSP_DTRACEX ::tsplib_TspTrace
 #define _TSP_VERIFY(f) ((void)(f))
 #endif
+
 
 #endif // _DEBUG
 

@@ -178,7 +178,7 @@ public:
     COnSipServiceProvider();
 	// Overrides from CServiceProvider
 public:
-	virtual void TraceOut(TString& strBuff);
+	virtual void TraceOut(const TString& strBuff);
 
 	// Override the version from CServiceProvider since it does not appear to work very well.
 	//

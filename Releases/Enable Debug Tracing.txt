@@ -1,0 +1,80 @@
+The TSP driver has 2 areas of debug tracing.  Debug tracing that is in the
+Julmar TSP library, and tracing that is in the OnSip specific TSP code
+that uses the Julmar library.  
+
+Much of the debug code in the TSP driver is commented out in release mode
+using the #if _DEBUG, but there is still some present in other areas.
+Julmar does provide an option to trace all TSP statements and parameters,
+but I believe this requires placing another DLL in the windows\System32
+directory.  If the DLL is present, then this tracing will be enabled.
+Currently, I am not experimented with this.
+
+By default in release mode, only errors are output to the tracing system.
+In debug mode, more extensive tracing will be enabled.  The trace output
+is currently directed to OutputDebugString.  This requires an application
+such as DBMON or SysInternals DbgView to capture and view the log.
+
+Under XP, DBMON may work and be able to output to a console program.
+Under Vista, DbgView is required.  DBMON does not always work under
+XP, so DbgView may be required here also.   If using DbgView, it is
+required to enable  Capture / Capture Global option.  
+
+To change debug level options in release mode, the following registry variables
+are used.
+
+  DWORD - HKLM\Software\OnSIP\TspDebugLevel
+  DWORD - HKLM\Software\OnSIP\DebugLevel
+
+TspDebugLevel corresponds to the Julmar tracing bitmap defines...
+
+	TRC_NONE	= 0x00000000,	// No Tracing
+	TRC_MIN		= 0x00000001,	// Minimum tracing, TRACE macro, DTRACE macro
+	TRC_API		= 0x00000002,	// TAPI api traces (parameters only)
+	TRC_STRUCT	= 0x00000004,	// All structures to/from TAPI
+	TRC_DUMP	= 0x00000008,	// Offset/Size pointers within structures to/from TAPI
+	TRC_STATS       = 0x00000010,	// Statistics (event notification)
+	TRC_OBJECTS     = 0x00000020,	// Basic telephony object creation/destruction (addr/line/phone)
+	TRC_THREADS	= 0x00000040,	// Thread creation/destruction
+	TRC_REQUESTS	= 0x00000080,	// Request creation/destruction
+	TRC_CALLS	= 0x00000100,	// Call creation/destruction
+	TRC_CALLMAP	= 0x00000200,	// Call id map
+	TRC_WARNINGS	= 0x00000400,	// Warnings/Errors
+	TRC_WORKERTHRD  = 0x00000800,	// Worker thread execution
+	TRC_LOCKS	= 0x00001000,	// Full lock/unlock notifications
+	TRC_CRITSEC     = 0x00002000,	// Win32 Critical section create/destroy
+	TRC_AGENTPROXY  = 0x00004000,	// Agent proxy support
+	TRC_USERDEFINED = 0x0FF00000,	// Derived TSP traces
+
+Do not set the value to 0xFFFFFFFF, otherwise, it will be ignored.
+Default for release mode is TRC_WARNINGS, default for debug mode is...
+   TRC_MIN | TRC_API | TRC_STATS | TRC_STRUCT | TRC_OBJECTS | TRC_CALLS | TRC_WARNINGS | TRC_THREADS 
+
+DebugLevel corresponds to OnSip specific code and has the following values...
+
+	LEVEL_NONE = 0,
+	LEVEL_ERROR = 1
+	LEVEL_WARN  = 2
+	LEVEL_APP   = 3
+	LEVEL_DEBUG = 4
+	LEVEL_TRACE = 5
+
+Default for release mode is LEVEL_WARN.  Default for debug mode is LEVEL_DEBUG.
+
+The output for the Julmar tracing is directed through the OnSip logger.  Therefore,
+the DebugLevel must be enabled to at least the LEVEL_DEBUG to see the Julmar tracing output.
+
+Typical values for tracing down a problem in release mode...
+
+    TSPDebugLevel = 0x00000FFF
+    DebugLevel = 4
+
+Two .REG files are provided to enable and disable the debug settings
+
+     EnableDebug.reg  - double click to enable the typical debug values
+     RemoveDebug.reg  - double click to go back to default debug values
+
+
+
+
+
+

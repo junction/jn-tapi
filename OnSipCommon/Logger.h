@@ -6,12 +6,12 @@
 class Logger
 {
 private:
-	static int _consoleLevel;
-	static int _win32Level;
-	static bool _checkLevel(int level);
-	static void _outputMsg(int log_level,const TCHAR *str);
-	static void _output(const int log_level, const TCHAR * msg);
-	static void _output(int level,va_list & argList, const TCHAR * szFormat);
+	static unsigned _consoleLevel;
+	static unsigned _win32Level;
+	static bool _checkLevel(unsigned level);
+	static void _outputMsg(unsigned log_level,const TCHAR *str);
+	static void _output(const unsigned log_level, const TCHAR * msg);
+	static void _output(unsigned level,va_list & argList, const TCHAR * szFormat);
 
 public:
 	enum LogLevel

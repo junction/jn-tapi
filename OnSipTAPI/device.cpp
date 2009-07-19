@@ -23,6 +23,7 @@
 #include "OnSipInitStateMachine.h"
 #include "shlobj.h"
 #include "fileio.h"
+#include "OnSipSettings.h"
 
 	// Hide constructor so class cannot be created directly
 COnSipEvent::COnSipEvent(OnSipEventType evtType)
@@ -92,10 +93,6 @@ COnSipDevice::COnSipDevice() : m_hConnThread(0)
 
 	// Create the event for the OpenDevice
 	m_hOpenDevice = CreateEvent (NULL, true, false, NULL);
-
-	// TODO: 
-	Logger::SetWin32Level( Logger::LEVEL_DEBUG );
-
 }// COnSipDevice::COnSipDevice
 
 /*****************************************************************************
@@ -163,7 +160,7 @@ TStream& COnSipDevice::read(TStream& istm)
 	// Always call the base class!
 	CTSPIDevice::read(istm);
 
-	// TODO: Add any additional information which was stored by the 
+	// Add any additional information which was stored by the 
 	// user-interface component of the TSP.
 
 	return istm;
@@ -253,13 +250,15 @@ bool COnSipDevice::OpenDevice (CTSPIConnection* pConn)
 //	f.Close();
 //	Logger::log_debug("COnSipDevice::OpenDevice filetest path=%s bOpen=%d", path.c_str(), bOpen );
 
+	// Set the general app debug level
+	Logger::SetWin32Level( OnSipSettings::GetDebugLevel() );
+
 	// Cast the connection to a line
 	CTSPILineConnection* pLine = dynamic_cast<CTSPILineConnection*>(pConn);
 
 	Logger::log_debug( _T("COnSipDevice::OpenDevice enter pConn=%p pLine=%p"), pConn, pLine );
 	if ( m_hConnThread != NULL )
 	{
-		// TODO: Verify OpenDevice only called once system-wide
 		Logger::log_error( _T("COnSipDevice::OpenDevice connectionThread already created") );
 		_ASSERT(false);
 		return false;

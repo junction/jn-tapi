@@ -27,7 +27,11 @@ BOOL APIENTRY DllMain( HMODULE hModule,
                        LPVOID lpReserved
 					 )
 {
+#ifdef _DEBUG
 	Logger::SetWin32Level( Logger::LEVEL_DEBUG );
+#else
+	Logger::SetWin32Level( Logger::LEVEL_ERROR);
+#endif
     return TRUE;
 }
 

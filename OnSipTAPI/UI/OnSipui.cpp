@@ -23,6 +23,7 @@
 #include "utils.h"
 #include "OnSipGlobal.h"
 #include "Logger.h"
+#include "onsipsettings.h"
 
 /*-------------------------------------------------------------------------------*/
 // RTTI Support
@@ -74,6 +75,10 @@ CTspUIApp::CTspUIApp() :
 *****************************************************************************/
 LONG CTspUIApp::providerInstall(DWORD dwPermanentProviderID, CWnd* pwndOwner)
 {
+	Logger::SetWin32Level( OnSipSettings::GetDebugLevel() );
+
+	Logger::log_debug("CTspUIApp::providerInstall permID=%ld",dwPermanentProviderID);
+
 	// Verify that our TSP is not already installed; in most implementations
 	// you should only allow for one device per TSP.
 	DWORD dwMyPPid = 0;
@@ -88,6 +93,8 @@ LONG CTspUIApp::providerInstall(DWORD dwPermanentProviderID, CWnd* pwndOwner)
 		lResult = CServiceProvider::providerInstall(dwPermanentProviderID, pwndOwner);
 		if (lResult == 0)
 		{
+			Logger::log_debug("CTspUIApp::providerInstall default install");
+
 			// TODO: Show a user interface dialog if necessary and prompt the
 			// user for information concerning line and phone devices present
 			// on the hardware.
@@ -102,6 +109,7 @@ LONG CTspUIApp::providerInstall(DWORD dwPermanentProviderID, CWnd* pwndOwner)
 			dlg.SetValues(pOurDevice->m_phoneNumber,pOurDevice->m_sipAddress,pOurDevice->m_password);
 			if (dlg.DoModal() == IDOK)
 			{
+				Logger::log_debug("CTspUIApp::providerInstall finish install");
 				dlg.GetValues(pOurDevice->m_phoneNumber,pOurDevice->m_sipAddress,pOurDevice->m_password);
 				// create a line and phone so the generated provider will have
 				// devices. The first parameter is a unique identifier for the device
@@ -114,7 +122,10 @@ LONG CTspUIApp::providerInstall(DWORD dwPermanentProviderID, CWnd* pwndOwner)
 			
 			// Otherwise cancel the installation.
 			else
+			{
+				Logger::log_error("CTspUIApp::providerInstall permID=%ld cancelled",dwPermanentProviderID);
 				lResult = LINEERR_OPERATIONFAILED;
+			}
 		}
 	}
 	return lResult;
@@ -136,11 +147,9 @@ LONG CTspUIApp::providerInstall(DWORD dwPermanentProviderID, CWnd* pwndOwner)
 *****************************************************************************/
 LONG CTspUIApp::providerConfig(DWORD dwProviderID, CWnd* pwndOwner)
 {
-	// TODO!!
-	Logger::SetWin32Level( Logger::LEVEL_DEBUG );
+	Logger::SetWin32Level( OnSipSettings::GetDebugLevel() );
 	Logger::log_debug("CTspUIApp::providerConfig providerID=%ld",dwProviderID);
 
-	// TODO: Show a user interface dialog of all the configuration
 	// data for all lines and phones on the hardware.
 	CConfigDlg dlg(pwndOwner);
 
@@ -155,6 +164,8 @@ LONG CTspUIApp::providerConfig(DWORD dwProviderID, CWnd* pwndOwner)
 	dlg.SetValues(pOurDevice->m_phoneNumber,pOurDevice->m_sipAddress,pOurDevice->m_password);
 	if (dlg.DoModal() == IDOK)
 	{
+		Logger::log_debug("CTspUIApp::providerConfig save values");
+
 		dlg.GetValues(pOurDevice->m_phoneNumber,pOurDevice->m_sipAddress,pOurDevice->m_password);
 		// Save off all our registry data. This is a built-in function of 
 		// the TSP++ UI library and dumps all created objects into the registry.

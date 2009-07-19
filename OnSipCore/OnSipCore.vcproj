@@ -143,7 +143,7 @@
 	<References>
 		<ProjectReference
 			ReferencedProjectIdentifier="{F50EF1F9-FAA4-4A54-9D80-08AC64A673F9}"
-			RelativePathToProject="..\gloox\gloox.vcproj"
+			RelativePathToProject=".\gloox\gloox.vcproj"
 		/>
 	</References>
 	<Files>
@@ -169,6 +169,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OnSipSettings.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\OnSipStanzaExtensions.cpp"
 				>
 			</File>
@@ -190,6 +194,10 @@
 			</File>
 			<File
 				RelativePath=".\OnSipXmppEvents.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\OnSipCommon\RegIO.cpp"
 				>
 			</File>
 			<File
@@ -263,6 +271,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OnSipSettings.h"
+				>
+			</File>
+			<File
 				RelativePath=".\OnSipStanzaExtensions.h"
 				>
 			</File>
@@ -288,6 +300,10 @@
 			</File>
 			<File
 				RelativePath=".\OnSipXmppEvents.h"
+				>
+			</File>
+			<File
+				RelativePath="..\OnSipCommon\RegIO.h"
 				>
 			</File>
 			<File
