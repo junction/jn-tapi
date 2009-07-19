@@ -85,3 +85,9 @@ TSP release 7-18-09 - fixes  v1.04 installer
      2) Fixed registry stream issue.  It was trying to open up the registry
      with ALL ACCESS even for reading.  This would fail for Vista and for
      a LUA user on XP.
+
+TSP release 7-19-09 - fixes  v1.05 installer
+     1) integrated Julmar tracing and OnSip Logger tracing
+     2) Added support for TSPDebugLevel and DebugLevel registry values to enable release mode tracing
+     3) Added version numbers to output DLLs
+     4) Added copyright and version number to Config dialog
