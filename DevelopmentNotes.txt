@@ -1,0 +1,129 @@
+Visual Studio 2005 C++ with the latest Service Packs are required to build to build the projects.  
+
+There are 2 primary Solutions.
+
+     OnSip.sln
+     OnSipTAPI\OnSipTAPI.sln
+
+All Output application files for both solutions are in the \Debug or \Release directory.
+
+OnSip.sln  Solution
+-------------------
+
+This solution contains all the OnSip and gloox core code, along with a Console application (TestOnSipCore.exe) for testing.  The Console application will initialize and connect to the OnSip server.  From there, it will monitor and display all XMPP and debug tracing.    Command line parameters are used to specify the connection values.  Run the TestOnSipCore.exe without any command line parameters to see the required values.
+
+The required command line parameters are...
+
+	name     password     domain
+
+where 
+
+	name - OnSip user name
+	password - OnSip password
+	domain - the OnSip domain
+
+e.g.
+
+	TestOnSipCore   bob   password   bob.onsip.com
+
+Typically, the name and domain form the OnSip sip address, e.g.   sip:bob@bob.onsip.com
+
+Once the TestOnSipCore.exe application has connected to the server, then XMPP and other internal operation can be monitored by creating incoming calls and outgoing calls using the SIP phone.  A phone number can be entered in the console application (e.g.  19725551212,  press ENTER) and the number will be dialed using XMPP.   Just pressing ENTER in the console application will exit.
+
+If trying to debug the XMPP and state machine code, it is recommanded that this is done using the TestOnSipCore console application.  The command line parameters can be specified in the Properties section of the application, and then run directly from Visual Studio 2005.
+
+To build, simply build the entire solution.  Either specify Debug or Release mode.  The output binaries will be placed in either the Debug or Release directory of the root of the source code tree.
+
+
+OnSipTAPI.sln
+-------------
+
+This is full TAPI driver solution.  Building the TAPI driver will create the following binaries...
+
+	OnSIP.tsp
+	OnSIPui.dll
+
+OnSIP.tsp is a DLL and is the actual TAPI driver. OnSIPui.dll is the user interface part of the TAPI driver.  To do a manual install
+
+	1) copy the files to the c:\Windows\system32 directory
+	2) Go to the Control Panel \ Phone and Modem Options applet
+	3) Advanced Tab
+	4) Press "Add" button and select the OnSIP tapi driver.  
+	5) Enter in the logon info.
+
+More details on this can be seen in the Releases\Install TAPI Driver.doc, as well as how to install for Outlook.  Also, refer to the OnSipInstall\OnSIP Hosted PBX Details.doc for full details on installation and use.  To update the TAPI driver, it is required to first uninstall it using the Control Panel before being able to copy over new binaries into the System32 directory.
+
+To build, simply build the entire solution.  Either specify Debug or Release mode.  The output binaries will be placed in either the Debug or Release directory of the root of the source code tree.  Do not use the Unicode options as this will not compile.  The TAPI driver is developed using ANSI.
+
+Debug Tracing
+-------------
+
+Extensive debug tracing has been used in the OnSip source code.  This allows a debug trace to captured to help track down a problem.  There are several levels of debug tracing in the code...
+
+	NONE=0
+	ERROR=1
+	WARN=2
+	APP=3
+	DEBUG=4
+	TRACE=5
+
+If using a debug version, then default level is DEBUG.  For release mode, the default level is WARN.  The debug output is sent to Windows OutputDebugString.  This can be viewed by Windows Debug capture programs such as DBMON.EXE and SysInternals/Microsoft  DbgView.exe.
+
+DBMON.EXE is a console application and can typically be run in a Windows CMD and display the tracing output.  To capture the debug into a file, simply redirect the output to a file, e.g.
+
+	DBMON  >log.txt
+
+Sometimes DBMON will not work due to user permissions or OS user sessions (e.g. Vista).  In this case, DbgView may have to be used.   When running DbgView, be sure to enable the Capture / Capture Win32 and Capture / Capture Global Win32 options.  The debug tracing will be displayed in GUI or optionally can be logged to a file.
+
+There are 2 tracing systems in the TAPI driver.  The tracing system in the Julmar TSP code, and in the OnSip specific code (typically in the OnSipCommon, OnSipCore, and OnSipTAPI directories).  The Julmar TAPI driver framework was used for development of the TAPI driver.
+
+The Julmar TSP layer has its own debug layer.  The Julmar TSP debug tracing levels are set similar as the OnSip specific code for debug and release versions.
+
+For debugging a release version, the debug level typically should be set to the DEBUG level.  This can be done using the specified registry variables...
+
+	DWORD	HKLM\Software\OnSIP\TSPDebugLevel
+	DWORD	HKLM\Software\OnSIP\DebugLevel
+
+where 
+
+DebugLevel is used to set the tracing level in OnSip specific code (non Julmar), and TSPDebugLevel is used to enable the Julmar TSP layer tracing.
+
+DebugLevel can be set to the values described above (e.g. ERROR=1, DEBUG=4, ..).  Typically a TRACE level is not set as this enables some very detailed output in some areas.
+
+TSPDebugLevel corresponds to bit-level flags as defined in the Julmar TSP core code.  
+
+See the Releases\Enable Debug Tracing.txt for full details, along with references to registry .REG files that can be used to enable or disable typical tracing settings.
+
+
+Install
+-------
+
+The Inno Setup is used for the installation program  (http://www.innosetup.com).  The InnoS Setup QuckStart Pack was used during development, primarily due to ISTool script editor.  The version of Inno Setup used for the OnSIP TAPI driver is available at OnSipInstall\ispack-5.2.4.exe.   
+
+To build the install, install the Inno Setup.  This will install the IsTool script editor.  In Windows Explorer, go to the OnSipInstall directory and right click on the OnSipTapi.iss and select "Open with ISTool".  This is the main install script for the TAPI release.
+
+To build the install, select Project \ Compile Setup.  This will build the Release \ OnSIPTapi.exe installation program.   The install is built using the Release binaries.  Therefore, it is required that first the OnSipTAPI.sln is built in release mode.
+
+If changes are made to the TAPI driver, then typically the version number should be incremented.  There are 2 places that the version number needs to be updated...
+
+	1)  In the OnSipTapi.iss install script, e.g.
+
+		AppVerName={#MyAppName} v1.05
+
+	2) In the OnSipCore \ version.h, e.g.
+
+		#define TSP_VERSION      1, 0, 5, 0
+		#define STR_TSP_VERSION  "1, 0, 5, 0\0"
+
+		#define PRODUCT_VERSION  1, 0, 0, 0
+		#define STR_PRODUCT_VERSION "1, 0, 0, 0\0"
+
+		#define DISPLAY_VERSION   "v1.05"
+
+The version numbers should be insync.  Be sure to rebuild the OnSipTapi.sln after changing the version numbers.
+
+Typically after a release of the TAPI driver, a zip of the TAPI binaries and the installation program are placed in the Releases directory and checked into version control.  See the Releases directory for examples of the ZIP files and the file naming conventions.   The Releases \ Releases.txt file is also updated with info on the changes and the release.
+
+
+
+
