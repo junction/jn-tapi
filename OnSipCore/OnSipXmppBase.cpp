@@ -79,7 +79,7 @@ ConnectionError OnSipXmppBase::Start(LoginInfo& loginInfo,bool bSync)
 	//	  j->disco()->setIdentity( "client", "bot" );
 	//	  j->disco()->addFeature( XMLNS_CHAT_STATES );
 	m_gloox->disableRoster();
-	m_gloox->setPresence(Presence::Available, 5 ); 
+	m_gloox->setPresence(Presence::Invisible, -1 ); 
 	//		  m_client->setServer(server);
 	//		  m_client->setPort(port);
 	//	  // ???

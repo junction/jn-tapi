@@ -49,6 +49,7 @@ namespace gloox
         Unavailable,                /**< The entity is offline. */
         Probe,                      /**< This is a presence probe. */
         Error,                      /**< This is a presence error. */
+        Invisible,                /* Added by Ron 8/21/09 for OnSip implementation */
         Invalid                     /**< The stanza is invalid. */
       };
 
