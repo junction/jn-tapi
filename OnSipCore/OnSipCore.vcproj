@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="OnSipCore"
 	ProjectGUID="{7AA40068-F3C1-40D5-9228-AC3851363F84}"
 	RootNamespace="OnSipCore"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -143,7 +144,6 @@
 	<References>
 		<ProjectReference
 			ReferencedProjectIdentifier="{F50EF1F9-FAA4-4A54-9D80-08AC64A673F9}"
-			RelativePathToProject="..\gloox\gloox.vcproj"
 		/>
 	</References>
 	<Files>

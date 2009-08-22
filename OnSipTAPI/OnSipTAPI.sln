@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OnSipTAPI", "ONSIP.vcproj", "{00DD594D-E516-4ED5-A5A0-4E3A7DF140DE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPLIB32", "..\TspLib3\Src\Splib.vcproj", "{3FECB8C3-A682-4636-AF40-2ABD0888E4C1}"

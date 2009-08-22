@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="SPLIB32"
 	ProjectGUID="{3FECB8C3-A682-4636-AF40-2ABD0888E4C1}"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
