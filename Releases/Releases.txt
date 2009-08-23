@@ -91,3 +91,9 @@ TSP release 7-19-09 - fixes  v1.05 installer
      2) Added support for TSPDebugLevel and DebugLevel registry values to enable release mode tracing
      3) Added version numbers to output DLLs
      4) Added copyright and version number to Config dialog
+
+TSP release 8-22-09 - fixes  v1.06 installer
+     1) Converted projects to Visual Studio Express 2008
+     2) Fixed exception issues in VS 2008 Release mode only.  Removed INLINE option in TSP source
+     3) Added debug level option to OnSipInstall.dll
+
