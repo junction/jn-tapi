@@ -7,6 +7,7 @@
 #include "logger.h"
 #include <string>
 #include "Utils.h"
+#include "OnSipSettings.h"
 
 #define TSPNAME "OnSIP.tsp"
 
@@ -27,11 +28,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
                        LPVOID lpReserved
 					 )
 {
-#ifdef _DEBUG
-	Logger::SetWin32Level( Logger::LEVEL_DEBUG );
-#else
-	Logger::SetWin32Level( Logger::LEVEL_ERROR);
-#endif
+	Logger::SetWin32Level( OnSipSettings::GetDebugLevel() );
     return TRUE;
 }
 
