@@ -161,12 +161,12 @@ void callBranches::AddBranch(OnSipCallStateData& callData)
 	// If already in the list, then just update the calldata
 	if ( index >= 0 )
 	{
-		Logger::log_debug( _T("callBranches::AddBranch id=%s callData updated") );
+		Logger::log_debug( _T("callBranches::AddBranch id=%s callData updated"),callData.m_id.c_str() );
 		m_branches[index] = callData;
 		return;
 	}
 	// Add to branches
-	Logger::log_debug( _T("callBranches::AddBranch id=%s newAdded") );
+	Logger::log_debug( _T("callBranches::AddBranch id=%s newAdded") , callData.m_id.c_str());
 	m_branches.push_back( callData );
 }
 

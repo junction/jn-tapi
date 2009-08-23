@@ -93,9 +93,12 @@
 #endif
 #endif
 
-#ifdef _DEBUG
+// Do not do INLINES, this was causing exceptions during TAPI init and operation.
+// when using Visual Studio 2008 Release mode.
+// Worked fine in VS 2005 debug/release, and in 2008/Debug.
+//#ifdef _DEBUG
 #define _NOINLINES_
-#endif
+//#endif
 
 // Depending on the compiler settings, it may decide not to
 // inline functions -- VC6 spits out a warning which causes
