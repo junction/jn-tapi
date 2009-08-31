@@ -1,4 +1,4 @@
-Visual Studio Express 2008 C++ with the latest Service Packs are required to build to build the projects.  
+Visual Studio Professional 2008 C++ with the latest Service Packs are required to build to build the projects.  It is possible that Visual Studio Standard can be used, this has not been tested.  Express version will not work due to ATL and MFC requirements.
 
 There are 2 primary Solutions.
 
@@ -30,7 +30,7 @@ Typically, the name and domain form the OnSip sip address, e.g.   sip:bob@bob.on
 
 Once the TestOnSipCore.exe application has connected to the server, then XMPP and other internal operation can be monitored by creating incoming calls and outgoing calls using the SIP phone.  A phone number can be entered in the console application (e.g.  19725551212,  press ENTER) and the number will be dialed using XMPP.   Just pressing ENTER in the console application will exit.
 
-If trying to debug the XMPP and state machine code, it is recommanded that this is done using the TestOnSipCore console application.  The command line parameters can be specified in the Properties section of the application, and then run directly from Visual Studio Express 2008.
+If trying to debug the XMPP and state machine code, it is recommanded that this is done using the TestOnSipCore console application.  The command line parameters can be specified in the Properties section of the application, and then run directly from Visual Studio Professional 2008.
 
 To build, simply build the entire solution.  Either specify Debug or Release mode.  The output binaries will be placed in either the Debug or Release directory of the root of the source code tree.
 
