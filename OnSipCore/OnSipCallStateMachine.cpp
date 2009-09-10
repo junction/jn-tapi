@@ -87,6 +87,14 @@ XmppAuthEvent* OnSipCallStateHelper::getAuthEvent(XmppEvent* pEvent)
 }
 
 //static
+XmppCallRequestEvent* OnSipCallStateHelper::getCallRequestIqEvent(XmppEvent* pEvent)
+{
+	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_IQ_CALLREQUEST )
+		return NULL;
+	return dynamic_cast<XmppCallRequestEvent *>(pEvent);
+}
+
+//static
 XmppPubSubSubscribedEvent* OnSipCallStateHelper::getPubSubSubscribedEvent(XmppEvent *pEvent)
 {
 	if ( pEvent == NULL || pEvent->m_type != XmppEvent::EVT_PUBSUB_SUBSCRIBE )
@@ -95,7 +103,7 @@ XmppPubSubSubscribedEvent* OnSipCallStateHelper::getPubSubSubscribedEvent(XmppEv
 }
 
 //static
-void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData,XmppActiveCallEvent* ace,long callId,bool bUpdateCallerId)
+void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData,XmppActiveCallEvent* ace,long callId,bool bUpdateCallerId,LPCSTR szCallSetupId)
 {
 	_ASSERT( ace != NULL );
 	if ( ace == NULL )
@@ -116,6 +124,10 @@ void OnSipCallStateHelper::AssignCallStateData(OnSipCallStateData& callStateData
 	// Assign from/to tags
 	callStateData.m_fromTag = ace->m_from_tag;
 	callStateData.m_toTag = ace->m_to_tag;
+
+	// Assign call-setup-id if specified
+	if ( szCallSetupId != NULL )
+		callStateData.m_call_setup_id = szCallSetupId;
 }
 
 //****************************************************************************
@@ -173,14 +185,14 @@ void callBranches::AddBranch(OnSipCallStateData& callData)
 // Add the branch call to our branches list.
 // Added by the active call event and the callId
 // If call is already part of the 
-void callBranches::AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType, bool bUpdateCallerId )
+void callBranches::AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType, bool bUpdateCallerId,LPCSTR szCallSetupId )
 {
-	Logger::log_debug( _T("callBranches::AddBranch ace id=%s branch=%s callId=%ld callType=%s bUpdateCallerId=%d cnt=%d"), ace->m_id.c_str(), ace->m_branch.c_str(), callId, OnSipXmppCallType::CallTypeToString(callType), bUpdateCallerId, m_branches.size() );
+	Logger::log_debug( _T("callBranches::AddBranch ace id=%s branch=%s callId=%ld callType=%s bUpdateCallerId=%d cnt=%d callSetupId=%p"), ace->m_id.c_str(), ace->m_branch.c_str(), callId, OnSipXmppCallType::CallTypeToString(callType), bUpdateCallerId, m_branches.size(), szCallSetupId );
 
 	// Get the callstate data from the call event
 	OnSipCallStateData callData;
 	callData.m_callType = callType;
-	OnSipCallStateHelper::AssignCallStateData(callData,ace,callId,bUpdateCallerId);
+	OnSipCallStateHelper::AssignCallStateData(callData,ace,callId,bUpdateCallerId,szCallSetupId);
 
 	// If we already have this item in the branches
 	int index = _getIdIndex( ace->m_id );
@@ -320,8 +332,8 @@ TCHAR *OnSipXmppCallType::CallTypeToString(CallType calltype)
 // Convert OnSipCallStateData instance to a displayable string for debug purposes
 tstring OnSipCallStateData::ToString() const
 {
-	return Strings::stringFormat(_T("<OnSipCallStateData id=%s callType=%s callId=%ld remote=%s calledId=%s sipCallId=%s branch=%s>"),
-		m_id.c_str(), OnSipXmppCallType::CallTypeToString(m_callType), m_callId, m_remoteId.c_str(), m_calledId.c_str(), m_sipCallId.c_str(), m_branch.c_str() );
+	return Strings::stringFormat(_T("<OnSipCallStateData id=%s callType=%s callId=%ld remote=%s calledId=%s sipCallId=%s callSetupId=%s branch=%s>"),
+		m_id.c_str(), OnSipXmppCallType::CallTypeToString(m_callType), m_callId, m_remoteId.c_str(), m_calledId.c_str(), m_sipCallId.c_str(), m_call_setup_id.c_str(), m_branch.c_str() );
 }
 
 //****************************************************************************
@@ -725,12 +737,20 @@ bool OnSipMakeCallStateHandler::PreExecute(OnSipStateMachineBase<OnSipXmppStates
 	m_contextId = pOnSipXmpp->getUniqueId();
 	tstring toDial = getCurrentStateData().m_remoteId.c_str();
 
-	// Tag appended to TO/FROM SIP fields for the call, used to identify 
-	tstring customTag = Strings::stringFormat(_T("sync=clk%ld"), (long) clock() );
+	// call-setup-id for the call, used to synchronize messages
+	// coming back from server with this request.
+	tstring callSetupId = Strings::stringFormat(_T("%08ld"), (long) clock() );
+	// Must be max 8 alpanumeric chars
+	if ( callSetupId.size() > 8 )
+		callSetupId = callSetupId.substr( callSetupId.size()-8, 8 );
 
-	pOnSipXmpp->CallNumber( toDial, m_contextId, customTag, &m_toSipField, &m_fromSipField );
-	Logger::log_debug(_T("OnSipMakeCallStateHandler::PreExecute dial=%s callId=%ld contextId=%d tag=%s to=%s from=%s"), 
-		toDial.c_str(), getCurrentStateData().m_callId, m_contextId, customTag.c_str(), m_toSipField.c_str(), m_fromSipField.c_str() );
+	// Set the callSetupId in our call state data
+	getCurrentStateData().m_call_setup_id = callSetupId;
+
+	pOnSipXmpp->CallNumber( toDial, m_contextId, callSetupId, &m_toSipField, &m_fromSipField );
+	Logger::log_debug(_T("OnSipMakeCallStateHandler::PreExecute dial=%s callId=%ld contextId=%d callSetupId=%s to=%s from=%s"), 
+		toDial.c_str(), getCurrentStateData().m_callId, m_contextId, callSetupId.c_str(), m_toSipField.c_str(), m_fromSipField.c_str() );
+
 	// Set our state
 	assignNewState( OnSipXmppStates::MakeCallSet, NULL );
 	return true;
@@ -747,6 +767,9 @@ bool OnSipMakeCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallSt
 	Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent pEvent=%x/%d curState=%s bSameContextId=%d"),pEvent,pEvent->m_type, OnSipXmppStates::CallStateToString(getCurrentState()), bSameContextId );
 	Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent inIds=%s outId=%s evtId=%s"), m_branches.ToString().c_str(), m_out_id.c_str(), pEvent->m_id.c_str() );
 
+	XmppAuthEvent* evAuthEvent = OnSipCallStateHelper::getAuthEvent(pEvent);
+	
+
 	// See if an ActiveCallEvent with callstate change
 	XmppActiveCallEvent *ace = OnSipCallStateHelper::getActiveCallEvent(pEvent);
 	if ( ace != NULL )
@@ -759,13 +782,16 @@ bool OnSipMakeCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallSt
 		if ( ace->m_to_uri == m_toSipField || ace->m_to_uri == m_fromSipField || ace->m_from_uri == m_toSipField || ace->m_from_uri == m_fromSipField )
 			bMatchSips=true;
 
-		Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent isActiveCallEvent bMatchSip=%d touri=%s fromuri=%s ourTo=%s ourFrom=%s"),
-			bMatchSips, ace->m_to_uri.c_str(), ace->m_from_uri.c_str(), m_toSipField.c_str(), m_fromSipField.c_str() );
+		// See if this event belongs to our call, matching call-setup-id
+		bool bSameCallSetupId = getCurrentStateData().SameCallSetupId( ace->m_call_setup_id );
+
+		Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent isActiveCallEvent bMatchSip=%d bSameCallSetupId=%d touri=%s fromuri=%s ourTo=%s ourFrom=%s"),
+			bMatchSips, bSameCallSetupId, ace->m_to_uri.c_str(), ace->m_from_uri.c_str(), m_toSipField.c_str(), m_fromSipField.c_str() );
 
 		// If not a matching TO or FROM, then this is not our event
-		if ( !bMatchSips )
+		if ( !bMatchSips || !bSameCallSetupId )
 		{
-			Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent notEvent") );
+			Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent notEvent. bMatchSips=%d bSameCallSetupId=%d"), bMatchSips, bSameCallSetupId );
 			return false;
 		}
 
@@ -781,9 +807,9 @@ bool OnSipMakeCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallSt
 
 		// Add this call to our list of branches
 		// Do not update caller-id information at this point, it will be updated later in states if necessary
-		m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, false  );
+		m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, false,  getCurrentStateData().m_call_setup_id.c_str() );
 
-		// See if REQUESTED incoming call.
+		// See if initial REQUESTED incoming call.
 		bool bRequested = ace->m_dialogState == XmppActiveCallEvent::REQUESTED;
 
 		// If the user has multiple SIP phones registered, then we could get
@@ -834,7 +860,7 @@ bool OnSipMakeCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallSt
 			{
 				assignNewState( OnSipXmppStates::MakeCallOutgoingCreated, pEvent );
 				// Update branch with proper caller-id info, it is now valid
-				m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, true   );
+				m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, true, getCurrentStateData().m_call_setup_id.c_str()    );
 			}
 			// TODO?? Error condtion?
 			else
@@ -860,7 +886,7 @@ bool OnSipMakeCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallSt
 				// Update the CallState data
 				OnSipCallStateHelper::AssignCallStateData(getCurrentStateData(),ace,-1);
 				// Update branch with proper caller-id info, it is now valid
-				m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, true   );
+				m_branches.AddBranch( ace, getCurrentStateData().m_callId, getCurrentStateData().m_callType, true, getCurrentStateData().m_call_setup_id.c_str()   );
 				return true;
 			}
 			// TODO?? Error condtion?
@@ -939,8 +965,8 @@ bool OnSipMakeCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallSt
 		return true;
 	}
 
-	// See if our IQ result
-	XmppIqResultEvent *iqr = OnSipCallStateHelper::getXmppIqResultEvent(pEvent);
+	// See if the IQ result for the make call request
+	XmppCallRequestEvent* iqr = OnSipCallStateHelper::getCallRequestIqEvent(pEvent);
 	if ( iqr != NULL && bSameContextId )
 	{
 		Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent IQResult iserr=%d"),iqr->IsError());
@@ -954,7 +980,11 @@ bool OnSipMakeCallStateHandler::IsYourEvent(StateMachine<OnSipXmppStates::CallSt
 		// Leave the state in the MakeCallSet, do not have another state here.
 		// The reason is that the IQ result is not guaranteed to come in before the message events start coming in.
 		// Signify the call is trying, next state will be incoming call
-		Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent PreMakeCall IQ result"));
+		Logger::log_debug(_T("OnSipMakeCallStateHandler::IsYourEvent PreMakeCall IQ result callSetupId=%s"),iqr->call_setup_id.c_str() );
+
+		// Verify that the call-setup-id in the state data and IQ result are the same.
+		// Just some extra checking, it should be.
+		_ASSERTE( getCurrentStateData().m_call_setup_id == iqr->call_setup_id );
 
 		// Delete event since not keeping it
 		delete pEvent;

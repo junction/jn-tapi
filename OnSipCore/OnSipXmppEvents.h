@@ -16,6 +16,7 @@ protected:
 public:
 	enum XmppEvtType { 
 			EVT_PUBSUB_AUTH, 
+			EVT_IQ_CALLREQUEST, 
 			EVT_PUBSUB_SUBSCRIBE, 
 			EVT_PUBSUB_ACTIVECALL_EVENT, 
 			EVT_PUBSUB_RETRACTCALL_EVENT,
@@ -79,6 +80,19 @@ public:
 	static XmppAuthEvent* checkEvent(const IQ& iq,int context);
 };
 
+// Id response after making a call request with the OnSIP PBX
+class XmppCallRequestEvent : public XmppEvent
+{
+public:
+	string call_setup_id;
+
+	XmppCallRequestEvent (const string& id,const JID& to,const JID& from,const Tag *tag,const Error* error=NULL,int context=0) : XmppEvent( XmppEvent::EVT_IQ_CALLREQUEST, id, to, from, tag, error, context)
+	{ }
+
+	virtual string ToString();
+	static XmppCallRequestEvent * checkEvent(const IQ& iq,int context);
+};
+
 // Standard IQ Result or Error Event, used if no other events are recognized for the IQ Result
 class XmppIqResultEvent : public XmppEvent
 {
@@ -123,6 +137,7 @@ public:
 	string m_from_tag;
 	string m_to_tag;
 	string m_branch;
+	string m_call_setup_id;
 
 	XmppActiveCallEvent(const string& id, const JID& to,const JID& from,const Tag *tag,const Error* error=NULL,int context=0) : XmppEvent( XmppEvent::EVT_PUBSUB_ACTIVECALL_EVENT, id, to, from, tag, error, context)
 	{ }

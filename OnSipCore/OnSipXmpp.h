@@ -70,16 +70,14 @@ public:
 	void Ping()
 	{	OnSipXmppBase::Ping();	}
 
-	// Call Number on OnSip PBX
+	// Call number on PBX
 	// Pass unique contextId to be associated with this request,
+	// callSetupId = call setup id to be used in messages and Iq result for this specific call.
+	//    this is used to synchronize the events we get back so we know it goes with this call.  This will set server call-setup-id values
 	// the Iq Result will have the same contextId.
-	//   customTag = unique value in form of "x=y" that is to be added to the TO and FROM fields
-	// in the call request.  This can be used to uniquely identify the <message> events that
-	// are associated with this call.  The TO with customTag can be used to identify messages
-	// related to the inbound part, and the FROM/tag can be used to identify messages related
-	// to the outbound part.
 	//    toField/fromField = optional tstring values to retrieve the exact TO and FROM values used in the XMPP request.
-	tstring CallNumber(tstring number,int contextId,tstring customTag,tstring* toField=NULL,tstring* fromField=NULL);
+	// Returns the XMPP id used for the request
+	tstring CallNumber(tstring number,int contextId,tstring& callSetupId, tstring* toField=NULL,tstring* fromField=NULL);
 
 	// Hangup call PBX
 	// Pass unique contextId to be associated with this request,

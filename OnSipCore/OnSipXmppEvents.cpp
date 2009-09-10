@@ -67,6 +67,9 @@ XmppEvent* XmppEventFactory::iqFactory(const IQ& iq,int context)
 	XmppEvent* evt = XmppAuthEvent::checkEvent(iq,context);
 	if ( evt != NULL )
 		return evt;
+	evt = XmppCallRequestEvent::checkEvent(iq,context);
+	if ( evt != NULL )
+		return evt;
 	evt = XmppIqResultEvent::checkEvent(iq,context);
 	if ( evt != NULL )
 		return evt;
@@ -138,6 +141,45 @@ XmppAuthEvent* XmppAuthEvent::checkEvent(const IQ& iq,int context)
 //***************************************************************************
 //***************************************************************************
 
+string XmppCallRequestEvent::ToString()
+{
+	// Get our base string
+	string str = XmppEvent::ToString();
+	return Strings::stringFormat("XmppCallRequestEvent callSetupId=%s\r\n<%s>",call_setup_id.c_str(), str.c_str() );
+}
+
+// Checks the IQ event to see if it is the OnSIP Authorization result event
+// static
+XmppCallRequestEvent* XmppCallRequestEvent::checkEvent(const IQ& iq,int context)
+{
+	// See if this is an IQ result responses for a make call IQ request
+	// This occurs after requesting to make a call.
+	// The IQ result contains the call-setup-id that can be used to synchronize the  message event
+	// with the make call request
+	const Adhoc::Command* cmd = iq.findExtension<Adhoc::Command>(ExtAdhocCommand);
+	if ( cmd != NULL && (iq.subtype() == IQ::Result || iq.subtype() == IQ::Error) )
+	{
+		const DataForm* frm = cmd->form();
+		if ( frm != NULL && cmd->node() == "create" && iq.from() == ONSIP_ACTIVECALLS_COMMAND )
+		{
+			// If an error
+			if ( iq.error() != NULL )
+				return new XmppCallRequestEvent( iq.id(), iq.to(), iq.from(), iq.tag(), iq.error(), context );
+
+			// If not an error
+			XmppCallRequestEvent* evt = new XmppCallRequestEvent( iq.id(), iq.to(), iq.from(), iq.tag(), NULL, context );
+			DataFormField* field = frm->field( "call-setup-id" );
+			_ASSERT( field != NULL );
+			evt->call_setup_id = field->value();
+			return evt;
+		}
+	}
+	return NULL;
+}
+
+//***************************************************************************
+//***************************************************************************
+
 string XmppIqResultEvent::ToString()
 {
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
@@ -198,9 +240,9 @@ string XmppActiveCallEvent::ToString()
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 	// Get our base string
 	string str = XmppEvent::ToString();
-	return Strings::stringFormat("XmppActiveCallEvent state=%s toaor=%s callid=%s fromUri=%s toUri=%s fromTag=%s toTag=%s branch=%s\r\n<%s>",
+	return Strings::stringFormat("XmppActiveCallEvent state=%s toaor=%s callid=%s fromUri=%s toUri=%s fromTag=%s toTag=%s callSetupId=%s branch=%s\r\n<%s>",
 		XmppActiveCallEvent::DialogStateToString(m_dialogState), m_to_aor.c_str(), m_sipCallid.c_str(), m_from_uri.c_str(), 
-		m_to_uri.c_str(), m_from_tag.c_str(), m_to_tag.c_str(), m_branch.c_str(), str.c_str() );
+		m_to_uri.c_str(), m_from_tag.c_str(), m_to_tag.c_str(), m_call_setup_id.c_str(), m_branch.c_str(), str.c_str() );
 }
 
 // Helper method to convert a dialog-state callstate value into a CallDialogState enum
@@ -272,6 +314,7 @@ XmppActiveCallEvent* XmppActiveCallEvent::checkEvent(const Message& msg)
 	ce->m_from_tag	= TagHelper::getChildText(activeCall,"from-tag");
 	ce->m_to_tag  = TagHelper::getChildText(activeCall,"to-tag");
 	ce->m_branch  = TagHelper::getChildText(activeCall,"branch");
+	ce->m_call_setup_id = TagHelper::getChildText(activeCall,"call-setup-id");
 	return ce;
 }
 

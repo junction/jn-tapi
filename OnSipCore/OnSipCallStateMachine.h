@@ -53,6 +53,7 @@ public:
 	tstring m_fromTag;		// needed for DropCall
 	tstring m_toTag;			// needed for DropCall
 	tstring m_branch;
+	tstring m_call_setup_id;		// call-setup-id value that syncs makecall request with incoming async messages
 
 	OnSipCallStateData() 
 	{  m_callId = 0;  m_callType = OnSipXmppCallType::Unknown; }
@@ -71,11 +72,16 @@ public:
 		m_fromTag = callData.m_fromTag;
 		m_toTag = callData.m_toTag;
 		m_branch = callData.m_branch;
+		m_call_setup_id = callData.m_call_setup_id;
 		return *this;
 	}
 
 	bool SameBranch(tstring branch)
 	{	return m_branch == branch; }
+
+	// Is the passed callSetupId the same callSetupId in the CallStateData.
+	bool SameCallSetupId(tstring callSetupId)
+	{	return  !m_call_setup_id.empty() && m_call_setup_id == callSetupId; }
 
 	tstring ToString() const;
 };
@@ -101,7 +107,7 @@ public:
 	
 	void AddBranch(OnSipCallStateData& callData);
 
-	void AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType,bool bUpdateCallerId=true);
+	void AddBranch(XmppActiveCallEvent *ace,long callId,OnSipXmppCallType::CallType callType,bool bUpdateCallerId=true,LPCSTR szCallSetupId=NULL);
 
 	// We need to see which call was dropped, and if the one in our
 	// main CallStateData, then move one of the branches to replace it.
@@ -155,8 +161,9 @@ public:
 	static XmppPubSubSubscribedEvent* getPubSubSubscribedEvent(XmppEvent *pEvent);
 	static DropRequestEvent* getDropRequestEvent(XmppEvent* pEvent);
 	static ShutdownRequestEvent* getShutdownRequestEvent(XmppEvent* pEvent);
+	static XmppCallRequestEvent* getCallRequestIqEvent(XmppEvent* pEvent);
 
-	static void AssignCallStateData(OnSipCallStateData& callStateData,XmppActiveCallEvent* ace,long callId,bool bUpdateCallerId=true);
+	static void AssignCallStateData(OnSipCallStateData& callStateData,XmppActiveCallEvent* ace,long callId,bool bUpdateCallerId=true,LPCSTR szCallSetupId=NULL);
 };
 
 //*************************************************************************

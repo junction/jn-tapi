@@ -93,17 +93,14 @@ void OnSipXmpp::getSubscriptions()
 
 // Call number on PBX
 // Pass unique contextId to be associated with this request,
+// callSetupId = call setup id to be used in messages and Iq result for this specific call.
+//    this is used to synchronize the events we get back so we know it goes with this call.  This will set server call-setup-id values
 // the Iq Result will have the same contextId.
-//   customTag = unique value in form of "x=y" that is to be added to the TO and FROM fields
-// in the call request.  This can be used to uniquely identify the <message> events that
-// are associated with this call.  The TO with customTag can be used to identify messages
-// related to the inbound part, and the FROM/tag can be used to identify messages related
-// to the outbound part.
 //    toField/fromField = optional tstring values to retrieve the exact TO and FROM values used in the XMPP request.
 // Returns the XMPP id used for the request
-tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tstring* toField,tstring* fromField)
+tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring& callSetupId, tstring* toField,tstring* fromField)
 {
-	Logger::log_debug("OnSipXmpp::CallNumber number='%s' contextId=%d customTag=%s",number.c_str(),contextId,customTag.c_str());
+	Logger::log_debug("OnSipXmpp::CallNumber number='%s' contextId=%d callSetupId=%s",number.c_str(),contextId,callSetupId.c_str());
 	_checkThread.CheckSameThread();	// Verify we are single threaded for this object
 
 	// If does not contain a "@", then assume it is a phone number
@@ -140,14 +137,6 @@ tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tst
 
 	tstring fromNumber = Strings::stringFormat( _T("sip:%s"), m_login.SIPAddress().c_str() );
 
-	// If customTag is specified, then append to TO and FROM fields,
-	//  e.g. "1234567890@abc.com;tag=value"
-	if ( !customTag.empty() )
-	{
-		toNumber = Strings::stringFormat( _T("%s;%s"), toNumber.c_str(), customTag.c_str() );
-		fromNumber = Strings::stringFormat( _T("%s;%s"), fromNumber.c_str(), customTag.c_str() );
-	}
-
 	// Ensure number is prefixed with "sip:" or "sips:"
 	if ( !Strings::startsWith( Strings::tolower(toNumber), _T("sip:") ) && !Strings::startsWith( Strings::tolower(toNumber), _T("sips:") ) )
 		toNumber = Strings::stringFormat( _T("sip:%s"), toNumber.c_str() );
@@ -165,6 +154,9 @@ tstring OnSipXmpp::CallNumber(tstring number,int contextId,tstring customTag,tst
 	settings->addField(dff);
 	// Add to field
 	dff = new DataFormField( "to", toNumber );
+	settings->addField(dff);
+	// Add call-setup-id field
+	dff = new DataFormField( "call-setup-id",  callSetupId );
 	settings->addField(dff);
 
 	// Add command
