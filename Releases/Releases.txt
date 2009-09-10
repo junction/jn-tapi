@@ -97,3 +97,10 @@ TSP release 8-22-09 - fixes  v1.06 installer
      2) Fixed exception issues in VS 2008 Release mode only.  Removed INLINE option in TSP source
      3) Added debug level option to OnSipInstall.dll
 
+TSP release 9-09-09 - fixes  v1.07 installer
+     1) Changed make call setup to use new call-setup-id value.
+        No longer use the sync value passed in the SIP URI to sync the
+        incoming events with the make call request.
+        call-setup-id is specified in the IQ make call request, all
+        message events for this call will contain this call-setup-id.
+

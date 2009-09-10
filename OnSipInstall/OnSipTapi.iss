@@ -10,7 +10,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{A89C95B3-05C1-4517-B746-5B954C9E1431}
 AppName={#MyAppName}
-AppVerName={#MyAppName} v1.06
+AppVerName={#MyAppName} v1.07
 AppPublisher=Junction Networks
 AppPublisherURL=www.junctionnetworks.com
 AppSupportURL=www.junctionnetworks.com
