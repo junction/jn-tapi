@@ -27,7 +27,12 @@
 // CONSTANTS
 /*---------------------------------------------------------------------------*/
 #undef DLLEXPORT
-#define DLLEXPORT extern "C" _declspec(naked)
+
+#ifdef _M_X64
+	#define DLLEXPORT extern "C" 
+#else
+	#define DLLEXPORT extern "C" _declspec(naked)
+#endif
 
 /*---------------------------------------------------------------------------*/
 // GLOBALS
@@ -51,7 +56,11 @@ static CDebugMgr g_dbgMgr;
 DLLEXPORT
 LONG TSPIAPI TSPI_lineAccept (DRV_REQUESTID dwRequestId, HDRVCALL hdCall, LPCSTR lpsUserUserInfo, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_lineAccept(dwRequestId,hdCall, lpsUserUserInfo,dwSize);
+#else
 	_asm jmp tsplib_lineAccept;
+#endif
 
 }// TSPI_lineAccept
 
@@ -64,8 +73,11 @@ LONG TSPIAPI TSPI_lineAccept (DRV_REQUESTID dwRequestId, HDRVCALL hdCall, LPCSTR
 DLLEXPORT
 LONG TSPIAPI TSPI_lineAddToConference (DRV_REQUESTID dwRequestId, HDRVCALL hdConfCall, HDRVCALL hdConsultCall)
 {
+#ifdef _M_X64
+	return tsplib_lineAddToConference(dwRequestId,hdConfCall, hdConsultCall);
+#else
 	_asm jmp tsplib_lineAddToConference;
-
+#endif
 }// TSPI_lineAddToConference
 
 ///////////////////////////////////////////////////////////////////////////
@@ -76,7 +88,11 @@ LONG TSPIAPI TSPI_lineAddToConference (DRV_REQUESTID dwRequestId, HDRVCALL hdCon
 DLLEXPORT
 LONG TSPIAPI TSPI_lineAnswer (DRV_REQUESTID dwRequestId, HDRVCALL hdCall, LPCSTR lpsUserUserInfo, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_lineAnswer(dwRequestId, hdCall, lpsUserUserInfo, dwSize);
+#else
 	_asm jmp tsplib_lineAnswer;
+#endif
 
 }// TSPI_lineAnswer
 
@@ -89,7 +105,11 @@ LONG TSPIAPI TSPI_lineAnswer (DRV_REQUESTID dwRequestId, HDRVCALL hdCall, LPCSTR
 DLLEXPORT
 LONG TSPIAPI TSPI_lineBlindTransfer (DRV_REQUESTID dwRequestId, HDRVCALL hdCall, LPCWSTR lpszDestAddr, DWORD dwCountryCode)
 {
+#ifdef _M_X64
+	return tsplib_lineBlindTransfer(dwRequestId, hdCall, lpszDestAddr, dwCountryCode);
+#else
 	_asm jmp tsplib_lineBlindTransfer;
+#endif
 
 }// TSPI_lineBlindTransfer
 
@@ -102,7 +122,11 @@ LONG TSPIAPI TSPI_lineBlindTransfer (DRV_REQUESTID dwRequestId, HDRVCALL hdCall,
 DLLEXPORT
 LONG TSPIAPI TSPI_lineClose (HDRVLINE hdLine)
 {
+#ifdef _M_X64
+	return tsplib_lineClose(hdLine);
+#else
 	_asm jmp tsplib_lineClose;
+#endif
 
 }// TSPI_lineClose
 
@@ -115,8 +139,11 @@ LONG TSPIAPI TSPI_lineClose (HDRVLINE hdLine)
 DLLEXPORT
 LONG TSPIAPI TSPI_lineCloseCall (HDRVCALL hdCall)
 {
+#ifdef _M_X64
+	return tsplib_lineCloseCall(hdCall);
+#else
 	_asm jmp tsplib_lineCloseCall;
-
+#endif
 }// TSPI_lineCloseCall
 
 ///////////////////////////////////////////////////////////////////////////
@@ -128,7 +155,11 @@ LONG TSPIAPI TSPI_lineCloseCall (HDRVCALL hdCall)
 DLLEXPORT
 LONG TSPIAPI TSPI_lineCloseMSPInstance(HDRVMSPLINE hdMSPLine)
 {
+#ifdef _M_X64
+	return tsplib_lineCloseMSPInstance(hdMSPLine);
+#else
 	_asm jmp tsplib_lineCloseMSPInstance;
+#endif
 
 }// TSPI_lineCloseMSPInstance
 
@@ -145,8 +176,11 @@ LONG TSPIAPI TSPI_lineCompleteCall (DRV_REQUESTID dwRequestId,
          HDRVCALL hdCall, LPDWORD lpdwCompletionID, DWORD dwCompletionMode,
          DWORD dwMessageID)
 {
+#ifdef _M_X64
+	return tsplib_lineCompleteCall(dwRequestId,hdCall,lpdwCompletionID,dwCompletionMode,dwMessageID);
+#else
 	_asm jmp tsplib_lineCompleteCall;
-
+#endif
 }// TSPI_lineCompleteCall
 
 ///////////////////////////////////////////////////////////////////////////
@@ -163,8 +197,11 @@ LONG TSPIAPI TSPI_lineCompleteTransfer (DRV_REQUESTID dwRequestId,
          HDRVCALL hdCall, HDRVCALL hdConsultCall, HTAPICALL htConfCall,
          LPHDRVCALL lphdConfCall, DWORD dwTransferMode)
 {
+#ifdef _M_X64
+	return tsplib_lineCompleteTransfer(dwRequestId,hdCall,hdConsultCall,htConfCall,lphdConfCall,dwTransferMode);
+#else
 	_asm jmp tsplib_lineCompleteTransfer;
-
+#endif
 }// TSPI_lineCompleteTransfer   
 
 ////////////////////////////////////////////////////////////////////////////
@@ -179,8 +216,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineConditionalMediaDetection (HDRVLINE hdLine,
          DWORD dwMediaModes, LPLINECALLPARAMS const lpCallParams)
 {
+#ifdef _M_X64
+	return tsplib_lineConditionalMediaDetection(hdLine,dwMediaModes,lpCallParams);
+#else
 	_asm jmp tsplib_lineConditionalMediaDetection;
-
+#endif
 }// TSPI_lineConditionalMediaDetection
 
 ///////////////////////////////////////////////////////////////////////////
@@ -191,10 +231,14 @@ LONG TSPIAPI TSPI_lineConditionalMediaDetection (HDRVLINE hdLine,
 // requires TAPI 3.0 negotiation.
 //
 DLLEXPORT
-LONG TSPIAPI TSPI_lineCreateMSPInstance(HDRVLINE hdLine, DWORD dwAddressID, HTAPIMSPLINE htMSPLine, LPHDRVMSPLINE lphdMSPLine)
+LONG TSPIAPI TSPI_lineCreateMSPInstance(HDRVLINE hdLine, DWORD dwAddressID, HTAPIMSPLINE htMSPLine, 
+										LPHDRVMSPLINE lphdMSPLine)
 {
+#ifdef _M_X64
+	return tsplib_lineCreateMSPInstance(hdLine,dwAddressID,htMSPLine,lphdMSPLine);
+#else
 	_asm jmp tsplib_lineCreateMSPInstance;
-
+#endif
 }// TSPI_lineCreateMSPInstance
 
 ///////////////////////////////////////////////////////////////////////////
@@ -208,8 +252,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineDevSpecific (DRV_REQUESTID dwRequestId, HDRVLINE hdLine,
          DWORD dwAddressId, HDRVCALL hdCall, LPVOID lpParams, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_lineDevSpecific(dwRequestId,hdLine,dwAddressId,hdCall,lpParams,dwSize);
+#else
 	_asm jmp tsplib_lineDevSpecific;
-
+#endif
 }// TSPI_lineDevSpecific
 
 ///////////////////////////////////////////////////////////////////////////
@@ -223,7 +270,12 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineDevSpecificFeature (DRV_REQUESTID dwRequestId, HDRVLINE hdLine,
          DWORD dwFeature, LPVOID lpParams, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_lineDevSpecificFeature(dwRequestId,hdLine,dwFeature,lpParams,dwSize);
+#else
 	_asm jmp tsplib_lineDevSpecificFeature;
+#endif
+
 
 }// TSPI_lineDevSpecificFeature
 
@@ -237,8 +289,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineDial (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
          LPCWSTR lpszDestAddress, DWORD dwCountryCode)
 {
+#ifdef _M_X64
+	return tsplib_lineDial(dwRequestID,hdCall,lpszDestAddress,dwCountryCode);
+#else
 	_asm jmp tsplib_lineDial;
-
+#endif
 }// TSPI_lineDial
 
 ////////////////////////////////////////////////////////////////////////////
@@ -251,8 +306,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineDrop (DRV_REQUESTID dwRequestID, HDRVCALL hdCall, 
          LPCSTR lpsUserUserInfo, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_lineDrop(dwRequestID,hdCall,lpsUserUserInfo,dwSize);
+#else
 	_asm jmp tsplib_lineDrop;
-
+#endif
 }// TSPI_lineDrop
 
 ///////////////////////////////////////////////////////////////////////////
@@ -272,8 +330,12 @@ LONG TSPIAPI TSPI_lineForward (DRV_REQUESTID dwRequestId, HDRVLINE hdLine,
          HTAPICALL htConsultCall, LPHDRVCALL lphdConsultCall,
          LPLINECALLPARAMS const lpCallParams)
 {
+#ifdef _M_X64
+	return tsplib_lineForward(dwRequestId,hdLine,bAllAddresses,dwAddressId,lpForwardList,
+					dwNumRingsAnswer,htConsultCall,lphdConsultCall,lpCallParams);
+#else
 	_asm jmp tsplib_lineForward;
-
+#endif
 }// TSPI_lineForward
 
 ///////////////////////////////////////////////////////////////////////////
@@ -308,8 +370,12 @@ LONG TSPIAPI TSPI_lineGatherDigits (HDRVCALL hdCall, DWORD dwEndToEnd,
          LPCWSTR lpszTerminationDigits, DWORD dwFirstDigitTimeout,
          DWORD dwInterDigitTimeout)
 {
+#ifdef _M_X64
+	return tsplib_lineGatherDigits(hdCall,dwEndToEnd,dwDigitModes,lpszDigits,dwNumDigits,
+				lpszTerminationDigits,dwFirstDigitTimeout,dwInterDigitTimeout);
+#else
 	_asm jmp tsplib_lineGatherDigits;
-
+#endif
 }// TSPI_lineGatherDigits
 
 ///////////////////////////////////////////////////////////////////////////
@@ -322,8 +388,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineGenerateDigits (HDRVCALL hdCall, DWORD dwEndToEndID,
          DWORD dwDigitMode, LPCWSTR lpszDigits, DWORD dwDuration)
 {
+#ifdef _M_X64
+	return tsplib_lineGenerateDigits(hdCall,dwEndToEndID,dwDigitMode,lpszDigits,dwDuration);
+#else
 	_asm jmp tsplib_lineGenerateDigits;
-
+#endif
 }// TSPI_lineGenerateDigits
 
 ///////////////////////////////////////////////////////////////////////////
@@ -341,8 +410,11 @@ LONG TSPIAPI TSPI_lineGenerateTone (HDRVCALL hdCall, DWORD dwEndToEnd,
          DWORD dwToneMode, DWORD dwDuration, DWORD dwNumTones,
          LPLINEGENERATETONE const lpTones)
 {
+#ifdef _M_X64
+	return tsplib_lineGenerateTone(hdCall,dwEndToEnd,dwToneMode,dwDuration,dwNumTones,lpTones);
+#else
 	_asm jmp tsplib_lineGenerateTone;
-
+#endif
 }// TSPI_lineGenerateTone
 
 ///////////////////////////////////////////////////////////////////////////
@@ -355,8 +427,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineGetAddressCaps (DWORD dwDeviceID, DWORD dwAddressID,
          DWORD dwTSPIVersion, DWORD dwExtVersion, LPLINEADDRESSCAPS lpAddressCaps)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAddressCaps(dwDeviceID,dwAddressID,dwTSPIVersion,dwExtVersion,lpAddressCaps);
+#else
 	_asm jmp tsplib_lineGetAddressCaps;
-
+#endif
 }// TSPI_lineGetAddressCaps
 
 ///////////////////////////////////////////////////////////////////////////
@@ -369,8 +444,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineGetAddressID (HDRVLINE hdLine, LPDWORD lpdwAddressID, 
          DWORD dwAddressMode, LPCWSTR lpszAddress, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAddressID(hdLine,lpdwAddressID,dwAddressMode,lpszAddress,dwSize);
+#else
 	_asm jmp tsplib_lineGetAddressID;
-
+#endif
 }// TSPI_lineGetAddressID
 
 ///////////////////////////////////////////////////////////////////////////
@@ -383,10 +461,14 @@ LONG TSPIAPI TSPI_lineGetAddressID (HDRVLINE hdLine, LPDWORD lpdwAddressID,
 // TAPI 2.2 and 3.0
 //
 DLLEXPORT
-LONG TSPIAPI TSPI_lineGetCallIDs(HDRVCALL hdCall, LPDWORD lpdwAddressID, LPDWORD lpdwCallID, LPDWORD lpdwRelatedCallID)
+LONG TSPIAPI TSPI_lineGetCallIDs(HDRVCALL hdCall, LPDWORD lpdwAddressID, LPDWORD lpdwCallID, 
+								 LPDWORD lpdwRelatedCallID)
 {
+#ifdef _M_X64
+	return tsplib_lineGetCallIDs(hdCall,lpdwAddressID,lpdwCallID,lpdwRelatedCallID);
+#else
 	_asm jmp tsplib_lineGetCallIDs;
-
+#endif
 }// TSPI_lineGetCallIDs
 
 ///////////////////////////////////////////////////////////////////////////
@@ -398,8 +480,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineGetAddressStatus (HDRVLINE hdLine, DWORD dwAddressID,
          LPLINEADDRESSSTATUS lpAddressStatus)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAddressStatus(hdLine,dwAddressID,lpAddressStatus);
+#else
 	_asm jmp tsplib_lineGetAddressStatus;
-
+#endif
 }// TSPI_lineGetAddressStatus
 
 ///////////////////////////////////////////////////////////////////////////
@@ -410,8 +495,11 @@ LONG TSPIAPI TSPI_lineGetAddressStatus (HDRVLINE hdLine, DWORD dwAddressID,
 DLLEXPORT
 LONG TSPIAPI TSPI_lineGetCallAddressID (HDRVCALL hdCall, LPDWORD lpdwAddressID)
 {
+#ifdef _M_X64
+	return tsplib_lineGetCallAddressID(hdCall,lpdwAddressID);
+#else
 	_asm jmp tsplib_lineGetCallAddressID;
-
+#endif
 }// TSPI_lineGetCallAddressID
 
 ///////////////////////////////////////////////////////////////////////////
@@ -422,8 +510,11 @@ LONG TSPIAPI TSPI_lineGetCallAddressID (HDRVCALL hdCall, LPDWORD lpdwAddressID)
 DLLEXPORT 
 LONG TSPIAPI TSPI_lineGetCallHubTracking(HDRVLINE hdLine, LPLINECALLHUBTRACKINGINFO lpTrackingInfo)
 {
+#ifdef _M_X64
+	return tsplib_lineGetCallHubTracking(hdLine,lpTrackingInfo);
+#else
 	_asm jmp tsplib_lineGetCallHubTracking;
-
+#endif
 }// TSPI_lineGetCallHubTracking
 
 ///////////////////////////////////////////////////////////////////////////
@@ -435,8 +526,11 @@ LONG TSPIAPI TSPI_lineGetCallHubTracking(HDRVLINE hdLine, LPLINECALLHUBTRACKINGI
 DLLEXPORT
 LONG TSPIAPI TSPI_lineGetCallInfo (HDRVCALL hdCall, LPLINECALLINFO lpCallInfo)
 {
+#ifdef _M_X64
+	return tsplib_lineGetCallInfo(hdCall,lpCallInfo);
+#else
 	_asm jmp tsplib_lineGetCallInfo;
-
+#endif
 }// TSPI_lineGetCallInfo
 
 ///////////////////////////////////////////////////////////////////////////
@@ -447,8 +541,11 @@ LONG TSPIAPI TSPI_lineGetCallInfo (HDRVCALL hdCall, LPLINECALLINFO lpCallInfo)
 DLLEXPORT
 LONG TSPIAPI TSPI_lineGetCallStatus (HDRVCALL hdCall, LPLINECALLSTATUS lpCallStatus)
 {
+#ifdef _M_X64
+	return tsplib_lineGetCallStatus(hdCall,lpCallStatus);
+#else
 	_asm jmp tsplib_lineGetCallStatus;
-
+#endif
 }// TSPI_lineGetCallStatus
 
 ///////////////////////////////////////////////////////////////////////////
@@ -462,8 +559,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineGetDevCaps (DWORD dwDeviceID, DWORD dwTSPIVersion, 
          DWORD dwExtVersion, LPLINEDEVCAPS lpLineDevCaps)
 {
+#ifdef _M_X64
+	return tsplib_lineGetDevCaps(dwDeviceID,dwTSPIVersion,dwExtVersion,lpLineDevCaps);
+#else
 	_asm jmp tsplib_lineGetDevCaps;
-
+#endif
 }// TSPI_lineGetDevCaps
 
 //////////////////////////////////////////////////////////////////////////
@@ -477,8 +577,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineGetDevConfig (DWORD dwDeviceID, LPVARSTRING lpDeviceConfig,
          LPCWSTR lpszDeviceClass)
 {
+#ifdef _M_X64
+	return tsplib_lineGetDevConfig(dwDeviceID,lpDeviceConfig,lpszDeviceClass);
+#else
 	_asm jmp tsplib_lineGetDevConfig;
-
+#endif
 }// TSPI_lineGetDevConfig
 
 //////////////////////////////////////////////////////////////////////////
@@ -491,8 +594,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineGetExtensionID (DWORD dwDeviceID, DWORD dwTSPIVersion,
          LPLINEEXTENSIONID lpExtensionID)
 {
+#ifdef _M_X64
+	return tsplib_lineGetExtensionID(dwDeviceID,dwTSPIVersion,lpExtensionID);
+#else
 	_asm jmp tsplib_lineGetExtensionID;
-
+#endif
 }// TSPI_lineGetExtensionID
 
 //////////////////////////////////////////////////////////////////////////
@@ -505,8 +611,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineGetIcon (DWORD dwDeviceID, LPCWSTR lpszDeviceClass,
       LPHICON lphIcon)
 {
+#ifdef _M_X64
+	return tsplib_lineGetIcon(dwDeviceID,lpszDeviceClass,lphIcon);
+#else
 	_asm jmp tsplib_lineGetIcon;
-
+#endif
 }// TSPI_lineGetIcon
 
 //////////////////////////////////////////////////////////////////////////
@@ -521,8 +630,11 @@ LONG TSPIAPI TSPI_lineGetID (HDRVLINE hdLine, DWORD dwAddressID,
          HDRVCALL hdCall, DWORD dwSelect, LPVARSTRING lpVarString,
          LPCWSTR lpszDeviceClass, HANDLE hTargetProcess)
 {
+#ifdef _M_X64
+	return tsplib_lineGetID(hdLine,dwAddressID,hdCall,dwSelect,lpVarString,lpszDeviceClass,hTargetProcess);
+#else
 	_asm jmp tsplib_lineGetID;
-
+#endif
 }// TSPI_lineGetID
 
 ////////////////////////////////////////////////////////////////////////////
@@ -534,8 +646,11 @@ LONG TSPIAPI TSPI_lineGetID (HDRVLINE hdLine, DWORD dwAddressID,
 DLLEXPORT
 LONG TSPIAPI TSPI_lineGetLineDevStatus (HDRVLINE hdLine, LPLINEDEVSTATUS lpLineDevStatus)
 {
+#ifdef _M_X64
+	return tsplib_lineGetLineDevStatus(hdLine,lpLineDevStatus);
+#else
 	_asm jmp tsplib_lineGetLineDevStatus;
-
+#endif
 }// TSPI_lineGetLineDevStatus
 
 ////////////////////////////////////////////////////////////////////////////
@@ -546,8 +661,11 @@ LONG TSPIAPI TSPI_lineGetLineDevStatus (HDRVLINE hdLine, LPLINEDEVSTATUS lpLineD
 DLLEXPORT
 LONG TSPIAPI TSPI_lineGetNumAddressIDs (HDRVLINE hdLine, LPDWORD lpNumAddressIDs)
 {
+#ifdef _M_X64
+	return tsplib_lineGetNumAddressIDs(hdLine,lpNumAddressIDs);
+#else
 	_asm jmp tsplib_lineGetNumAddressIDs;
-
+#endif
 }// TSPI_lineGetNumAddressIDs
 
 ////////////////////////////////////////////////////////////////////////////
@@ -558,8 +676,11 @@ LONG TSPIAPI TSPI_lineGetNumAddressIDs (HDRVLINE hdLine, LPDWORD lpNumAddressIDs
 DLLEXPORT
 LONG TSPIAPI TSPI_lineHold (DRV_REQUESTID dwRequestID, HDRVCALL hdCall)
 {
+#ifdef _M_X64
+	return tsplib_lineHold(dwRequestID,hdCall);
+#else
 	_asm jmp tsplib_lineHold;
-
+#endif
 }// TSPI_lineHold
 
 ////////////////////////////////////////////////////////////////////////////
@@ -573,8 +694,11 @@ LONG TSPIAPI TSPI_lineMakeCall (DRV_REQUESTID dwRequestID, HDRVLINE hdLine,
          HTAPICALL htCall, LPHDRVCALL lphdCall, LPCWSTR lpszDestAddress,
          DWORD dwCountryCode, LPLINECALLPARAMS const lpCallParams)
 {
+#ifdef _M_X64
+	return tsplib_lineMakeCall(dwRequestID,hdLine,htCall,lphdCall,lpszDestAddress,dwCountryCode,lpCallParams);
+#else
 	_asm jmp tsplib_lineMakeCall;
-
+#endif
 }// TSPI_lineMakeCall
 
 ///////////////////////////////////////////////////////////////////////////
@@ -588,8 +712,11 @@ LONG TSPIAPI TSPI_lineMakeCall (DRV_REQUESTID dwRequestID, HDRVLINE hdLine,
 DLLEXPORT
 LONG TSPIAPI TSPI_lineMonitorDigits (HDRVCALL hdCall, DWORD dwDigitModes)
 {
+#ifdef _M_X64
+	return tsplib_lineMonitorDigits(hdCall,dwDigitModes);
+#else
 	_asm jmp tsplib_lineMonitorDigits;
-
+#endif
 }// TSPI_lineMonitorDigits
 
 ///////////////////////////////////////////////////////////////////////////
@@ -602,8 +729,11 @@ LONG TSPIAPI TSPI_lineMonitorDigits (HDRVCALL hdCall, DWORD dwDigitModes)
 DLLEXPORT
 LONG TSPIAPI TSPI_lineMonitorMedia (HDRVCALL hdCall, DWORD dwMediaModes)
 {
+#ifdef _M_X64
+	return tsplib_lineMonitorMedia(hdCall,dwMediaModes);
+#else
 	_asm jmp tsplib_lineMonitorMedia;
-
+#endif
 }// TSPI_lineMonitorMedia
 
 ///////////////////////////////////////////////////////////////////////////
@@ -617,8 +747,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineMonitorTones (HDRVCALL hdCall, DWORD dwToneListID,
          LPLINEMONITORTONE const lpToneList, DWORD dwNumEntries)
 {
+#ifdef _M_X64
+	return tsplib_lineMonitorTones(hdCall,dwToneListID,lpToneList,dwNumEntries);
+#else
 	_asm jmp tsplib_lineMonitorTones;
-
+#endif
 }// TSPI_lineMonitorTones
 
 ///////////////////////////////////////////////////////////////////////////
@@ -630,7 +763,11 @@ LONG TSPIAPI TSPI_lineMonitorTones (HDRVCALL hdCall, DWORD dwToneListID,
 DLLEXPORT
 LONG TSPIAPI TSPI_lineMSPIdentify(DWORD dwDeviceID, GUID* pCLSID)
 {
+#ifdef _M_X64
+	return tsplib_lineMSPIdentify(dwDeviceID,pCLSID);
+#else
 	_asm jmp tsplib_lineMSPIdentify;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -644,8 +781,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineNegotiateExtVersion (DWORD dwDeviceID, DWORD dwTSPIVersion,
          DWORD dwLowVersion, DWORD dwHiVersion, LPDWORD lpdwExtVersion)
 {
+#ifdef _M_X64
+	return tsplib_lineNegotiateExtVersion(dwDeviceID,dwTSPIVersion,dwLowVersion,dwHiVersion,lpdwExtVersion);
+#else
 	_asm jmp tsplib_lineNegotiateExtVersion;
-
+#endif
 }// TSPI_lineNegotiateExtVersion
 
 ///////////////////////////////////////////////////////////////////////////
@@ -658,8 +798,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineNegotiateTSPIVersion (DWORD dwDeviceID,             
          DWORD dwLowVersion, DWORD dwHighVersion, LPDWORD lpdwTSPIVersion)
 {
+#ifdef _M_X64
+	return tsplib_lineNegotiateTSPIVersion(dwDeviceID,dwLowVersion,dwHighVersion,lpdwTSPIVersion);
+#else
 	_asm jmp tsplib_lineNegotiateTSPIVersion;
-
+#endif
 }// TSPI_lineNegotiateTSPIVersion
 
 ////////////////////////////////////////////////////////////////////////////
@@ -674,8 +817,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineOpen (DWORD dwDeviceID, HTAPILINE htLine, 
          LPHDRVLINE lphdLine, DWORD dwTSPIVersion, LINEEVENT lpfnEventProc)
 {
+#ifdef _M_X64
+	return tsplib_lineOpen(dwDeviceID,htLine,lphdLine,dwTSPIVersion,lpfnEventProc);
+#else
 	_asm jmp tsplib_lineOpen;
-
+#endif
 }// TSPI_lineOpen
 
 //////////////////////////////////////////////////////////////////////////////
@@ -688,8 +834,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_linePark (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
          DWORD dwParkMode, LPCWSTR lpszDirAddr, LPVARSTRING lpNonDirAddress)
 {
+#ifdef _M_X64
+	return tsplib_linePark(dwRequestID,hdCall,dwParkMode,lpszDirAddr,lpNonDirAddress);
+#else
 	_asm jmp tsplib_linePark;
-
+#endif
 }// TSPI_linePark
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -706,8 +855,11 @@ LONG TSPIAPI TSPI_linePickup (DRV_REQUESTID dwRequestID, HDRVLINE hdLine,
          DWORD dwAddressID, HTAPICALL htCall, LPHDRVCALL lphdCall,
          LPCWSTR lpszDestAddr, LPCWSTR lpszGroupID)
 {
+#ifdef _M_X64
+	return tsplib_linePickup(dwRequestID,hdLine,dwAddressID,htCall,lphdCall,lpszDestAddr,lpszGroupID);
+#else
 	_asm jmp tsplib_linePickup;
-
+#endif
 }// TSPI_linePickup
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -722,8 +874,11 @@ LONG TSPIAPI TSPI_linePrepareAddToConference (DRV_REQUESTID dwRequestID,
          HDRVCALL hdConfCall, HTAPICALL htConsultCall, LPHDRVCALL lphdConsultCall,
          LPLINECALLPARAMS const lpCallParams)
 {
+#ifdef _M_X64
+	return tsplib_linePrepareAddToConference(dwRequestID,hdConfCall,htConsultCall,lphdConsultCall,lpCallParams);
+#else
 	_asm jmp tsplib_linePrepareAddToConference;
-
+#endif
 }// TSPI_linePrepareAddToConference
 
 ///////////////////////////////////////////////////////////////////////////
@@ -733,10 +888,14 @@ LONG TSPIAPI TSPI_linePrepareAddToConference (DRV_REQUESTID dwRequestID,
 // It requires TAPI 3.0 negotiation.
 //
 DLLEXPORT
-LONG TSPIAPI TSPI_lineReceiveMSPData(HDRVLINE hdLine, HDRVCALL hdCall, HDRVMSPLINE hdMSPLine, LPVOID pBuffer, DWORD dwSize)
+LONG TSPIAPI TSPI_lineReceiveMSPData(HDRVLINE hdLine, HDRVCALL hdCall, HDRVMSPLINE hdMSPLine, 
+									 LPVOID pBuffer, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_lineReceiveMSPData(hdLine,hdCall,hdMSPLine,pBuffer,dwSize);
+#else
 	_asm jmp tsplib_lineReceiveMSPData;
-	
+#endif
 }// TSPI_lineReceiveMSPData
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -749,8 +908,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineRedirect (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
          LPCWSTR lpszDestAddr, DWORD dwCountryCode)
 {
+#ifdef _M_X64
+	return tsplib_lineRedirect(dwRequestID,hdCall,lpszDestAddr,dwCountryCode);
+#else
 	_asm jmp tsplib_lineRedirect;
-
+#endif
 }// TSPI_lineRedirect
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -762,8 +924,11 @@ LONG TSPIAPI TSPI_lineRedirect (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
 DLLEXPORT
 LONG TSPIAPI TSPI_lineReleaseUserUserInfo (DRV_REQUESTID dwRequestID, HDRVCALL hdCall)
 {
+#ifdef _M_X64
+	return tsplib_lineReleaseUserUserInfo(dwRequestID,hdCall);
+#else
 	_asm jmp tsplib_lineReleaseUserUserInfo;
-
+#endif
 }// TSPI_lineReleaseUserUserInfo
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -776,8 +941,11 @@ LONG TSPIAPI TSPI_lineReleaseUserUserInfo (DRV_REQUESTID dwRequestID, HDRVCALL h
 DLLEXPORT
 LONG TSPIAPI TSPI_lineRemoveFromConference (DRV_REQUESTID dwRequestID, HDRVCALL hdCall)
 {
+#ifdef _M_X64
+	return tsplib_lineRemoveFromConference(dwRequestID,hdCall);
+#else
 	_asm jmp tsplib_lineRemoveFromConference;
-
+#endif
 }// TSPI_lineRemoveFromConference
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -789,8 +957,11 @@ LONG TSPIAPI TSPI_lineRemoveFromConference (DRV_REQUESTID dwRequestID, HDRVCALL 
 DLLEXPORT
 LONG TSPIAPI TSPI_lineSecureCall (DRV_REQUESTID dwRequestID, HDRVCALL hdCall)
 {
+#ifdef _M_X64
+	return tsplib_lineSecureCall(dwRequestID,hdCall);
+#else
 	_asm jmp tsplib_lineSecureCall;
-
+#endif
 }// TSPI_lineSecureCall
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -803,8 +974,11 @@ LONG TSPIAPI TSPI_lineSecureCall (DRV_REQUESTID dwRequestID, HDRVCALL hdCall)
 DLLEXPORT
 LONG TSPIAPI TSPI_lineSelectExtVersion (HDRVLINE hdLine, DWORD dwExtVersion)
 {
+#ifdef _M_X64
+	return tsplib_lineSelectExtVersion(hdLine,dwExtVersion);
+#else
 	_asm jmp tsplib_lineSelectExtVersion;
-
+#endif
 }// TSPI_lineSelectExtVersion
 
 //////////////////////////////////////////////////////////////////////////////
@@ -817,8 +991,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineSendUserUserInfo (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
          LPCSTR lpsUserUserInfo, DWORD dwSize)
 {
-	_asm jmp tsplib_lineSendUserUserInfo;
-
+#ifdef _M_X64
+	return TSPI_lineSendUserUserInfo (dwRequestID,hdCall,lpsUserUserInfo,dwSize);
+#else
+	_asm jmp TSPI_lineSendUserUserInfo ;
+#endif
 }// TSPI_lineSendUserUserInfo
                                                           
 //////////////////////////////////////////////////////////////////////////////
@@ -831,8 +1008,11 @@ LONG TSPIAPI TSPI_lineSendUserUserInfo (DRV_REQUESTID dwRequestID, HDRVCALL hdCa
 DLLEXPORT
 LONG TSPIAPI TSPI_lineSetAppSpecific (HDRVCALL hdCall, DWORD dwAppSpecific)
 {
+#ifdef _M_X64
+	return tsplib_lineSetAppSpecific(hdCall,dwAppSpecific);
+#else
 	_asm jmp tsplib_lineSetAppSpecific;
-
+#endif
 }// TSPI_lineSetAppSpecific
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -846,8 +1026,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineSetCallData (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
 								   LPVOID lpCallData, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_lineSetCallData(dwRequestID,hdCall,lpCallData,dwSize);
+#else
 	_asm jmp tsplib_lineSetCallData;
-
+#endif
 }// TSPI_lineSetCallData
 
 ///////////////////////////////////////////////////////////////////////////
@@ -858,8 +1041,11 @@ LONG TSPIAPI TSPI_lineSetCallData (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
 DLLEXPORT 
 LONG TSPIAPI TSPI_lineSetCallHubTracking(HDRVLINE hdLine, LPLINECALLHUBTRACKINGINFO lpTrackingInfo)
 {
+#ifdef _M_X64
+	return tsplib_lineSetCallHubTracking(hdLine,lpTrackingInfo);
+#else
 	_asm jmp tsplib_lineSetCallHubTracking;
-
+#endif
 }// TSPI_lineGetCallHubTracking
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -872,8 +1058,11 @@ LONG TSPIAPI TSPI_lineSetCallParams (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
          DWORD dwBearerMode, DWORD dwMinRate, DWORD dwMaxRate, 
          LPLINEDIALPARAMS const lpDialParams)
 {
+#ifdef _M_X64
+	return tsplib_lineSetCallParams(dwRequestID,hdCall,dwBearerMode,dwMinRate,dwMaxRate,lpDialParams);
+#else
 	_asm jmp tsplib_lineSetCallParams;
-
+#endif
 }// TSPI_lineSetCallParams
 
 ///////////////////////////////////////////////////////////////////////////
@@ -888,8 +1077,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineSetCallTreatment (DRV_REQUESTID dwRequestID,
 					HDRVCALL hdCall, DWORD dwCallTreatment)
 {
+#ifdef _M_X64
+	return tsplib_lineSetCallTreatment(dwRequestID,hdCall,dwCallTreatment);
+#else
 	_asm jmp tsplib_lineSetCallTreatment;
-
+#endif
 }// TSPI_lineSetCallTreatment
 
 ////////////////////////////////////////////////////////////////////////////
@@ -905,8 +1097,11 @@ LONG TSPIAPI TSPI_lineSetCallTreatment (DRV_REQUESTID dwRequestID,
 DLLEXPORT
 LONG TSPIAPI TSPI_lineSetCurrentLocation (DWORD dwLocation)
 {
+#ifdef _M_X64
+	return tsplib_lineSetCurrentLocation(dwLocation);
+#else
 	_asm jmp tsplib_lineSetCurrentLocation;
-
+#endif
 }// TSPI_lineSetCurrentLocation
 
 ////////////////////////////////////////////////////////////////////////////
@@ -918,8 +1113,11 @@ LONG TSPIAPI TSPI_lineSetCurrentLocation (DWORD dwLocation)
 DLLEXPORT
 LONG TSPIAPI TSPI_lineSetDefaultMediaDetection (HDRVLINE hdLine, DWORD dwMediaModes)
 {
+#ifdef _M_X64
+	return tsplib_lineSetDefaultMediaDetection(hdLine,dwMediaModes);
+#else
 	_asm jmp tsplib_lineSetDefaultMediaDetection;
-
+#endif
 }// TSPI_lineSetDefaultMediaDetection
 
 /////////////////////////////////////////////////////////////////////////////
@@ -933,8 +1131,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineSetDevConfig (DWORD dwDeviceID, LPVOID const lpDevConfig,
          DWORD dwSize, LPCWSTR lpszDeviceClass)
 {
+#ifdef _M_X64
+	return tsplib_lineSetDevConfig(dwDeviceID,lpDevConfig,dwSize,lpszDeviceClass);
+#else
 	_asm jmp tsplib_lineSetDevConfig;
-
+#endif
 }// TSPI_lineSetDevConfig
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -955,8 +1156,14 @@ LONG TSPIAPI TSPI_lineSetMediaControl (HDRVLINE hdLine, DWORD dwAddressID,
          LPLINEMEDIACONTROLTONE const lpToneList, DWORD dwNumToneEntries, 
          LPLINEMEDIACONTROLCALLSTATE const lpCallStateList, DWORD dwNumCallStateEntries)
 {
+#ifdef _M_X64
+	return tsplib_lineSetMediaControl(hdLine,dwAddressID,hdCall,dwSelect,lpDigitList,
+					dwNumDigitEntries, lpMediaList, dwNumMediaEntries,
+					lpToneList,dwNumToneEntries,
+					lpCallStateList,dwNumCallStateEntries);
+#else
 	_asm jmp tsplib_lineSetMediaControl;
-
+#endif
 }// TSPI_lineSetMediaControl
 
 ////////////////////////////////////////////////////////////////////////////
@@ -968,8 +1175,11 @@ LONG TSPIAPI TSPI_lineSetMediaControl (HDRVLINE hdLine, DWORD dwAddressID,
 DLLEXPORT
 LONG TSPIAPI TSPI_lineSetMediaMode (HDRVCALL hdCall, DWORD dwMediaMode)
 {
+#ifdef _M_X64
+	return tsplib_lineSetMediaMode(hdCall,dwMediaMode);
+#else
 	_asm jmp tsplib_lineSetMediaMode;
-
+#endif
 }// TSPI_lineSetMediaMode
 
 ///////////////////////////////////////////////////////////////////////////
@@ -985,8 +1195,12 @@ LONG TSPIAPI TSPI_lineSetCallQualityOfService (DRV_REQUESTID dwRequestID,
 					DWORD dwSendingFlowSpecSize, LPVOID lpReceivingFlowSpec,
 					DWORD dwReceivingFlowSpecSize)
 {
+#ifdef _M_X64
+	return tsplib_lineSetQualityOfService(dwRequestID,hdCall,lpSendingFlowSpec,
+						dwSendingFlowSpecSize,lpReceivingFlowSpec,dwReceivingFlowSpecSize);
+#else
 	_asm jmp tsplib_lineSetQualityOfService;
-
+#endif
 }// TSPI_lineSetCallQualityOfService
 
 ///////////////////////////////////////////////////////////////////////////
@@ -999,8 +1213,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineSetStatusMessages (HDRVLINE hdLine, DWORD dwLineStates,
          DWORD dwAddressStates)
 {
+#ifdef _M_X64
+	return tsplib_lineSetStatusMessages(hdLine,dwLineStates,dwAddressStates);
+#else
 	_asm jmp tsplib_lineSetStatusMessages;
-
+#endif
 }// TSPI_lineSetStatusMessages
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1016,8 +1233,12 @@ LONG TSPIAPI TSPI_lineSetTerminal (DRV_REQUESTID dwRequestID, HDRVLINE hdLine,
          DWORD dwAddressID, HDRVCALL hdCall, DWORD dwSelect, 
          DWORD dwTerminalModes, DWORD dwTerminalID, DWORD bEnable)
 {
+#ifdef _M_X64
+	return tsplib_lineSetTerminal(dwRequestID,hdLine,dwAddressID,hdCall,dwSelect,
+			dwTerminalModes,dwTerminalID,bEnable);
+#else
 	_asm jmp tsplib_lineSetTerminal;
-
+#endif
 }// TSPI_lineSetTerminal
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1032,8 +1253,12 @@ LONG TSPIAPI TSPI_lineSetupConference (DRV_REQUESTID dwRequestID, HDRVCALL hdCal
          HTAPICALL htConsultCall, LPHDRVCALL lphdConsultCall, DWORD dwNumParties,
          LPLINECALLPARAMS const lpLineCallParams)
 {
+#ifdef _M_X64
+	return tsplib_lineSetupConference(dwRequestID,hdCall,hdLine,htConfCall,
+			lphdConfCall,htConsultCall,lphdConsultCall,dwNumParties,lpLineCallParams);
+#else
 	_asm jmp tsplib_lineSetupConference;
-
+#endif
 }// TSPI_lineSetupConference
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1048,8 +1273,11 @@ LONG TSPIAPI TSPI_lineSetupTransfer (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
        HTAPICALL htConsultCall, LPHDRVCALL lphdConsultCall,
        LPLINECALLPARAMS const lpCallParams)
 {
+#ifdef _M_X64
+	return tsplib_lineSetupTransfer(dwRequestID,hdCall,htConsultCall,lphdConsultCall,lpCallParams);
+#else
 	_asm jmp tsplib_lineSetupTransfer;
-
+#endif
 }// TSPI_lineSetupTransfer
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1064,8 +1292,11 @@ LONG TSPIAPI TSPI_lineSetLineDevStatus (DRV_REQUESTID dwRequestID,
 					HDRVLINE hdLine, DWORD dwStatusToChange,
 					DWORD fStatus)
 {
+#ifdef _M_X64
+	return tsplib_lineSetLineDevStatus(dwRequestID,hdLine,dwStatusToChange,fStatus);
+#else
 	_asm jmp tsplib_lineSetLineDevStatus;
-
+#endif
 }// TSPI_lineSetLineDevStatus
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1078,8 +1309,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineSwapHold (DRV_REQUESTID dwRequestID, HDRVCALL hdCall,
        HDRVCALL hdHeldCall)
 {
+#ifdef _M_X64
+	return tsplib_lineSwapHold(dwRequestID,hdCall,hdHeldCall);
+#else
 	_asm jmp tsplib_lineSwapHold;
-
+#endif
 }// TSPI_lineSwapHold
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1092,8 +1326,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_lineUncompleteCall (DRV_REQUESTID dwRequestID,
          HDRVLINE hdLine, DWORD dwCompletionID)
 {
+#ifdef _M_X64
+	return tsplib_lineUncompleteCall(dwRequestID,hdLine,dwCompletionID);
+#else
 	_asm jmp tsplib_lineUncompleteCall;
-
+#endif
 }// TSPI_lineUncompleteCall
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1104,8 +1341,11 @@ LONG TSPIAPI TSPI_lineUncompleteCall (DRV_REQUESTID dwRequestID,
 DLLEXPORT
 LONG TSPIAPI TSPI_lineUnhold (DRV_REQUESTID dwRequestId, HDRVCALL hdCall)
 {
+#ifdef _M_X64
+	return tsplib_lineUnhold(dwRequestId,hdCall);
+#else
 	_asm jmp tsplib_lineUnhold;
-
+#endif
 }// TSPI_lineUnhold
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1119,8 +1359,11 @@ LONG TSPIAPI TSPI_lineUnpark (DRV_REQUESTID dwRequestID, HDRVLINE hdLine,
          DWORD dwAddressID, HTAPICALL htCall, LPHDRVCALL lphdCall, 
          LPCWSTR lpszDestAddr)
 {
+#ifdef _M_X64
+	return tsplib_lineUnpark(dwRequestID,hdLine,dwAddressID,htCall,lphdCall,lpszDestAddr);
+#else
 	_asm jmp tsplib_lineUnpark;
-
+#endif
 }// TSPI_lineUnpark
 
 /******************************************************************************/
@@ -1138,8 +1381,11 @@ LONG TSPIAPI TSPI_lineUnpark (DRV_REQUESTID dwRequestID, HDRVLINE hdLine,
 DLLEXPORT
 LONG TSPIAPI TSPI_phoneClose (HDRVPHONE hdPhone)
 {
+#ifdef _M_X64
+	return tsplib_phoneClose(hdPhone);
+#else
 	_asm jmp tsplib_phoneClose;
-
+#endif
 }// TSPI_phoneClose
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1153,8 +1399,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneDevSpecific (DRV_REQUESTID dwRequestID, HDRVPHONE hdPhone,
                LPVOID lpParams, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_phoneDevSpecific(dwRequestID,hdPhone,lpParams,dwSize);
+#else
 	_asm jmp tsplib_phoneDevSpecific;
-
+#endif
 }// TSPI_phoneDevSpecific
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1167,8 +1416,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetButtonInfo (HDRVPHONE hdPhone, DWORD dwButtonId,
                LPPHONEBUTTONINFO lpButtonInfo)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetButtonInfo(hdPhone,dwButtonId,lpButtonInfo);
+#else
 	_asm jmp tsplib_phoneGetButtonInfo;
-
+#endif
 }// TSPI_phoneGetButtonInfo
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1181,8 +1433,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetData (HDRVPHONE hdPhone, DWORD dwDataId,
                LPVOID lpData, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetData(hdPhone,dwDataId,lpData,dwSize);
+#else
 	_asm jmp tsplib_phoneGetData;
-
+#endif
 }// TSPI_phoneGetData
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1195,8 +1450,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetDevCaps (DWORD dwDeviceId, DWORD dwTSPIVersion,
                DWORD dwExtVersion, LPPHONECAPS lpPhoneCaps)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetDevCaps(dwDeviceId,dwTSPIVersion,dwExtVersion,lpPhoneCaps);
+#else
 	_asm jmp tsplib_phoneGetDevCaps;
-
+#endif
 }// TSPI_phoneGetDevCaps
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1208,8 +1466,11 @@ LONG TSPIAPI TSPI_phoneGetDevCaps (DWORD dwDeviceId, DWORD dwTSPIVersion,
 DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetDisplay (HDRVPHONE hdPhone, LPVARSTRING lpString)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetDisplay(hdPhone,lpString);
+#else
 	_asm jmp tsplib_phoneGetDisplay;
-
+#endif
 }// TSPI_phoneGetDisplay
 
 //////////////////////////////////////////////////////////////////////////
@@ -1222,8 +1483,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetExtensionID (DWORD dwDeviceId, DWORD dwTSPIVersion,
                LPPHONEEXTENSIONID lpExtensionId)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetExtensionID(dwDeviceId,dwTSPIVersion,lpExtensionId);
+#else
 	_asm jmp tsplib_phoneGetExtensionID;
-
+#endif
 }// TSPI_phoneGetExtensionID
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1236,8 +1500,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetGain (HDRVPHONE hdPhone, DWORD dwHookSwitchDev,
                LPDWORD lpdwGain)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetGain(hdPhone,dwHookSwitchDev,lpdwGain);
+#else
 	_asm jmp tsplib_phoneGetGain;
-
+#endif
 }// TSPI_phoneGetGain
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1249,8 +1516,11 @@ LONG TSPIAPI TSPI_phoneGetGain (HDRVPHONE hdPhone, DWORD dwHookSwitchDev,
 DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetHookSwitch (HDRVPHONE hdPhone, LPDWORD lpdwHookSwitchDevs)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetHookSwitch(hdPhone,lpdwHookSwitchDevs);
+#else
 	_asm jmp tsplib_phoneGetHookSwitch;
-
+#endif
 }// TSPI_phoneGetHookSwitch
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1263,8 +1533,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetIcon (DWORD dwDeviceId, LPCWSTR lpszDeviceClass, 
                LPHICON lphIcon)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetIcon(dwDeviceId,lpszDeviceClass,lphIcon);
+#else
 	_asm jmp tsplib_phoneGetIcon;
-
+#endif
 }// TSPI_phoneGetIcon
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1277,8 +1550,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetID (HDRVPHONE hdPhone, LPVARSTRING lpDeviceId, 
                LPCWSTR lpszDeviceClass, HANDLE hTargetProcess)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetID(hdPhone,lpDeviceId,lpszDeviceClass,hTargetProcess);
+#else
 	_asm jmp tsplib_phoneGetID;
-
+#endif
 }// TSPI_phoneGetID
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1291,8 +1567,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetLamp (HDRVPHONE hdPhone, DWORD dwButtonLampId,
                LPDWORD lpdwLampMode)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetLamp(hdPhone,dwButtonLampId,lpdwLampMode);
+#else
 	_asm jmp tsplib_phoneGetLamp;
-
+#endif
 }// TSPI_phoneGetLamp
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1305,8 +1584,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetRing (HDRVPHONE hdPhone, LPDWORD lpdwRingMode,
                LPDWORD lpdwVolume)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetRing(hdPhone,lpdwRingMode,lpdwVolume);
+#else
 	_asm jmp tsplib_phoneGetRing;
-
+#endif
 }// TSPI_phoneGetRing
 
 //////////////////////////////////////////////////////////////////////////
@@ -1318,8 +1600,11 @@ LONG TSPIAPI TSPI_phoneGetRing (HDRVPHONE hdPhone, LPDWORD lpdwRingMode,
 DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetStatus (HDRVPHONE hdPhone, LPPHONESTATUS lpPhoneStatus)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetStatus(hdPhone,lpPhoneStatus);
+#else
 	_asm jmp tsplib_phoneGetStatus;
-
+#endif
 }// TSPI_phoneGetStatus
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1331,8 +1616,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneGetVolume (HDRVPHONE hdPhone, DWORD dwHookSwitchDev,
                LPDWORD lpdwVolume)
 {
+#ifdef _M_X64
+	return tsplib_phoneGetVolume(hdPhone,dwHookSwitchDev,lpdwVolume);
+#else
 	_asm jmp tsplib_phoneGetVolume;
-
+#endif
 }// TSPI_phoneGetVolume
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1347,8 +1635,11 @@ LONG TSPIAPI TSPI_phoneNegotiateTSPIVersion (DWORD dwDeviceID,
                DWORD dwLowVersion, DWORD dwHighVersion,
                LPDWORD lpdwVersion)
 {
+#ifdef _M_X64
+	return tsplib_phoneNegotiateTSPIVersion(dwDeviceID,dwLowVersion,dwHighVersion,lpdwVersion);
+#else
 	_asm jmp tsplib_phoneNegotiateTSPIVersion;
-
+#endif
 }// TSPI_phoneNegotiateTSPIVersion   
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1363,8 +1654,11 @@ LONG TSPIAPI TSPI_phoneNegotiateExtVersion (DWORD dwDeviceID,
                DWORD dwTSPIVersion, DWORD dwLowVersion, DWORD dwHighVersion,
                LPDWORD lpdwExtVersion)
 {
+#ifdef _M_X64
+	return tsplib_phoneNegotiateExtVersion(dwDeviceID,dwTSPIVersion,dwLowVersion,dwHighVersion,lpdwExtVersion);
+#else
 	_asm jmp tsplib_phoneNegotiateExtVersion;
-
+#endif
 }// TSPI_phoneNegotiateExtVersion   
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1378,8 +1672,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneOpen (DWORD dwDeviceId, HTAPIPHONE htPhone,
                LPHDRVPHONE lphdPhone, DWORD dwTSPIVersion, PHONEEVENT lpfnEventProc)
 {
+#ifdef _M_X64
+	return tsplib_phoneOpen(dwDeviceId,htPhone,lphdPhone,dwTSPIVersion,lpfnEventProc);
+#else
 	_asm jmp tsplib_phoneOpen;
-
+#endif
 }// TSPI_phoneOpen
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1392,8 +1689,11 @@ LONG TSPIAPI TSPI_phoneOpen (DWORD dwDeviceId, HTAPIPHONE htPhone,
 DLLEXPORT
 LONG TSPIAPI TSPI_phoneSelectExtVersion (HDRVPHONE hdPhone, DWORD dwExtVersion)
 {
+#ifdef _M_X64
+	return tsplib_phoneSelectExtVersion(hdPhone,dwExtVersion);
+#else
 	_asm jmp tsplib_phoneSelectExtVersion;
-
+#endif
 }// TSPI_phoneSelectExtVersion
 
 //////////////////////////////////////////////////////////////////////////
@@ -1406,8 +1706,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneSetButtonInfo (DRV_REQUESTID dwRequestId, HDRVPHONE hdPhone, DWORD dwButtonId,
                LPPHONEBUTTONINFO const lpButtonInfo)
 {
+#ifdef _M_X64
+	return tsplib_phoneSetButtonInfo(dwRequestId,hdPhone,dwButtonId,lpButtonInfo);
+#else
 	_asm jmp tsplib_phoneSetButtonInfo;
-
+#endif
 }// TSPI_phoneSetButtonInfo
 
 //////////////////////////////////////////////////////////////////////////
@@ -1420,8 +1723,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneSetData (DRV_REQUESTID dwRequestId, HDRVPHONE hdPhone, 
                DWORD dwDataId, LPVOID const lpData, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_phoneSetData(dwRequestId,hdPhone,dwDataId,lpData,dwSize);
+#else
 	_asm jmp tsplib_phoneSetData;
-
+#endif
 }// TSPI_phoneSetData
 
 //////////////////////////////////////////////////////////////////////////
@@ -1435,8 +1741,11 @@ LONG TSPIAPI TSPI_phoneSetDisplay (DRV_REQUESTID dwRequestID,
          HDRVPHONE hdPhone, DWORD dwRow, DWORD dwCol, LPCWSTR lpszDisplay,
          DWORD dwSize)   
 {
+#ifdef _M_X64
+	return tsplib_phoneSetDisplay(dwRequestID,hdPhone,dwRow,dwCol,lpszDisplay,dwSize);
+#else
 	_asm jmp tsplib_phoneSetDisplay;
-
+#endif
 }// TSPI_phoneSetDisplay
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1449,8 +1758,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneSetGain (DRV_REQUESTID dwRequestId, HDRVPHONE hdPhone, 
 								DWORD dwHookSwitchDev, DWORD dwGain)
 {
+#ifdef _M_X64
+	return tsplib_phoneSetGain(dwRequestId,hdPhone,dwHookSwitchDev,dwGain);
+#else
 	_asm jmp tsplib_phoneSetGain;
-
+#endif
 }// TSPI_phoneSetGain
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1464,8 +1776,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneSetHookSwitch (DRV_REQUESTID dwRequestId, 
       HDRVPHONE hdPhone, DWORD dwHookSwitchDevs, DWORD dwHookSwitchMode)
 {
+#ifdef _M_X64
+	return tsplib_phoneSetHookSwitch(dwRequestId,hdPhone,dwHookSwitchDevs,dwHookSwitchMode);
+#else
 	_asm jmp tsplib_phoneSetHookSwitch;
-
+#endif
 }// TSPI_phoneSetHookSwitch
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1478,8 +1793,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneSetLamp (DRV_REQUESTID dwRequestId, HDRVPHONE hdPhone, 
                DWORD dwButtonLampId, DWORD dwLampMode)
 {
+#ifdef _M_X64
+	return tsplib_phoneSetLamp(dwRequestId,hdPhone,dwButtonLampId,dwLampMode);
+#else
 	_asm jmp tsplib_phoneSetLamp;
-
+#endif
 }// TSPI_phoneSetLamp
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1492,8 +1810,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneSetRing (DRV_REQUESTID dwRequestId, HDRVPHONE hdPhone, 
                DWORD dwRingMode, DWORD dwVolume)
 {
+#ifdef _M_X64
+	return tsplib_phoneSetRing(dwRequestId,hdPhone,dwRingMode,dwVolume);
+#else
 	_asm jmp tsplib_phoneSetRing;
-
+#endif
 }// TSPI_phoneSetRing
 
 //////////////////////////////////////////////////////////////////////////
@@ -1506,8 +1827,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneSetStatusMessages (HDRVPHONE hdPhone, DWORD dwPhoneStates,
             DWORD dwButtonModes, DWORD dwButtonStates)
 {
+#ifdef _M_X64
+	return tsplib_phoneSetStatusMessages(hdPhone,dwPhoneStates,dwButtonModes,dwButtonStates);
+#else
 	_asm jmp tsplib_phoneSetStatusMessages;
-
+#endif
 }// TSPI_phoneSetStatusMessages
 
 /////////////////////////////////////////////////////////////////////////
@@ -1520,8 +1844,11 @@ DLLEXPORT
 LONG TSPIAPI TSPI_phoneSetVolume (DRV_REQUESTID dwRequestId, HDRVPHONE hdPhone, 
                DWORD dwHookSwitchDev, DWORD dwVolume)
 {
+#ifdef _M_X64
+	return tsplib_phoneSetVolume(dwRequestId,hdPhone,dwHookSwitchDev,dwVolume);
+#else
 	_asm jmp tsplib_phoneSetVolume;
-
+#endif
 }// TSPI_phoneSetVolume
 
 /******************************************************************************/
@@ -1542,8 +1869,12 @@ LONG TSPIAPI TSPI_providerInit(DWORD dwTSPIVersion,
          DWORD dwPhoneDeviceIDBase, DWORD_PTR dwNumLines, DWORD_PTR dwNumPhones,
          ASYNC_COMPLETION lpfnCompletionProc, LPDWORD lpdwTSPIOptions)
 {
+#ifdef _M_X64
+	return tsplib_providerInit(dwTSPIVersion,dwPermanentProviderID,dwLineDeviceIDBase,
+				dwPhoneDeviceIDBase, dwNumLines, dwNumPhones, lpfnCompletionProc, lpdwTSPIOptions);
+#else
 	_asm jmp tsplib_providerInit;
-
+#endif
 }// TSPI_providerInit
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1555,8 +1886,11 @@ LONG TSPIAPI TSPI_providerInit(DWORD dwTSPIVersion,
 DLLEXPORT
 LONG TSPIAPI TSPI_providerShutdown (DWORD dwTSPIVersion, DWORD dwProviderID)
 {
+#ifdef _M_X64
+	return tsplib_providerShutdown(dwTSPIVersion,dwProviderID);
+#else
 	_asm jmp tsplib_providerShutdown;
-
+#endif
 }// TSPI_providerShutdown
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1572,8 +1906,12 @@ LONG TSPIAPI TSPI_providerEnumDevices (DWORD dwPermanentProviderID, LPDWORD lpdw
          LPDWORD lpdwNumPhones, HPROVIDER hProvider, LINEEVENT lpfnLineCreateProc,
          PHONEEVENT lpfnPhoneCreateProc)
 {
+#ifdef _M_X64
+	return tsplib_providerEnumDevices(dwPermanentProviderID,lpdwNumLines,lpdwNumPhones,
+				hProvider,lpfnLineCreateProc,lpfnPhoneCreateProc);
+#else
 	_asm jmp tsplib_providerEnumDevices;
-
+#endif
 }// TSPI_providerEnumDevices
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1587,8 +1925,11 @@ LONG TSPIAPI TSPI_providerEnumDevices (DWORD dwPermanentProviderID, LPDWORD lpdw
 DLLEXPORT
 LONG TSPIAPI TSPI_providerCreateLineDevice (DWORD_PTR dwTempID, DWORD dwDeviceID)
 {
+#ifdef _M_X64
+	return tsplib_providerCreateLineDevice(dwTempID,dwDeviceID);
+#else
 	_asm jmp tsplib_providerCreateLineDevice;
-
+#endif
 }// TSPI_providerCreateLineDevice
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1599,12 +1940,17 @@ LONG TSPIAPI TSPI_providerCreateLineDevice (DWORD_PTR dwTempID, DWORD dwDeviceID
 // creation of a new phone device.  The passed deviceId identifies this
 // phone from TAPIs perspective.
 //
+/*
 DLLEXPORT
 LONG TSPIAPI TSPI_providerCreatePhoneDevice (DWORD dwTempID, DWORD dwDeviceID)
 {
+#ifdef _M_X64
+	return tsplib_providerCreatePhoneDevice(dwTempID,dwDeviceID);
+#else
 	_asm jmp tsplib_providerCreatePhoneDevice;
-
+#endif
 }// TSPI_providerCreatePhoneDevice
+*/
 
 /////////////////////////////////////////////////////////////////////////////
 // TSPI_providerFreeDialogInstance (Tapi 2.0)
@@ -1618,8 +1964,11 @@ LONG TSPIAPI TSPI_providerCreatePhoneDevice (DWORD dwTempID, DWORD dwDeviceID)
 DLLEXPORT
 LONG TSPIAPI TSPI_providerFreeDialogInstance (HDRVDIALOGINSTANCE hdDlgInstance)
 {
+#ifdef _M_X64
+	return tsplib_providerFreeDialogInstance(hdDlgInstance);
+#else
 	_asm jmp tsplib_providerFreeDialogInstance;
-
+#endif
 }// TSPI_providerFreeDialogInstance
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1634,10 +1983,14 @@ LONG TSPIAPI TSPI_providerFreeDialogInstance (HDRVDIALOGINSTANCE hdDlgInstance)
 // new modified data back to the original UI DLL parameter block.
 //
 DLLEXPORT
-LONG TSPIAPI TSPI_providerGenericDialogData(DWORD_PTR dwObjectID, DWORD dwObjectType, LPVOID lpParams, DWORD dwSize)
+LONG TSPIAPI TSPI_providerGenericDialogData(DWORD_PTR dwObjectID, DWORD dwObjectType, LPVOID lpParams,
+												DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_providerGenericDialogData(dwObjectID,dwObjectType,lpParams,dwSize);
+#else
 	_asm jmp tsplib_providerGenericDialogData;
-
+#endif
 }// TSPI_providerGenericDialogData
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1649,8 +2002,11 @@ LONG TSPIAPI TSPI_providerGenericDialogData(DWORD_PTR dwObjectID, DWORD dwObject
 DLLEXPORT
 LONG TSPIAPI TSPI_providerUIIdentify (LPWSTR lpszUIDLLName)
 {
+#ifdef _M_X64
+	return tsplib_providerUIIdentify(lpszUIDLLName);
+#else
 	_asm jmp tsplib_providerUIIdentify;
-
+#endif
 }// TSPI_providerUIIdentify
 
 /******************************************************************************/
@@ -1667,10 +2023,14 @@ LONG TSPIAPI TSPI_providerUIIdentify (LPWSTR lpszUIDLLName)
 // and address.
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineSetAgentGroup(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddressID, LPLINEAGENTGROUPLIST const lpGroupList)
+TSPI_lineSetAgentGroup(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddressID, 
+						LPLINEAGENTGROUPLIST const lpGroupList)
 {
+#ifdef _M_X64
+	return tsplib_lineSetAgentGroup(dwRequestID,dwDeviceID,dwAddressID,lpGroupList);
+#else
 	_asm jmp tsplib_lineSetAgentGroup;
-
+#endif
 }// TSPI_lineSetAgentGroup
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1679,10 +2039,14 @@ TSPI_lineSetAgentGroup(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddr
 // Called by the agent proxy to set the current agent state
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineSetAgentState(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddressID, DWORD dwAgentState, DWORD dwNextAgentState)
+TSPI_lineSetAgentState(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddressID, 
+						DWORD dwAgentState, DWORD dwNextAgentState)
 {
+#ifdef _M_X64
+	return tsplib_lineSetAgentState(dwRequestID,dwDeviceID,dwAddressID,dwAgentState,dwNextAgentState);
+#else
 	_asm jmp tsplib_lineSetAgentState;
-
+#endif
 }// TSPI_lineSetAgentState
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1691,10 +2055,14 @@ TSPI_lineSetAgentState(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddr
 // Called by the agent proxy to set the current agent activity
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineSetAgentActivity(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddressID, DWORD dwActivityID)
+TSPI_lineSetAgentActivity(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddressID, 
+							DWORD dwActivityID)
 {
+#ifdef _M_X64
+	return tsplib_lineSetAgentActivity(dwRequestID,dwDeviceID,dwAddressID,dwActivityID);
+#else
 	_asm jmp tsplib_lineSetAgentActivity;
-
+#endif
 }// TSPI_lineSetAgentActivity
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1705,8 +2073,11 @@ TSPI_lineSetAgentActivity(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwA
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
 TSPI_lineGetAgentStatus(DWORD dwDeviceID, DWORD dwAddressID, LPLINEAGENTSTATUS lpStatus)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAgentStatus(dwDeviceID,dwAddressID,lpStatus);
+#else
 	_asm jmp tsplib_lineGetAgentStatus;
-
+#endif
 }// TSPI_lineGetAgentStatus
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1717,8 +2088,11 @@ TSPI_lineGetAgentStatus(DWORD dwDeviceID, DWORD dwAddressID, LPLINEAGENTSTATUS l
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
 TSPI_lineGetAgentCaps(DWORD dwDeviceID, DWORD dwAddressID, LPLINEAGENTCAPS lpCapabilities)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAgentCaps(dwDeviceID,dwAddressID,lpCapabilities);
+#else
 	_asm jmp tsplib_lineGetAgentCaps;
-
+#endif
 }// TSPI_lineGetAgentCaps
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1729,8 +2103,11 @@ TSPI_lineGetAgentCaps(DWORD dwDeviceID, DWORD dwAddressID, LPLINEAGENTCAPS lpCap
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
 TSPI_lineGetAgentActivityList(DWORD dwDeviceID, DWORD dwAddressID, LPLINEAGENTACTIVITYLIST lpList)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAgentActivityList(dwDeviceID,dwAddressID,lpList);
+#else
 	_asm jmp tsplib_lineGetAgentActivityList;
-
+#endif
 }// TSPI_lineGetAgentActivityList
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1741,8 +2118,11 @@ TSPI_lineGetAgentActivityList(DWORD dwDeviceID, DWORD dwAddressID, LPLINEAGENTAC
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
 TSPI_lineGetAgentGroupList(DWORD dwDeviceID, DWORD dwAddressID, LPLINEAGENTGROUPLIST lpList)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAgentGroupList(dwDeviceID,dwAddressID,lpList);
+#else
 	_asm jmp tsplib_lineGetAgentGroupList;
-
+#endif
 }// TSPI_lineGetAgentGroupList
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1751,10 +2131,15 @@ TSPI_lineGetAgentGroupList(DWORD dwDeviceID, DWORD dwAddressID, LPLINEAGENTGROUP
 // Called by the agent proxy to manage device-specific agent requests
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineAgentSpecific(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddressID, DWORD dwAgentExtensionID, LPVOID lpvParams, DWORD dwSize)
+TSPI_lineAgentSpecific(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddressID, 
+					   DWORD dwAgentExtensionID, LPVOID lpvParams, DWORD dwSize)
 {
+#ifdef _M_X64
+	return tsplib_lineAgentSpecific(dwRequestID,dwDeviceID,dwAddressID,dwAgentExtensionID,
+						lpvParams,dwSize);
+#else
 	_asm jmp tsplib_lineAgentSpecific;
-
+#endif
 }// TSPI_lineGetAgentGroupList
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1763,10 +2148,16 @@ TSPI_lineAgentSpecific(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwAddr
 // This function creates a new agent. 
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineCreateAgent(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, LPHAGENT lphAgent, LPCWSTR pszMachineName, LPCWSTR pszUserName, LPCWSTR pszAgentID, LPCWSTR pszAgentPIN)
+TSPI_lineCreateAgent(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, LPHAGENT lphAgent, 
+					LPCWSTR pszMachineName, LPCWSTR pszUserName, LPCWSTR pszAgentID, 
+					LPCWSTR pszAgentPIN)
 {
+#ifdef _M_X64
+	return tsplib_lineCreateAgent(dwRequestID,dwDeviceID,lphAgent,pszMachineName,
+					pszUserName,pszAgentID,pszAgentPIN);
+#else
 	_asm jmp tsplib_lineCreateAgent;
-
+#endif
 }// TSPI_lineCreateAgent
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1775,10 +2166,14 @@ TSPI_lineCreateAgent(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, LPHAGENT lphAg
 // This function sets the measurement period associated with a particular agent.
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineSetAgentMeasurementPeriod(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, HAGENT hAgent, DWORD dwMeasurementPeriod)
+TSPI_lineSetAgentMeasurementPeriod(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, HAGENT hAgent, 
+								   DWORD dwMeasurementPeriod)
 {
+#ifdef _M_X64
+	return tsplib_lineSetAgentMeasurementPeriod(dwRequestID,dwDeviceID,hAgent,dwMeasurementPeriod);
+#else
 	_asm jmp tsplib_lineSetAgentMeasurementPeriod;
-
+#endif
 }// TSPI_lineSetAgentMeasurementPeriod
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1789,8 +2184,11 @@ TSPI_lineSetAgentMeasurementPeriod(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, 
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
 TSPI_lineGetAgentInfo(DWORD dwDeviceID, HAGENT hAgent, LPLINEAGENTINFO lpAgentInfo)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAgentInfo(dwDeviceID,hAgent,lpAgentInfo);
+#else
 	_asm jmp tsplib_lineGetAgentInfo;
-
+#endif
 }// TSPI_lineGetAgentInfo
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1799,10 +2197,16 @@ TSPI_lineGetAgentInfo(DWORD dwDeviceID, HAGENT hAgent, LPLINEAGENTINFO lpAgentIn
 // This function creates a new agent session.
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineCreateAgentSession(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, LPHAGENTSESSION lphSession, HAGENT hAgent, LPCWSTR pszAgentPIN, const GUID* pGUID, DWORD dwWorkingAddressID)
+TSPI_lineCreateAgentSession(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, 
+							LPHAGENTSESSION lphSession, HAGENT hAgent, LPCWSTR pszAgentPIN, 
+							const GUID* pGUID, DWORD dwWorkingAddressID)
 {
+#ifdef _M_X64
+	return tsplib_lineCreateAgentSession(dwRequestID,dwDeviceID,lphSession,hAgent,
+						pszAgentPIN,pGUID,dwWorkingAddressID);
+#else
 	_asm jmp tsplib_lineCreateAgentSession;
-
+#endif
 }// TSPI_lineCreateAgentSession
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1813,8 +2217,11 @@ TSPI_lineCreateAgentSession(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, LPHAGEN
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
 TSPI_lineGetAgentSessionList(DWORD dwDeviceID, HAGENT hAgent, LPLINEAGENTSESSIONLIST lpSessionList)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAgentSessionList(dwDeviceID,hAgent,lpSessionList);
+#else
 	_asm jmp tsplib_lineGetAgentSessionList;
-
+#endif
 }// TSPI_lineGetAgentSessionList
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1823,10 +2230,15 @@ TSPI_lineGetAgentSessionList(DWORD dwDeviceID, HAGENT hAgent, LPLINEAGENTSESSION
 // This function sets the agent session state for a specific session.
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineSetAgentSessionState(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, HAGENTSESSION hSession, DWORD dwAgentSessionState, DWORD dwNextAgentSessionState)
+TSPI_lineSetAgentSessionState(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, HAGENTSESSION hSession, 
+							  DWORD dwAgentSessionState, DWORD dwNextAgentSessionState)
 {
+#ifdef _M_X64
+	return tsplib_lineSetAgentSessionState(dwRequestID,dwDeviceID,hSession,
+						dwAgentSessionState,dwNextAgentSessionState);
+#else
 	_asm jmp tsplib_lineSetAgentSessionState;
-
+#endif
 }// TSPI_lineSetAgentSessionState
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1835,10 +2247,14 @@ TSPI_lineSetAgentSessionState(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, HAGEN
 // This function retrieves the session information for a specific agent session
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineGetAgentSessionInfo(DWORD dwDeviceID, HAGENTSESSION hAgentSession, LPLINEAGENTSESSIONINFO lpSessionInfo)
+TSPI_lineGetAgentSessionInfo(DWORD dwDeviceID, HAGENTSESSION hAgentSession, 
+							 LPLINEAGENTSESSIONINFO lpSessionInfo)
 {
+#ifdef _M_X64
+	return tsplib_lineGetAgentSessionInfo(dwDeviceID,hAgentSession,lpSessionInfo);
+#else
 	_asm jmp tsplib_lineGetAgentSessionInfo;
-
+#endif
 }// TSPI_lineGetAgentSessionInfo
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1849,8 +2265,11 @@ TSPI_lineGetAgentSessionInfo(DWORD dwDeviceID, HAGENTSESSION hAgentSession, LPLI
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
 TSPI_lineGetQueueList(DWORD dwDeviceID, const GUID* pGroupID, LPLINEQUEUELIST lpQueueList)
 {
+#ifdef _M_X64
+	return tsplib_lineGetQueueList(dwDeviceID,pGroupID,lpQueueList);
+#else
 	_asm jmp tsplib_lineGetQueueList;
-
+#endif
 }// TSPI_lineGetQueueList
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1859,10 +2278,14 @@ TSPI_lineGetQueueList(DWORD dwDeviceID, const GUID* pGroupID, LPLINEQUEUELIST lp
 // This function sets the measurement period for an agent queue
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineSetQueueMeasurementPeriod(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, DWORD dwQueueID, DWORD dwMeasurementPeriod)
+TSPI_lineSetQueueMeasurementPeriod(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, 
+								   DWORD dwQueueID, DWORD dwMeasurementPeriod)
 {
+#ifdef _M_X64
+	return tsplib_lineSetQueueMeasurementPeriod(dwRequestID,dwDeviceID,dwQueueID,dwMeasurementPeriod);
+#else
 	_asm jmp tsplib_lineSetQueueMeasurementPeriod;
-
+#endif
 }// TSPI_lineSetQueueMeasurementPeriod
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1873,8 +2296,11 @@ TSPI_lineSetQueueMeasurementPeriod(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, 
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
 TSPI_lineGetQueueInfo(DWORD dwDeviceID, DWORD dwQueueID, LPLINEQUEUEINFO lpQueueInfo)
 {
+#ifdef _M_X64
+	return tsplib_lineGetQueueInfo(dwDeviceID,dwQueueID,lpQueueInfo);
+#else
 	_asm jmp tsplib_lineGetQueueInfo;
-
+#endif
 }// TSPI_lineGetQueueInfo
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1885,8 +2311,11 @@ TSPI_lineGetQueueInfo(DWORD dwDeviceID, DWORD dwQueueID, LPLINEQUEUEINFO lpQueue
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
 TSPI_lineGetGroupList(DWORD dwDeviceID, LPLINEAGENTGROUPLIST lpGroupList)
 {
+#ifdef _M_X64
+	return tsplib_lineGetGroupList(dwDeviceID,lpGroupList);
+#else
 	_asm jmp tsplib_lineGetGroupList;
-
+#endif
 }// TSPI_lineGetGroupList
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1895,10 +2324,14 @@ TSPI_lineGetGroupList(DWORD dwDeviceID, LPLINEAGENTGROUPLIST lpGroupList)
 // This function changes an agents state.
 //
 DLLEXPORT _declspec(dllexport) LONG TSPIAPI 
-TSPI_lineSetAgentStateEx(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, HAGENT hAgent, DWORD dwState, DWORD dwNextState)
+TSPI_lineSetAgentStateEx(DRV_REQUESTID dwRequestID, DWORD dwDeviceID, HAGENT hAgent, 
+							DWORD dwState, DWORD dwNextState)
 {
+#ifdef _M_X64
+	return tsplib_lineSetAgentStateEx(dwRequestID,dwDeviceID,hAgent,dwState,dwNextState);
+#else
 	_asm jmp tsplib_lineSetAgentStateEx;
-
+#endif
 }// TSPI_lineSetAgentStateEx
 
 /******************************************************************************/
@@ -1991,3 +2424,4 @@ LONG TSPIAPI TSPI_providerRemove (HWND, DWORD)
 	return LINEERR_OPERATIONUNAVAIL;
 
 }// TSPI_providerRemove
+

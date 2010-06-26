@@ -505,12 +505,12 @@ class CMSPDriver : public CTSPIBaseObject
 {
 // Class data
 protected:
-	DWORD_PTR m_htHandle;				// TAPI opaque handle for this
+	HTAPIMSPLINE m_htHandle;				// TAPI opaque handle for this
 	CTSPIAddressInfo* m_pAddressOwner;	// Owner of this MSP connection
 
 // Constructor
 public:
-	CMSPDriver(CTSPIAddressInfo* pOwner, DWORD_PTR htHandle);
+	CMSPDriver(CTSPIAddressInfo* pOwner, HTAPIMSPLINE htHandle);
 	virtual ~CMSPDriver();
 
 // Accessors
@@ -518,7 +518,7 @@ public:
 	CTSPILineConnection* GetLineOwner() const;
 	CTSPIAddressInfo* GetAddressOwner() const;
 	void SendData(CTSPICallAppearance* pCall, LPVOID lpData, DWORD dwSize);
-	DWORD_PTR GetTapiHandle() const;
+	HTAPIMSPLINE GetTapiHandle() const;
 
 // Locked members
 private:
