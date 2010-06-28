@@ -38,17 +38,31 @@ To build, simply build the entire solution.  Either specify Debug or Release mod
 OnSipTAPI.sln
 -------------
 
-This is full TAPI driver solution.  Building the TAPI driver will create the following binaries...
+This is full TAPI driver solution.  Building the TAPI driver will create the following binaries in the Release directory
 
 	OnSIP.tsp
 	OnSIPui.dll
+	OnSipInstall.dll
+	x64\OnSIP.tsp
+	x64\OnSIPui.dll
+	x64\OnSipInstall64.exe
+        
+Following are the details on the binaries...
 
-OnSIP.tsp is a DLL and is the actual TAPI driver. OnSIPui.dll is the user interface part of the TAPI driver.  To do a manual install
+	OnSIP.tsp - 32-bit DLL, it is the actual TAPI driver
+        OnSIPui.dll - 32-bit DLL, it is the user interface part of the TAPI driver
+	OnSipInstall.dll - 32-bit DLL, used by the install program to integrate with the TAPI 32-bit and 64-bit install
 
-	1) copy the files to the c:\Windows\system32 directory
+	x64\OnSIP.tsp - 32-bit DLL, it is the actual TAPI driver for 64-bit installs
+        x64\OnSIPui.dll - 32-bit DLL, it is the user interface part of the TAPI driver for 64-bit installs
+	x64\OnSipInstall64.exe = 64-bit exe, used by the install program to integrate with the TAPI install
+
+To do a manual install
+
+	1) copy the OnSIP.tsp and OnSIPui.dll files to the c:\Windows\system32 directory
 	2) Go to the Control Panel \ Phone and Modem Options applet
 	3) Advanced Tab
-	4) Press "Add" button and select the OnSIP tapi driver.  
+	4) Press "Add" button and select the OnSIP tapi driver. 
 	5) Enter in the logon info.
 
 More details on this can be seen in the Releases\Install TAPI Driver.doc, as well as how to install for Outlook.  Also, refer to the OnSipInstall\OnSIP Hosted PBX Details.doc for full details on installation and use.  To update the TAPI driver, it is required to first uninstall it using the Control Panel before being able to copy over new binaries into the System32 directory.
@@ -73,7 +87,7 @@ DBMON.EXE is a console application and can typically be run in a Windows CMD and
 
 	DBMON  >log.txt
 
-Sometimes DBMON will not work due to user permissions or OS user sessions (e.g. Vista).  In this case, DbgView may have to be used.   When running DbgView, be sure to enable the Capture / Capture Win32 and Capture / Capture Global Win32 options.  The debug tracing will be displayed in GUI or optionally can be logged to a file.
+Sometimes DBMON will not work due to user permissions or OS user sessions (e.g. Vista).  In this case, DbgView may have to be used.   When running DbgView, be sure to enable the Capture / Capture Win32 and Capture / Capture Global Win32 options.  The debug tracing will be displayed in GUI or optionally can be logged to a file.  It may also be required to run DbgView as an Administrator, this is definetly required if running under 64-bit.
 
 There are 2 tracing systems in the TAPI driver.  The tracing system in the Julmar TSP code, and in the OnSip specific code (typically in the OnSipCommon, OnSipCore, and OnSipTAPI directories).  The Julmar TAPI driver framework was used for development of the TAPI driver.
 
@@ -94,6 +108,12 @@ TSPDebugLevel corresponds to bit-level flags as defined in the Julmar TSP core c
 
 See the Releases\Enable Debug Tracing.txt for full details, along with references to registry .REG files that can be used to enable or disable typical tracing settings.
 
+To enable debug trace for 64-bit installs, the registry settings should be enabled for both the 64-bit registry and the 32-bit WOW64 registry.  The additional registry values that should be specified...
+
+	DWORD	HKLM\Software\Wow6432Node\OnSIP\TSPDebugLevel
+	DWORD	HKLM\Software\Wow6432Node\OnSIP\DebugLevel
+
+These additional settings are not required for general trace logging of the TSP, they are only required if debugging the installation since the installation is comprised of both 32-bit and 64-bit parts.
 
 Install
 -------
@@ -101,6 +121,18 @@ Install
 The Inno Setup is used for the installation program  (http://www.innosetup.com).  The InnoS Setup QuckStart Pack was used during development, primarily due to ISTool script editor.  The version of Inno Setup used for the OnSIP TAPI driver is available at OnSipInstall\ispack-5.2.4.exe.   
 
 To build the install, install the Inno Setup.  This will install the IsTool script editor.  In Windows Explorer, go to the OnSipInstall directory and right click on the OnSipTapi.iss and select "Open with ISTool".  This is the main install script for the TAPI release.
+
+To build the binaries for the install...
+
+	1) Open the OnSipTAPI.sln
+	2) Select  "Release" "Win32" for the current configuration
+	3) Right click on the top solution and select "Clean Solution"
+	4) Right click on the top solution and select "Build Solution"
+	5) Select  "Release" "x64" for the current configuration
+	6) Right click on the top solution and select "Clean Solution"
+	7) Right click on the top solution and select "Build Solution"
+
+All binaries will be in the Release and Release\x64 directory.  This is the expected directory where the install script will use to build the installation program.
 
 To build the install, select Project \ Compile Setup.  This will build the Release \ OnSIPTapi.exe installation program.   The install is built using the Release binaries.  Therefore, it is required that first the OnSipTAPI.sln is built in release mode.
 
@@ -123,7 +155,3 @@ If changes are made to the TAPI driver, then typically the version number should
 The version numbers should be insync.  Be sure to rebuild the OnSipTapi.sln after changing the version numbers.
 
 Typically after a release of the TAPI driver, a zip of the TAPI binaries and the installation program are placed in the Releases directory and checked into version control.  See the Releases directory for examples of the ZIP files and the file naming conventions.   The Releases \ Releases.txt file is also updated with info on the changes and the release.
-
-
-
-

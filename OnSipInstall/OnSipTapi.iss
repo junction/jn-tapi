@@ -10,7 +10,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{A89C95B3-05C1-4517-B746-5B954C9E1431}
 AppName={#MyAppName}
-AppVerName={#MyAppName} v1.07
+AppVerName={#MyAppName} v1.08
 AppPublisher=Junction Networks
 AppPublisherURL=www.junctionnetworks.com
 AppSupportURL=www.junctionnetworks.com
@@ -23,14 +23,28 @@ OutputBaseFilename=OnSIPTapi
 Compression=lzma
 SolidCompression=yes
 InfoBeforeFile=installInfo.rtf
+; "ArchitecturesInstallIn64BitMode=x64 ia64" requests that the install
+; be done in "64-bit mode" on x64 & Itanium, meaning it should use the
+; native 64-bit Program Files directory and the 64-bit view of the
+; registry. On all other architectures it will install in "32-bit mode".
+ArchitecturesInstallIn64BitMode=x64 ia64
 
 [Languages]
 Name: english; MessagesFile: compiler:Default.isl
 
 [Files]
-Source: ..\Release\OnSIPui.dll; DestDir: {sys}; Flags: ignoreversion
-Source: ..\Release\OnSIP.tsp; DestDir: {sys}; Flags: ignoreversion
+; 32-bit
+Source: ..\Release\OnSIPui.dll; DestDir: {sys}; Flags: ignoreversion 32bit; Check: IsOtherArch
+Source: ..\Release\OnSIP.tsp; DestDir: {sys}; Flags: ignoreversion 32bit; Check: IsOtherArch
+
 Source: ..\Release\OnSipInstall.dll; DestDir: {app}; Flags: ignoreversion
+Source: ..\Release\x64\OnSipInstall64.exe; DestDir: {app}; Flags: ignoreversion 64bit; Check: IsX64
+
+; 64-bit
+Source: ..\Release\x64\OnSIPui.dll; DestDir: {sys}; Flags: ignoreversion 64bit; Check: IsX64
+Source: ..\Release\x64\OnSIP.tsp; DestDir: {sys}; Flags: ignoreversion 64bit; Check: IsX64
+;Source: ..\Release\x64\OnSipInstall.dll; DestDir: {app}; Flags: ignoreversion 64bit;    Check: IsX64
+
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: OnSIP Hosted PBX Details.pdf; DestDir: {app}; Flags: ignoreversion
 
@@ -40,7 +54,20 @@ Name: {group}\{cm:UninstallProgram,{#MyAppName}}; Filename: {uninstallexe}
 
 [Code]
 
-// Methods in the OnSIPInstall.dll to handle adding and removing the provider in Windows
+// x64 condition from 64BitThreeArch.iss example
+
+function IsX64: Boolean;
+begin
+  Result := Is64BitInstallMode;
+end;
+
+function IsOtherArch: Boolean;
+begin
+  Result := not IsX64;
+end;
+
+//************   Methods in the OnSIPInstall.dll to handle adding and removing the provider in Windows  ******
+
 function IsProviderInstalled(): Boolean;
 external 'IsProviderInstalled@files:OnSipInstall.dll stdcall';
 
@@ -54,6 +81,60 @@ external 'UnInstallProvider@files:OnSipInstall.dll stdcall';
 // so we can use it for uninstall.
 function UnInstallProvider2(): Boolean;
 external 'UnInstallProvider2@{app}\OnSipInstall.dll stdcall uninstallonly';
+
+//************   UnInstall Methods  ****************
+
+// isUnInstall : true if doing a full uninstallation
+function doUnInstall32( isUnInstall : Boolean ) : Boolean;
+begin
+		// If true uninstall, then use the uninstallonly marked method
+		if isUnInstall then
+			Result := UnInstallProvider2()
+		else
+			Result := UnInstallProvider();
+end;
+
+function doUnInstall64() : Boolean;
+	var ResultCode : Integer;
+begin
+	Exec(ExpandConstant('{app}\OnSipInstall64.exe'), 'uninstall', '', SW_HIDE,
+		ewWaitUntilTerminated, ResultCode);
+
+	Result := ResultCode = 0;
+end;
+
+// isUnInstall : true if doing a full uninstallation
+function doUnInstall( isUnInstall : Boolean ) : Boolean;
+begin
+	if IsX64 then
+		Result := doUnInstall64()
+	else
+		Result := doUnInstall32( isUnInstall );
+end;
+
+//************   Install Methods  ****************
+
+function doInstall32() : Boolean;
+begin
+	Result := InstallProvider();
+end;
+
+function doInstall64() : Boolean;
+	var ResultCode : Integer;
+begin
+	Exec(ExpandConstant('{app}\OnSipInstall64.exe'), 'install', '', SW_HIDE,
+		ewWaitUntilTerminated, ResultCode);
+
+	Result := ResultCode = 0;
+end;
+
+function doInstall() : Boolean;
+begin
+	if IsX64 then
+		Result := doInstall64()
+	else
+		Result := doInstall32();
+end;
 
 //******************************************************************************
 
@@ -103,7 +184,7 @@ begin
 		// else continue with uninstalling the current telephony provider
 		end else begin
 			SetControlCursor(WizardForm, crHourGlass);
-			if ( not UnInstallProvider() ) then begin
+			if ( not doUnInstall(false) ) then begin
 				MsgBox('An error occurred in removing the {#ShortAppName}. ' + #10 + #13
 					+ 'You may trying uninstalling from the Telephony Control Panel ' + #10 + #13
 					+ 'and then run the install again', mbError, MB_OK );
@@ -117,7 +198,7 @@ begin
 
 	// If install is complete, then install the new TAPI provider
 	if CurPage = wpFinished then begin
-		if ( not InstallProvider() ) then begin
+		if ( not doInstall() ) then begin
 			MsgBox('An error occurred installing the {#ShortAppName} into the Telephony Control Panel.' + #10 + #13
 				+ 'You may attempt installing it manually.  See the documentation for details.', mbError, MB_OK );
 		end;
@@ -129,8 +210,9 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
 	// Call our function just before the actual uninstall process begins
 	if CurUninstallStep = usUninstall then begin
+
 		// Remove the TAPI provider
-		UnInstallProvider2();
+		doUnInstall(true);
 
 		// Now that we're finished with it, unload MyDll.dll from memory.
 		// We have to do this so that the uninstaller will be able to remove the DLL and the {app} directory.

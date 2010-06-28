@@ -104,3 +104,7 @@ TSP release 9-09-09 - fixes  v1.07 installer
         call-setup-id is specified in the IQ make call request, all
         message events for this call will contain this call-setup-id.
 
+TSP release 6-28-10 - 64-bit  v1.08 installer
+     1) Supports 64-bit Windows 7.  Had to convert binaries to 64-bit.
+        Created a single installer that will install for 32-bit and 64-bit.
+
